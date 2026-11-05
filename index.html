@@ -1071,7 +1071,7 @@ async function init(){
 // Order history is private. The page never reads the sales table: it asks the dealer-portal function, which checks an
 // emailed access code first and returns only this dealer's own orders.
 const PORTAL_URL=SB+'/functions/v1/dealer-portal';
-var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false};
+var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false,staffTok:'',staffRef:'',staffExp:0,staffWho:'',dealerName:''};
 const poKey=()=>'tgk_po_'+tok().slice(0,16);
 function poCall(body){
   return fetch(PORTAL_URL,{method:'POST',headers:Object.assign({},H,{'Content-Type':'application/json'}),body:JSON.stringify(Object.assign({token:tok()},body))})
@@ -1084,7 +1084,7 @@ const PO_OPEN=['Processing','Packed','Backordered','Partially shipped','On hold'
 const PO_ORDER=['Processing','Packed','Backordered','Partially shipped','Shipped','Delivered','On hold','Cancelled'];
 const poSafeUrl=u=>/^https:\/\//i.test(u||'')?u:'';
 async function portalBoot(){
-  if(isStaffPreview()){PO.staff=true;document.getElementById('tab-orders').style.display='';renderStrip();return;}
+  if(isStaffPreview())return staffBoot();   // staff: an ERP login, no emailed code
   try{
     const s=await poCall({action:'status'});
     PO.hint=s.email_hint||'';PO.canUnlock=!!s.can_unlock;PO.hasPrefix=!!s.has_prefix;
@@ -1097,13 +1097,18 @@ async function portalBoot(){
 function poDays(){const r=PO.range||'365';if(r==='ytd'){const n=new Date();return Math.max(1,Math.ceil((n-new Date(n.getFullYear(),0,1))/864e5)+1);}return parseInt(r,10)||0;}
 async function portalLoad(first){
   try{
-    const j=await poCall({action:'orders',session:PO.session,days:first?365:poDays()});
+    let j;
+    if(PO.staff){
+      const tk=await poStaffToken();
+      if(!tk){PO.state='locked';PO.err='';renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();return;}
+      j=await poCall({action:'orders',staff_token:tk,days:first?365:poDays()});
+    }else j=await poCall({action:'orders',session:PO.session,days:first?365:poDays()});
     PO.orders=j.orders||[];PO.pending=j.amounts_pending||0;PO.amountsAvail=j.amounts_available!==false;PO.truncated=!!j.truncated;PO.noPrefix=!!j.no_prefix;PO.ranAt=j.generated_at;PO.state='ready';PO.err='';
     if(first)PO.range='365';
     poBuildMap();
     if(PO.pending>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false),1500);} else PO.retries=0;
   }catch(e){
-    if(e.status===401){poForget();PO.state='locked';PO.err='';}
+    if(e.status===401){if(PO.staff)poStaffClear();else poForget();PO.state='locked';PO.err='';}
     else{PO.state=PO.orders.length?'ready':'error';PO.err=e.message||'Could not load your orders.';}
   }
   renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
@@ -1126,19 +1131,19 @@ function poYear(){const cut=Date.now()-365*864e5;return PO.orders.filter(o=>o.st
 function poSum(list){let s=0,miss=0;list.forEach(o=>{if(o.amounts&&o.amounts.subtotal!=null)s+=o.amounts.subtotal;else miss++;});return {s,miss};}
 function renderStrip(){
   const el=document.getElementById('acct-strip'),tbl=document.querySelector('#panel-price table'),chip=document.getElementById('pf-ordered');if(!el)return;
-  const on=PO.state==='ready'&&!PO.staff;
+  const on=PO.state==='ready';
   if(tbl)tbl.classList.toggle('ord-on',on&&!!PO.map);
   if(chip){const n=PO.map?Object.keys(PO.map).length:0;chip.style.display=on&&n?'':'none';if(!on&&priceFilter==='ordered'){priceFilter='all';}}
-  if(PO.staff||PO.state==='idle'||PO.state==='error'&&!PO.orders.length){el.innerHTML='';return;}
-  if(PO.state==='locked'||PO.state==='loading'){el.innerHTML='<div class="acct-bar"><span class="acct-title">Your orders</span><span>'+(PO.state==='loading'?'Loading your order history&hellip;':'Order history is private.')+'</span>'+(PO.state==='locked'?'<span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">Unlock my orders &rarr;</a></span>':'')+'</div>';return;}
+  if(PO.state==='idle'||PO.state==='error'&&!PO.orders.length){el.innerHTML='';return;}
+  if(PO.state==='locked'||PO.state==='loading'){el.innerHTML='<div class="acct-bar"><span class="acct-title">'+(PO.staff?'Staff view':'Your orders')+'</span><span>'+(PO.state==='loading'?'Loading order history&hellip;':(PO.staff?'Sign in with your ERP login to see this dealer\'s orders.':'Order history is private.'))+'</span>'+(PO.state==='locked'?'<span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">'+(PO.staff?'Staff sign-in':'Unlock my orders')+' &rarr;</a></span>':'')+'</div>';return;}
   const y=poYear(),sm=poSum(y),open=PO.orders.filter(o=>PO_OPEN.indexOf(o.status)>=0).length;
-  el.innerHTML='<div class="acct-bar on"><span class="acct-title">Your account</span><span>Ordered in the last 12 months: <b>'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</b>'+(sm.miss&&PO.amountsAvail?' <span style="color:var(--text3)">(+'+sm.miss+' pricing)</span>':'')+'</span><span>'+y.length+' PO'+(y.length!==1?'s':'')+'</span><span style="color:var(--amber)"><b>'+open+'</b> open</span><span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">View my orders &rarr;</a></span></div>';
+  el.innerHTML='<div class="acct-bar on"><span class="acct-title">'+(PO.staff?'Staff view':'Your account')+'</span><span>Ordered in the last 12 months: <b>'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</b>'+(sm.miss&&PO.amountsAvail?' <span style="color:var(--text3)">(+'+sm.miss+' pricing)</span>':'')+'</span><span>'+y.length+' PO'+(y.length!==1?'s':'')+'</span><span style="color:var(--amber)"><b>'+open+'</b> open</span><span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">View my orders &rarr;</a></span></div>';
 }
 function portalShown(){if(PO.built===false){PO.built=true;}renderOrders();}
 // ---- the My Orders panel
 function renderOrders(){
   const p=document.getElementById('panel-orders');if(!p)return;
-  if(PO.staff){p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Order history</h2><p>Order history is private to the dealer, so it is not shown in staff preview.</p></div></div>';return;}
+  if(PO.staff&&(PO.state==='locked'||PO.state==='error'&&!PO.orders.length)){staffForm(p);return;}
   if(PO.state==='loading'||PO.state==='idle'){p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Loading your orders&hellip;</h2></div></div>';return;}
   if(PO.state==='locked'||PO.state==='error'&&!PO.orders.length){
     const sent=PO.codeSent;
@@ -1158,7 +1163,8 @@ function renderOrders(){
   }
   const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false)">Refresh</button><button class="btn" onclick="poSignOut()">Lock</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
+   +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +'<div class="po-stats" id="po-stats"></div><div class="po-sub" id="po-amtnote"></div>'
    +'<div class="po-bar"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="po-q" placeholder="Search PO number, order number or SKU&hellip;" value="'+esc(PO.q)+'" oninput="PO.q=this.value;PO.shown=25;poList()"></div>'
@@ -1183,7 +1189,7 @@ function poList(){
    +'<div class="po-stat"><div class="l">Open POs</div><div class="n" style="color:var(--amber)">'+open.length+'</div><div class="s">'+(bo.length?bo.length+' with backordered items':'none backordered')+'</div></div>'
    +'<div class="po-stat"><div class="l">In transit</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">shipped, not yet delivered</div></div>'
    +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?'PO '+esc(last.po)+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
-  document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on your invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
+  document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
   document.getElementById('po-upd').textContent=PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'';
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
   document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
@@ -1244,6 +1250,65 @@ async function poVerify(){
 async function poSignOut(){const s=PO.session;poForget();PO.state='locked';PO.codeSent=false;PO.info='';PO.err='';if(s){try{await poCall({action:'signout',session:s});}catch(e){}}
   if(priceFilter==='ordered'){priceFilter='all';document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));document.querySelector('.filt-btn').classList.add('on');}
   renderStrip();renderTabBadge();renderPrice();renderOrders();}
+
+// ---- staff access: an ERP login opens any dealer's orders, no emailed code
+const poStaffKey=()=>'tgk_po_staff_'+tok().slice(0,16);
+function poJwtExp(t){try{const p=JSON.parse(atob(String(t).split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return (p.exp||0)*1000;}catch(e){return 0;}}
+function poStaffSave(){try{sessionStorage.setItem(poStaffKey(),JSON.stringify({t:PO.staffTok,r:PO.staffRef,e:PO.staffExp,w:PO.staffWho}));}catch(e){}}
+function poStaffLoad(){try{const x=JSON.parse(sessionStorage.getItem(poStaffKey())||'null');if(x&&x.t){PO.staffTok=x.t;PO.staffRef=x.r||'';PO.staffExp=x.e||0;PO.staffWho=x.w||'';return true;}}catch(e){}return false;}
+function poStaffClear(keepErr){PO.staffTok='';PO.staffRef='';PO.staffExp=0;try{sessionStorage.removeItem(poStaffKey());}catch(e){}PO.orders=[];PO.map=null;PO.state='locked';if(!keepErr)PO.err='';}
+// where a staff login can come from: (1) the ERP's View button (#st=...), (2) this tab's earlier sign-in, (3) an ERP session on this same site
+function poStaffPickup(){
+  const m=/(?:^|[#&])st=([^&]+)/.exec(location.hash||'');
+  if(m){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+    const t=decodeURIComponent(m[1]);if(t.length>40){PO.staffTok=t;PO.staffRef='';PO.staffExp=poJwtExp(t)||Date.now()+55*60000;poStaffSave();return;}}
+  if(poStaffLoad()&&(PO.staffExp-Date.now()>60000||PO.staffRef))return;
+  try{const ref=new URL(SB).hostname.split('.')[0],x=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');
+    if(x&&x.access_token&&(x.expires_at||0)*1000-Date.now()>120000){PO.staffTok=x.access_token;PO.staffRef='';PO.staffExp=x.expires_at*1000;poStaffSave();}}catch(e){}
+}
+async function poStaffToken(){ // a valid token, refreshing our own sign-in when it is about to end (never the ERP's own session)
+  if(PO.staffTok&&PO.staffExp-Date.now()>60000)return PO.staffTok;
+  if(PO.staffRef){try{const r=await fetch(SB+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SK,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:PO.staffRef})});const j=await r.json();
+    if(r.ok&&j.access_token){PO.staffTok=j.access_token;PO.staffRef=j.refresh_token||PO.staffRef;PO.staffExp=Date.now()+(j.expires_in||3600)*1000;poStaffSave();return PO.staffTok;}}catch(e){}}
+  poStaffClear();return null;
+}
+async function staffBoot(){
+  PO.staff=true;poStaffPickup();
+  const show=()=>{document.getElementById('tab-orders').style.display='';};
+  if(PO.staffTok&&await poStaffToken()){
+    try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show();PO.state='loading';renderStrip();await portalLoad(true);return;}
+    catch(e){if(e.status===401)poStaffClear();else if(!(e.data&&e.data.error))return;}
+  }
+  try{await poCall({action:'status'});}catch(e){if(!(e.status===404&&e.data&&e.data.error))return;} // the function has to be deployed
+  show();PO.state='locked';renderStrip();
+}
+function staffForm(p){
+  p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Staff sign-in</h2><p>Sign in with your ERP login to see this dealer\'s orders. The dealer is not emailed anything, and the view is recorded.</p>'
+   +'<div style="display:grid;gap:10px;max-width:340px"><input class="po-sel" id="po-se" type="email" autocomplete="username" placeholder="ERP email" onkeydown="if(event.key===\'Enter\')poStaffSignIn()"><input class="po-sel" id="po-sp" type="password" autocomplete="current-password" placeholder="Password" onkeydown="if(event.key===\'Enter\')poStaffSignIn()"></div>'
+   +'<div style="margin-top:14px"><button class="po-btn" id="po-go" onclick="poStaffSignIn()"'+(PO.busy?' disabled':'')+'>'+(PO.busy?'Signing in&hellip;':'Sign in')+'</button></div>'
+   +(PO.err?'<div class="po-err">'+esc(PO.err)+'</div>':'')
+   +'<p style="font-size:12px;color:var(--text3);margin-top:16px">Tip: the View button on the ERP\'s Dealers page signs you in automatically.</p></div></div>';
+  const e=document.getElementById('po-se');if(e&&!e.value&&document.activeElement!==e)e.focus();
+}
+async function poStaffSignIn(){
+  const em=((document.getElementById('po-se')||{}).value||'').trim(),pw=(document.getElementById('po-sp')||{}).value||'';
+  if(PO.busy)return;if(!em||!pw){PO.err='Enter your ERP email and password.';renderOrders();return;}
+  PO.busy=true;PO.err='';renderOrders();
+  try{
+    const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:SK,'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.access_token)throw new Error(/invalid/i.test((j.error_description||j.msg||'')+'')?'That email or password is not right.':((j.error_description||j.msg||'Sign-in failed.')+''));
+    PO.staffTok=j.access_token;PO.staffRef=j.refresh_token||'';PO.staffExp=Date.now()+(j.expires_in||3600)*1000;
+    const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();
+    PO.state='loading';PO.busy=false;PO.retries=0;renderStrip();renderOrders();await portalLoad(true);return;
+  }catch(err){PO.err=err.status===401?'That login is not an ERP account.':err.message;poStaffClear(true);}
+  PO.busy=false;renderStrip();renderOrders();
+}
+function poStaffSignOut(){
+  poStaffClear();
+  if(priceFilter==='ordered'){priceFilter='all';document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));document.querySelector('.filt-btn').classList.add('on');}
+  renderStrip();renderTabBadge();renderPrice();renderOrders();
+}
 
 init();
 
