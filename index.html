@@ -1207,13 +1207,14 @@ function poMatches(o){
 }
 function poList(){
   const all=PO.orders,rows=all.filter(poMatches),sm=poSum(all.filter(o=>o.status!=='Cancelled')),act=all.filter(o=>o.status!=='Cancelled');
-  const open=all.filter(o=>PO_OPEN.indexOf(o.status)>=0),bo=open.filter(o=>o.lines.some(l=>l.backordered>0)),transit=all.filter(o=>(o.status==='Shipped'||o.status==='Partially shipped')&&(o.tracking||[]).length);
-  const rl=PO.range==='custom'?poCustomLabel():({'90':'last 90 days','365':'last 12 months','ytd':'this year','0':'all time'})[PO.range||'365'];
+  const open=all.filter(o=>PO_OPEN.indexOf(o.status)>=0),bo=open.filter(o=>o.lines.some(l=>l.backordered>0)),recent=Date.now()-14*864e5,transit=all.filter(o=>(o.status==='Shipped'||o.status==='Partially shipped')&&(o.tracking||[]).length&&Math.max.apply(null,o.tracking.map(t=>Date.parse(String(t.shipped_at||o.date).slice(0,10)+'T12:00:00')||0))>=recent); // the ERP rarely marks orders Delivered, so "shipped" alone would count every order ever sent
+  let rl=PO.range==='custom'?poCustomLabel():({'90':'last 90 days','365':'last 12 months','ytd':'this year','0':'all time'})[PO.range||'365'];
+  if((PO.range||'365')==='0'&&!PO.truncated){const dts=all.map(o=>String(o.date).slice(0,10)).filter(Boolean).sort();if(dts.length)rl='all time, since '+poDate(dts[0]);} // "all time" means since the first order on file: say when that is
   const last=all.filter(o=>o.status!=='Cancelled')[0];
   const st=document.getElementById('po-stats');if(!st)return;
   st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+(sm.miss&&PO.amountsAvail?' &middot; '+sm.miss+' still pricing':'')+'</div></div>'
    +'<div class="po-stat"><div class="l">Open POs</div><div class="n" style="color:var(--amber)">'+open.length+'</div><div class="s">'+(bo.length?bo.length+' with backordered items':'none backordered')+'</div></div>'
-   +'<div class="po-stat"><div class="l">In transit</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">shipped, not yet delivered</div></div>'
+   +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
    +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?'PO '+esc(last.po)+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
   document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
