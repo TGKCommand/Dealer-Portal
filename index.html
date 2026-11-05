@@ -1103,14 +1103,18 @@ function poRangeParams(){const r=PO.range||'365';if(r==='custom')return {from:PO
 async function portalLoad(first,yearToo){
   try{
     if(first)PO.range='365';
-    const rangeIsYear=(PO.range||'365')==='365';
+    const rangeIsYear=(PO.range||'365')==='365';let stale=false;
     if(first||yearToo||!PO.year||rangeIsYear){ // the last 12 months always stay loaded: they feed the account strip, the tab badge and the price list column
       const jy=await poFetchOrders({days:365});
-      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;
+      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';
     }
     if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;}
-    else{const jr=await poFetchOrders(poRangeParams());PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
-    PO.state='ready';PO.err='';PO.rangeErr='';
+    else{
+      const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;
+      if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
+      else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
+    }
+    PO.state='ready';PO.err='';PO.rangeErr=stale?(PO.staff?'The dealer-portal function on the server is an older version that ignores dates. Redeploy the newest dealer-portal.ts (v1.1 or later). The list below is unchanged.':'Custom dates are not available right now. Please use one of the standard ranges, or email info@tgkmotorsport.com.'):'';
     poBuildMap();
     if(Math.max(PO.pendY,PO.pendR)>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false,PO.pendY>0),1500);}else PO.retries=0;
   }catch(e){
@@ -1212,7 +1216,7 @@ function poList(){
    +'<div class="po-stat"><div class="l">In transit</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">shipped, not yet delivered</div></div>'
    +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?'PO '+esc(last.po)+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
-  document.getElementById('po-upd').textContent=PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'';
+  document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
   document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
