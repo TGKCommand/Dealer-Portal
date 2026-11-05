@@ -1071,7 +1071,7 @@ async function init(){
 // Order history is private. The page never reads the sales table: it asks the dealer-portal function, which checks an
 // emailed access code first and returns only this dealer's own orders.
 const PORTAL_URL=SB+'/functions/v1/dealer-portal';
-var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false,staffTok:'',staffRef:'',staffExp:0,staffWho:'',dealerName:''};
+var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false,staffTok:'',staffRef:'',staffExp:0,staffWho:'',dealerName:'',year:null,from:'',to:'',rangeErr:'',pendY:0,pendR:0,truncatedY:false};
 const poKey=()=>'tgk_po_'+tok().slice(0,16);
 function poCall(body){
   return fetch(PORTAL_URL,{method:'POST',headers:Object.assign({},H,{'Content-Type':'application/json'}),body:JSON.stringify(Object.assign({token:tok()},body))})
@@ -1095,28 +1095,35 @@ async function portalBoot(){
   }catch(e){console.warn('[TGK] order history is not available:',e.message);}
 }
 function poDays(){const r=PO.range||'365';if(r==='ytd'){const n=new Date();return Math.max(1,Math.ceil((n-new Date(n.getFullYear(),0,1))/864e5)+1);}return parseInt(r,10)||0;}
-async function portalLoad(first){
+async function poFetchOrders(extra){
+  if(PO.staff){const tk=await poStaffToken();if(!tk){const e=new Error('Your staff sign-in has ended.');e.status=401;throw e;}return poCall(Object.assign({action:'orders',staff_token:tk},extra));}
+  return poCall(Object.assign({action:'orders',session:PO.session},extra));
+}
+function poRangeParams(){const r=PO.range||'365';if(r==='custom')return {from:PO.from||'',to:PO.to||''};return {days:poDays()};}
+async function portalLoad(first,yearToo){
   try{
-    let j;
-    if(PO.staff){
-      const tk=await poStaffToken();
-      if(!tk){PO.state='locked';PO.err='';renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();return;}
-      j=await poCall({action:'orders',staff_token:tk,days:first?365:poDays()});
-    }else j=await poCall({action:'orders',session:PO.session,days:first?365:poDays()});
-    PO.orders=j.orders||[];PO.pending=j.amounts_pending||0;PO.amountsAvail=j.amounts_available!==false;PO.truncated=!!j.truncated;PO.noPrefix=!!j.no_prefix;PO.ranAt=j.generated_at;PO.state='ready';PO.err='';
     if(first)PO.range='365';
+    const rangeIsYear=(PO.range||'365')==='365';
+    if(first||yearToo||!PO.year||rangeIsYear){ // the last 12 months always stay loaded: they feed the account strip, the tab badge and the price list column
+      const jy=await poFetchOrders({days:365});
+      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;
+    }
+    if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;}
+    else{const jr=await poFetchOrders(poRangeParams());PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
+    PO.state='ready';PO.err='';PO.rangeErr='';
     poBuildMap();
-    if(PO.pending>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false),1500);} else PO.retries=0;
+    if(Math.max(PO.pendY,PO.pendR)>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false,PO.pendY>0),1500);}else PO.retries=0;
   }catch(e){
     if(e.status===401){if(PO.staff)poStaffClear();else poForget();PO.state='locked';PO.err='';}
-    else{PO.state=PO.orders.length?'ready':'error';PO.err=e.message||'Could not load your orders.';}
+    else if(e.status===400&&PO.range==='custom'){PO.rangeErr=e.message;}
+    else{PO.state=(PO.year||PO.orders).length?'ready':'error';PO.err=e.message||'Could not load your orders.';}
   }
   renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
 }
-function poForget(){PO.session=null;PO.orders=[];PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
+function poForget(){PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
 function poBuildMap(){
   const cut=Date.now()-365*864e5,m={};
-  PO.orders.forEach(o=>{if(o.status==='Cancelled')return;if(Date.parse(String(o.date).slice(0,10)+'T12:00:00')<cut)return;
+  (PO.year||[]).forEach(o=>{if(o.status==='Cancelled')return;if(Date.parse(String(o.date).slice(0,10)+'T12:00:00')<cut)return;
     o.lines.forEach(l=>{if(l.status==='Cancelled')return;[l.sku,l.pn].forEach(k=>{if(!k)return;k=String(k).toLowerCase();const x=m[k]||(m[k]={n:0,last:'',bo:0,_o:{}});if(x._o[o.order_number+'|'+l.pn])return;x._o[o.order_number+'|'+l.pn]=1;x.n+=l.qty;x.bo+=l.backordered||0;if(String(o.date)>x.last)x.last=String(o.date);});});});
   PO.map=m;
 }
@@ -1124,10 +1131,10 @@ function ordInfo(a){if(!PO.map)return null;return PO.map[String(pnOf(a)).toLower
 function ordCell(i){return i?'<b style="color:#0f766e">'+i.n+'</b> <span style="color:var(--text3);font-size:12px">&middot; last '+poDate(i.last).replace(/, \d{4}$/,'')+'</span>'+(i.bo?'<span class="ord-bo">'+i.bo+' on backorder</span>':''):'<span class="ord-none">Not yet</span>';}
 function renderTabBadge(){
   const el=document.getElementById('ord-count');if(!el)return;
-  const n=PO.state==='ready'?PO.orders.filter(o=>PO_OPEN.indexOf(o.status)>=0).length:0;
+  const n=PO.state==='ready'?(PO.year||[]).filter(o=>PO_OPEN.indexOf(o.status)>=0).length:0;
   el.style.display=n?'':'none';el.textContent=n+' open';
 }
-function poYear(){const cut=Date.now()-365*864e5;return PO.orders.filter(o=>o.status!=='Cancelled'&&Date.parse(String(o.date).slice(0,10)+'T12:00:00')>=cut);}
+function poYear(){const cut=Date.now()-365*864e5;return (PO.year||[]).filter(o=>o.status!=='Cancelled'&&Date.parse(String(o.date).slice(0,10)+'T12:00:00')>=cut);}
 function poSum(list){let s=0,miss=0;list.forEach(o=>{if(o.amounts&&o.amounts.subtotal!=null)s+=o.amounts.subtotal;else miss++;});return {s,miss};}
 function renderStrip(){
   const el=document.getElementById('acct-strip'),tbl=document.querySelector('#panel-price table'),chip=document.getElementById('pf-ordered');if(!el)return;
@@ -1136,7 +1143,7 @@ function renderStrip(){
   if(chip){const n=PO.map?Object.keys(PO.map).length:0;chip.style.display=on&&n?'':'none';if(!on&&priceFilter==='ordered'){priceFilter='all';}}
   if(PO.state==='idle'||PO.state==='error'&&!PO.orders.length){el.innerHTML='';return;}
   if(PO.state==='locked'||PO.state==='loading'){el.innerHTML='<div class="acct-bar"><span class="acct-title">'+(PO.staff?'Staff view':'Your orders')+'</span><span>'+(PO.state==='loading'?'Loading order history&hellip;':(PO.staff?'Sign in with your ERP login to see this dealer\'s orders.':'Order history is private.'))+'</span>'+(PO.state==='locked'?'<span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">'+(PO.staff?'Staff sign-in':'Unlock my orders')+' &rarr;</a></span>':'')+'</div>';return;}
-  const y=poYear(),sm=poSum(y),open=PO.orders.filter(o=>PO_OPEN.indexOf(o.status)>=0).length;
+  const y=poYear(),sm=poSum(y),open=(PO.year||[]).filter(o=>PO_OPEN.indexOf(o.status)>=0).length;
   el.innerHTML='<div class="acct-bar on"><span class="acct-title">'+(PO.staff?'Staff view':'Your account')+'</span><span>Ordered in the last 12 months: <b>'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</b>'+(sm.miss&&PO.amountsAvail?' <span style="color:var(--text3)">(+'+sm.miss+' pricing)</span>':'')+'</span><span>'+y.length+' PO'+(y.length!==1?'s':'')+'</span><span style="color:var(--amber)"><b>'+open+'</b> open</span><span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">View my orders &rarr;</a></span></div>';
 }
 function portalShown(){if(PO.built===false){PO.built=true;}renderOrders();}
@@ -1161,19 +1168,34 @@ function renderOrders(){
      +'</div></div>';
     const c=document.getElementById('po-code');if(c&&document.activeElement!==c)c.focus();return;
   }
-  const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
+  const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time'],['custom','Custom range&hellip;']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +'<div class="po-stats" id="po-stats"></div><div class="po-sub" id="po-amtnote"></div>'
    +'<div class="po-bar"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="po-q" placeholder="Search PO number, order number or SKU&hellip;" value="'+esc(PO.q)+'" oninput="PO.q=this.value;PO.shown=25;poList()"></div>'
    +'<select class="po-sel" id="po-range" onchange="poRange(this.value)">'+rangeOpt+'</select><button class="btn" onclick="poExport()">Export CSV</button></div>'
+   +(PO.range==='custom'?'<div class="po-bar" id="po-custom"><label class="po-sub" style="display:flex;align-items:center;gap:6px">From <input type="date" class="po-sel" id="po-from" value="'+esc(PO.from)+'" max="'+poISO(new Date())+'" onkeydown="if(event.key===\'Enter\')poApplyCustom()"></label><label class="po-sub" style="display:flex;align-items:center;gap:6px">To <input type="date" class="po-sel" id="po-to" value="'+esc(PO.to)+'" max="'+poISO(new Date())+'" onkeydown="if(event.key===\'Enter\')poApplyCustom()"></label><button class="btn" onclick="poApplyCustom()">Apply</button><span class="po-sub">Leave a date empty for no limit on that side.</span>'+(PO.rangeErr?'<span class="po-err" style="margin:0">'+esc(PO.rangeErr)+'</span>':'')+'</div>':'')
    +'<div class="po-chips" id="po-chips"></div><div class="po-card" id="po-card"></div>'
    +'<div class="po-sub">Questions about an order? Email <b>info@tgkmotorsport.com</b> and quote the PO number.</div></div>';
   poList();
 }
-function poRange(v){PO.range=v;PO.shown=25;PO.retries=0;portalLoad(false);}
+function poISO(d){const z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());}
+function poRange(v){
+  PO.range=v;PO.shown=25;PO.retries=0;PO.rangeErr='';
+  if(v==='custom'){ // show the date boxes (starting from the last 12 months) and wait for Apply
+    if(!PO.from&&!PO.to){const t=new Date();PO.to=poISO(t);PO.from=poISO(new Date(t.getTime()-365*864e5));}
+    renderOrders();return;
+  }
+  portalLoad(false);
+}
+function poApplyCustom(){
+  const f=(document.getElementById('po-from')||{}).value||'',t=(document.getElementById('po-to')||{}).value||'';
+  if(f&&t&&f>t){PO.rangeErr='The start date has to be on or before the end date.';PO.from=f;PO.to=t;renderOrders();return;}
+  PO.from=f;PO.to=t;PO.rangeErr='';PO.shown=25;PO.retries=0;portalLoad(false);
+}
+function poCustomLabel(){return (PO.from?poDate(PO.from):'the beginning')+' to '+(PO.to?poDate(PO.to):'today');}
 function poMatches(o){
   const q=(PO.q||'').toLowerCase().trim();if(PO.status!=='all'&&o.status!==PO.status)return false;if(!q)return true;
   const hay=[o.po,o.order_number,o.status].concat((o.tracking||[]).map(t=>t.number)).concat(o.lines.flatMap(l=>[l.sku,l.pn,l.desc])).join(' ').toLowerCase();
@@ -1182,7 +1204,7 @@ function poMatches(o){
 function poList(){
   const all=PO.orders,rows=all.filter(poMatches),sm=poSum(all.filter(o=>o.status!=='Cancelled')),act=all.filter(o=>o.status!=='Cancelled');
   const open=all.filter(o=>PO_OPEN.indexOf(o.status)>=0),bo=open.filter(o=>o.lines.some(l=>l.backordered>0)),transit=all.filter(o=>(o.status==='Shipped'||o.status==='Partially shipped')&&(o.tracking||[]).length);
-  const rl=({'90':'last 90 days','365':'last 12 months','ytd':'this year','0':'all time'})[PO.range||'365'];
+  const rl=PO.range==='custom'?poCustomLabel():({'90':'last 90 days','365':'last 12 months','ytd':'this year','0':'all time'})[PO.range||'365'];
   const last=all.filter(o=>o.status!=='Cancelled')[0];
   const st=document.getElementById('po-stats');if(!st)return;
   st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+(sm.miss&&PO.amountsAvail?' &middot; '+sm.miss+' still pricing':'')+'</div></div>'
@@ -1256,7 +1278,7 @@ const poStaffKey=()=>'tgk_po_staff_'+tok().slice(0,16);
 function poJwtExp(t){try{const p=JSON.parse(atob(String(t).split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return (p.exp||0)*1000;}catch(e){return 0;}}
 function poStaffSave(){try{sessionStorage.setItem(poStaffKey(),JSON.stringify({t:PO.staffTok,r:PO.staffRef,e:PO.staffExp,w:PO.staffWho}));}catch(e){}}
 function poStaffLoad(){try{const x=JSON.parse(sessionStorage.getItem(poStaffKey())||'null');if(x&&x.t){PO.staffTok=x.t;PO.staffRef=x.r||'';PO.staffExp=x.e||0;PO.staffWho=x.w||'';return true;}}catch(e){}return false;}
-function poStaffClear(keepErr){PO.staffTok='';PO.staffRef='';PO.staffExp=0;try{sessionStorage.removeItem(poStaffKey());}catch(e){}PO.orders=[];PO.map=null;PO.state='locked';if(!keepErr)PO.err='';}
+function poStaffClear(keepErr){PO.staffTok='';PO.staffRef='';PO.staffExp=0;try{sessionStorage.removeItem(poStaffKey());}catch(e){}PO.orders=[];PO.year=null;PO.map=null;PO.state='locked';if(!keepErr)PO.err='';}
 // where a staff login can come from: (1) the ERP's View button (#st=...), (2) this tab's earlier sign-in, (3) an ERP session on this same site
 function poStaffPickup(){
   const m=/(?:^|[#&])st=([^&]+)/.exec(location.hash||'');
