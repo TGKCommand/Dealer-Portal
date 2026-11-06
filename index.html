@@ -989,6 +989,16 @@ td{font-size:13px;padding:7px 10px}
 .cd-head{height:52px}
 .cd-line{padding:10px 18px;gap:10px;grid-template-columns:64px minmax(0,1fr) auto}
 .cd-foot{padding:12px 18px 16px}
+
+/* the Fitment Guide: the shared finder bar on top, then a slim search and export row */
+#ff-wrap{margin:14px 28px 0}
+#panel-fit>.toolbar{background:transparent;border:0;margin:8px 28px 12px;padding:0;align-items:center;flex-wrap:wrap}
+#panel-fit>.toolbar::before,#panel-fit>.toolbar::after{display:none!important}
+#panel-fit>.toolbar .search{border-color:#c9ccd1}
+#panel-fit>.toolbar .part-count{color:var(--text3);font-size:12.5px;letter-spacing:.03em;text-transform:none;font-weight:600}
+#panel-fit>.toolbar .btn{background:#fff;color:var(--text2);border-color:#c9ccd1}
+#panel-fit>.toolbar .btn:hover{border-color:#111}
+@media(max-width:700px){#ff-wrap{margin:10px 12px 0}#panel-fit>.toolbar{margin:8px 12px 10px}}
 </style>
 </head>
 <body>
@@ -1061,12 +1071,13 @@ td{font-size:13px;padding:7px 10px}
 
   <!-- Fitment Guide -->
   <div id="panel-fit" style="display:none">
+    <div id="ff-wrap"></div>
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search" type="text" id="q-fit" placeholder="Search part # or vehicle&hellip;" oninput="filterFit()">
       </div>
-      <select class="make-sel" id="make-sel" onchange="fillModels();filterFit()"><option value="">All Makes</option></select><select class="make-sel" id="model-sel" onchange="filterFit()" disabled><option value="">All Models</option></select><input class="make-sel" id="year-sel" type="number" inputmode="numeric" placeholder="Year" min="1950" max="2100" oninput="filterFit()" style="width:96px">
+      
       <span class="part-count" id="fit-part-count"></span>
       <button class="btn" onclick="doExport('fit','csv')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1357,7 +1368,7 @@ function showTab(t){
     document.getElementById('tab-'+x).classList.toggle('active',x===t);
   });
   if(t==='orders')portalShown();
-  if(t==='shop')shopShown();
+  if(t==='shop')shopShown(); if(t==='fit'&&typeof ffRender==='function'){ffRender();filterFit();}
   if(t==='team')teamShown();
 }
 
@@ -1491,8 +1502,7 @@ function renderPrice(){
 // ── Fitment guide ────────────────────────────────────────────────────────────
 function filterFit(){
   const q=(document.getElementById('q-fit').value||'').toLowerCase().trim();
-  const make=(document.getElementById('make-sel').value||'').toLowerCase();
-  const model=(document.getElementById('model-sel').value||'').toLowerCase(),yr=parseInt(document.getElementById('year-sel').value,10);
+  const V_=(typeof SH!=='undefined'&&SH.veh)||{},make=(V_.make||'').toLowerCase(),model=(V_.model||'').toLowerCase(),yr=parseInt(V_.year,10);
   const byVeh=!!(model||(yr>1949&&yr<2101));
   const d=safeDealer(),fi=fitIndex();
   const items=G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
@@ -1504,7 +1514,7 @@ function filterFit(){
     const pn=pnOf(a),key=fi.C(a.pn);
     const all=fitRowsFor(a);
     const fits=all.filter(f=>{
-      const mOk=(!make||(f.make||'').toLowerCase()===make)&&(!model||(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to));
+      const mOk=(!make||(f.make||'').toLowerCase()===make)&&(!model||(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to))&&shopVehMatch(f.engine,V_.engine)&&shopVehMatch(f.chassis,V_.chassis);
       const qOk=!q||[f.engine,f.chassis,pn,a.description,f.make,f.model,f.submodel,f._order,f.notes,f.engine_code,condOf(f),String(f.year_from||''),String(f.year_to||'')].some(x=>String(x||'').toLowerCase().includes(q))
         ||(f.year_from&&f.year_to&&/^\d{4}$/.test(q)&&+q>=f.year_from&&+q<=f.year_to);
       return mOk&&qOk;
@@ -1630,8 +1640,7 @@ async function init(){ if(new URLSearchParams(location.search).get('setup')){acc
       const visFits=G.asms.filter(isVisible).flatMap(a=>fitRowsFor(a));
       document.getElementById('fit-count').textContent=visFits.length;
       const makes=[...new Set(visFits.map(f=>f.make).filter(Boolean))].sort();
-      const msel=document.getElementById('make-sel');
-      makes.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;msel.appendChild(o);});
+      if(typeof ffRender==='function')ffRender();
       document.getElementById('hdr-sub').textContent='Pricing Overview • '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
       document.getElementById('hdr-disc').textContent='All Pricing Tiers';
       document.getElementById('hdr-disc').style.cssText='color:#7c3aed;border-color:#7c3aed';
@@ -1661,8 +1670,7 @@ async function init(){ if(new URLSearchParams(location.search).get('setup')){acc
     const visFits=G.asms.filter(isVisible).flatMap(a=>fitRowsFor(a));
     document.getElementById('fit-count').textContent=visFits.length;
     const makes=[...new Set(visFits.map(f=>f.make).filter(Boolean))].sort();
-    const msel=document.getElementById('make-sel');
-    makes.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;msel.appendChild(o);});
+    if(typeof ffRender==='function')ffRender();
     document.getElementById('hdr-sub').textContent=d.name+' • '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     document.getElementById('hdr-disc').textContent=discLabel(d);
     document.getElementById('loading').style.display='none';
@@ -2466,15 +2474,15 @@ function shopSaveVeh(){try{localStorage.setItem(shGarageKey(),JSON.stringify(SH.
 // "Find my parts" folds it into the vehicle bar.
 const SH_VF=['year','make','model','engine','chassis'],SH_VL={year:'Year',make:'Make',model:'Model',engine:'Engine',chassis:'Chassis'};
 function shopVehRows(){   // every vehicle the parts fit, one row per model year: what the finder's options are built from
-  const n=(G.fits||[]).length;if(SH._vr&&SH._vrN===n&&SH._vrA===SH._items)return SH._vr;
+  const n=(G.fits||[]).length;if(SH._vr&&SH._vrN===n&&SH._vrA===G.asms)return SH._vr;
   const out=[],seen={},cy=new Date().getFullYear()+1;
-  if(typeof fitRowsFor==='function')shopItems().forEach(a=>fitRowsFor(a).forEach(f=>{
+  if(typeof fitRowsFor==='function')(G.asms||[]).filter(isVisible).filter(catAllows).forEach(a=>fitRowsFor(a).forEach(f=>{
     if(!f.make||!f.model)return;
     const y0=parseInt(f.year_from,10);if(!(y0>1949))return;let y1=parseInt(f.year_to,10);if(!(y1>=y0))y1=y0;y1=Math.min(y1,cy,y0+60);
     const en=String(f.engine||'').trim(),ch=String(f.chassis||'').trim();
     for(let y=y0;y<=y1;y++){const k=y+'|'+f.make+'|'+f.model+'|'+en+'|'+ch;if(!seen[k]){seen[k]=1;out.push({year:String(y),make:f.make,model:f.model,engine:en,chassis:ch});}}
   }));
-  SH._vr=out;SH._vrN=n;SH._vrA=SH._items;return out;
+  SH._vr=out;SH._vrN=n;SH._vrA=G.asms;return out;
 }
 function shopVehOpts(f){   // what can be chosen in a field, given the fields before it
   const r=SH_VF.indexOf(f),a={};
@@ -2513,17 +2521,18 @@ function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).fin
 function shopFinderTitle(){   // "Find parts for your vehicle." and, once a make is chosen, "Find parts for your Audi."
   const mk=SH.veh&&SH.veh.make;return 'Find <b class="hl">parts</b> for your '+(mk?'<b class="hl">'+esc(mk)+'</b>':'<b>vehicle</b>')+'.';
 }
-function shopFinderFields(){   // one slim row, like the website's: the labels are for screen readers, the dropdowns name themselves
+function shopFinderFields(px){
+  px=px||'sf';   // one slim row, like the website's: the labels are for screen readers, the dropdowns name themselves
   shopVehNormalize();
   const V=SH.veh;let nextShown=false,h='';
   SH_VF.forEach((f,i)=>{
     const on=i===0||V[SH_VF[i-1]],o=on?shopVehOpts(f):[],optional=(f==='engine'||f==='chassis');
     let cls=V[f]?'is-done':(!on||!o.length)?'is-off':'is-next';
     if(cls==='is-next'){if(optional||nextShown)cls='is-open';else nextShown=true;}   // only the next required field is lit
-    h+='<label class="sf-field '+cls+(optional?' opt':'')+'" for="sf-'+f+'" title="'+SH_VL[f]+(optional?' (optional)':'')+'"><span class="sf-lab">'+SH_VL[f]+(optional?' (optional)':'')+'</span><select class="sf-in" id="sf-'+f+'" onchange="shopVehSet(\''+f+'\',this.value)"'+((!on||!o.length)?' disabled':'')+'><option value="">'+(optional?SH_VL[f]:'Select '+f)+'</option>'+o.map(x=>'<option'+(x===V[f]?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
+    h+='<label class="sf-field '+cls+(optional?' opt':'')+'" for="'+px+'-'+f+'" title="'+SH_VL[f]+(optional?' (optional)':'')+'"><span class="sf-lab">'+SH_VL[f]+(optional?' (optional)':'')+'</span><select class="sf-in" id="'+px+'-'+f+'" onchange="shopVehSet(\''+f+'\',this.value,\''+px+'\')"'+((!on||!o.length)?' disabled':'')+'><option value="">'+(optional?SH_VL[f]:'Select '+f)+'</option>'+o.map(x=>'<option'+(x===V[f]?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
   });
   const ready=!!(V.year&&V.make&&V.model);
-  return h+'<button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()"'+(ready?'':' disabled')+'>FIND MY PARTS</button><button type="button" class="sf-reset" onclick="shopVehClear()" title="Start over" aria-label="Start over"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>';
+  return h+(px==='sf'?'<button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()"'+(ready?'':' disabled')+'>FIND MY PARTS</button>':'')+'<button type="button" class="sf-reset" onclick="shopVehClear()" title="Start over" aria-label="Start over"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>';
 }
 function shopFinderHtml(){
   if(shopVehActive()&&!SH.editVeh&&SH.veh.year&&SH.veh.make&&SH.veh.model){
@@ -2537,20 +2546,25 @@ function shopVehChip(){
   const el=document.getElementById('sf-chip');if(!el)return;
   el.innerHTML=shopVehActive()?'<span class="sf-garage">MY GARAGE &middot; '+esc(shopVehLabel())+' <button type="button" aria-label="Clear vehicle" onclick="shopVehClear()">&times;</button></span><a onclick="shopOpenFit()">Fitment Guide &rarr;</a>':'';
 }
-function shopVehSet(f,v){
+function shopVehAfter(px,f){   // every finder on the page (the shop's and the Fitment Guide's) shows the same vehicle, and the lists follow it
+  ['sf','ff'].forEach(x=>{const box=document.getElementById(x+'-fields');if(box){box.innerHTML=shopFinderFields(x);const ttl=document.getElementById(x+'-title');if(ttl)ttl.innerHTML=shopFinderTitle();}});
+  if(px&&f){const el=document.getElementById(px+'-'+f);if(el&&!el.disabled)el.focus();}
+  shopVehChip();
+  if(typeof filterFit==='function'&&document.getElementById('fit-list'))filterFit();
+}
+function shopVehSet(f,v,px){
   SH.veh[f]=String(v).trim();shopVehNormalize();shopSaveVeh();
-  const ttl=document.getElementById('sf-title');if(ttl)ttl.innerHTML=shopFinderTitle();
-  const box=document.getElementById('sf-fields');if(box){box.innerHTML=shopFinderFields();const el=document.getElementById('sf-'+f);if(el&&!el.disabled)el.focus();}
-  shopVehChip();SH.shown=24;shopList();
+  shopVehAfter(px||'sf',f);SH.shown=24;if(document.getElementById('shop-list'))shopList();
 }
-function shopVehDone(){if(SH.veh.year&&SH.veh.make&&SH.veh.model)SH.editVeh=false;renderShop();}
+function shopVehDone(){if(SH.veh.year&&SH.veh.make&&SH.veh.model)SH.editVeh=false;renderShop();shopVehAfter();}
 function shopVehEdit(){SH.editVeh=true;renderShop();}
-function shopVehClear(){SH.veh={year:'',make:'',model:'',engine:'',chassis:''};SH.editVeh=true;shopSaveVeh();SH.shown=24;renderShop();}
-function shopOpenFit(){
-  const v=SH.veh;showTab('fit');
-  const mk=document.getElementById('make-sel'),md=document.getElementById('model-sel'),yr=document.getElementById('year-sel');
-  if(mk)mk.value=v.make||'';if(typeof fillModels==='function')fillModels();if(md)md.value=v.model||'';if(yr)yr.value=v.year||'';if(typeof filterFit==='function')filterFit();
+function shopVehClear(){SH.veh={year:'',make:'',model:'',engine:'',chassis:''};SH.editVeh=true;shopSaveVeh();SH.shown=24;renderShop();shopVehAfter();}
+// The Fitment Guide's bar: the same finder, always open (it filters the guide as you choose), sharing the vehicle with the shop.
+function ffRender(){
+  const w=document.getElementById('ff-wrap');if(!w)return;
+  w.innerHTML='<div class="shop-finder sf-compact ff"><div class="sf-line"><span class="sf-t" id="ff-title">'+shopFinderTitle()+'</span><div id="ff-fields" class="sf-fields">'+shopFinderFields('ff')+'</div></div></div>';
 }
+function shopOpenFit(){showTab('fit');}   // the Fitment Guide opens already set to the same vehicle (one shared vehicle)
 // ---- the Fitment Guide cards: photo, link to the website, and the same order controls as the shop
 function shopFitReady(){return !!(SH.available&&SH.loaded);}
 function shopFitHdrClass(){return shopFitReady()?'':' fit-nothumb';}
