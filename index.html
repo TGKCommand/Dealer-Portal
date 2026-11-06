@@ -369,6 +369,63 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
 .po-ok{color:var(--green);font-size:13px;margin-top:10px}
 @media(max-width:760px){.po-wrap{padding:16px 14px 30px}.po-stats{grid-template-columns:repeat(2,1fr)}}
 @media print{#acct-strip,.po-bar,.po-chips{display:none!important}}
+/* ── Dealer storefront (Shop tab) ── */
+.sp-badge{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;letter-spacing:.05em;background:var(--orange);color:#fff;padding:2px 7px;border-radius:3px;white-space:nowrap}
+.shop-wrap{padding:20px 36px 90px;display:flex;flex-direction:column;gap:14px}
+.shop-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.shop-top .search-wrap{flex:1;min-width:240px}
+.shop-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.pcard{background:#1b2127;border:1px solid #2c353d;color:#fff;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));display:flex;flex-direction:column}
+.pimg{height:130px;background:linear-gradient(135deg,#232b32,#12171b);display:flex;align-items:center;justify-content:center;color:#3b464e;font-size:11px;letter-spacing:.18em;position:relative;overflow:hidden}
+.pimg img{width:100%;height:100%;object-fit:contain;background:#12171b}
+.pimg .tagsp{position:absolute;top:10px;left:10px;background:var(--orange);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:2px 8px}
+.pbody{padding:12px 15px 15px;display:flex;flex-direction:column;gap:3px;flex:1}
+.psku{font:600 12px ui-monospace,monospace;color:#9aa5ad}
+.pname{font-size:16px;font-weight:700;line-height:1.2;margin-bottom:4px}
+.pprice{display:flex;align-items:baseline;gap:10px}
+.pprice b{font-size:25px;font-weight:700}
+.pprice s{font-size:13px;color:#7d8891}
+.pstd{font-size:12px;color:#9aa5ad}
+.ptier{font-size:12px;color:var(--teal);min-height:16px}
+.pstock{font-size:12px;color:#c9d1d6;display:flex;align-items:center;gap:6px;margin:6px 0}
+.pstock i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pact{display:flex;gap:8px;margin-top:auto}
+.qty{display:flex;align-items:center;justify-content:space-between;border:1px solid #2c353d;background:#0f1418;width:104px;height:36px;padding:0 4px;font-size:16px;flex:none}
+.qty button{background:none;border:none;color:#9aa5ad;font-size:19px;width:26px;height:30px;cursor:pointer;font-family:inherit}
+.qty b{min-width:20px;text-align:center}
+.qty input{width:38px;background:none;border:none;color:inherit;text-align:center;font:700 16px inherit;font-family:inherit;-moz-appearance:textfield}
+.padd{flex:1;height:36px;background:var(--teal);color:#06201c;font-weight:800;font-size:13px;letter-spacing:.06em;border:none;cursor:pointer;font-family:inherit}
+.padd.in{background:#0f1418;color:#7fe3d6;border:1px solid var(--teal)}
+.shop-bar{position:sticky;bottom:0;background:#14181C;color:#fff;border-top:3px solid var(--teal);display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:11px 28px;z-index:5}
+.shop-bar .tot{font-size:21px;font-weight:700}
+.shop-bar .sv{color:#4ade80;font-size:13px}
+.shop-bar .go{background:var(--teal);color:#06201c;font-weight:800;letter-spacing:.07em;padding:11px 22px;border:none;cursor:pointer;font-family:inherit;font-size:14px}
+.rv{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start}
+.rv-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.rv-head{background:#14181C;color:#fff;padding:11px 18px;display:flex;justify-content:space-between;font-weight:700;letter-spacing:.08em;font-size:13.5px;border-bottom:3px solid var(--teal)}
+.rv-line{display:grid;grid-template-columns:64px 1fr 112px 110px 100px 24px;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.rv-line .th{height:50px;background:linear-gradient(135deg,#232b32,#12171b);overflow:hidden}
+.rv-line .th img{width:100%;height:100%;object-fit:contain}
+.rv-line .qty{background:#fff;border:1.5px solid var(--border);color:var(--text)}
+.rv-line .qty button{color:var(--text3)}
+.rv-hint{font-size:12px;color:var(--teal-dark,#0f766e);margin-top:2px}
+.rv-form{padding:16px 18px}
+.rv-form label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--text2);margin:10px 0 3px;text-transform:uppercase}
+.rv-form input,.rv-form select,.rv-form textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:6px;font:inherit;font-size:14px;background:#fff;color:var(--text)}
+.rv-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rv-tot div{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
+.rv-tot .big{font-size:18px;font-weight:700;border-top:1px solid var(--border);margin-top:6px;padding-top:9px}
+.rv-pay{background:#f4f6f9;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.5;margin-top:12px}
+.rv-submit{width:100%;margin-top:14px;padding:14px;background:var(--teal);color:#06201c;font-weight:800;letter-spacing:.08em;font-size:15px;border:none;border-radius:6px;cursor:pointer;font-family:inherit}
+.rv-submit:disabled{opacity:.5;cursor:default}
+.shop-done{max-width:640px;margin:30px auto;text-align:center;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:28px 30px}
+.shop-done h2{margin:6px 0 8px;font-size:22px}
+.shop-done .big-btn{display:inline-block;margin-top:14px;background:var(--teal);color:#06201c;font-weight:800;letter-spacing:.06em;padding:13px 26px;border-radius:6px;text-decoration:none;font-size:15px}
+.req-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 18px}
+.req-row{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.req-row:last-child{border-bottom:none}
+@media(max-width:860px){.rv{grid-template-columns:1fr}.rv-line{grid-template-columns:48px 1fr 96px;grid-template-areas:'a b c' 'a d e'}.shop-wrap{padding:14px 12px 90px}.shop-bar{padding:10px 14px}.shop-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -400,7 +457,11 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Price List
     </div>
-    <div class="tab" id="tab-fit" onclick="showTab('fit')">
+    <div class="tab" id="tab-shop" onclick="showTab('shop')" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+    Shop <span class="tab-count" id="shop-count-badge" style="display:none"></span>
+  </div>
+  <div class="tab" id="tab-fit" onclick="showTab('fit')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       Fitment Guide <span class="tab-count" id="fit-count">0</span>
     </div>
@@ -433,6 +494,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
         <button class="filt-btn" onclick="setPF('instock',this)">In Stock</button>
         <button class="filt-btn" onclick="setPF('backorder',this)">On Backorder</button>
       <button class="filt-btn" id="pf-ordered" style="display:none" onclick="setPF('ordered',this)">&#9733; Ordered before</button>
+      <button class="filt-btn" id="pf-specials" style="display:none" onclick="setPF('specials',this)">&#9733; My specials</button>
       </div>
     </div>
     <div class="summary">
@@ -476,7 +538,8 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8679;</button>
   </div>
 
-  <div id="panel-orders" style="display:none"></div>
+  <div id="panel-shop" style="display:none"></div>
+<div id="panel-orders" style="display:none"></div>
 
   <div class="footer">
     <div class="footer-note">Prices are exclusive of applicable taxes and shipping. This document is confidential and intended solely for the named dealer. Pricing subject to change without notice.</div>
@@ -744,11 +807,12 @@ function renderProspect(tiers){
   if(q2){document.querySelectorAll('#price-tbody tr:not(.cat-row)').forEach(function(r){var pnMatch=(r.dataset.pn||'').includes(q2);var descMatch=(r.dataset.desc||'').includes(q2);if(!pnMatch&&!descMatch)r.style.display='none';});}
 }
 function showTab(t){
-  ['price','fit','orders'].forEach(x=>{
+  ['price','fit','orders','shop'].forEach(x=>{
     document.getElementById('panel-'+x).style.display=x===t?'':'none';
     document.getElementById('tab-'+x).classList.toggle('active',x===t);
   });
   if(t==='orders')portalShown();
+  if(t==='shop')shopShown();
 }
 
 // ── Price list ───────────────────────────────────────────────────────────────
@@ -838,7 +902,7 @@ function renderPrice(){
     const pn=pnOf(a);
     const matchQ=!q||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q);
     const {st}=stockOf(a);
-    const matchF=priceFilter==='all'||(priceFilter==='instock'&&(st==='instock'||st==='build'))||(priceFilter==='backorder'&&st==='backorder')||(priceFilter==='ordered'&&!!ordInfo(a));
+    const matchF=priceFilter==='all'||(priceFilter==='instock'&&(st==='instock'||st==='build'))||(priceFilter==='backorder'&&st==='backorder')||(priceFilter==='ordered'&&!!ordInfo(a))||(priceFilter==='specials'&&typeof shopHasSpecial==='function'&&shopHasSpecial(a));
     return matchQ&&matchF&&catAllows(a);
   });
   const catHasVisible={};
@@ -849,7 +913,7 @@ function renderPrice(){
     const vis=visMap[i];
     const _cat=fgSectionLabel(a.category);
     if(_cat!==lastCat&&catHasVisible[_cat]){lastCat=_cat;html+='<tr class="cat-row"><td colspan="11">'+esc(_cat)+'</td></tr>';}
-    const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;
+    const msrp=a.msrp||0,_sp=(typeof shopSpecial==='function')?shopSpecial(a,1):null,np=_sp?_sp.price:netP(msrp,d,a.sales_price),sv=msrp-np;
     const usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
     const caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
     const intS=(a.ship_intl!=null&&a.ship_intl!=='')?a.ship_intl:'--';
@@ -862,7 +926,7 @@ function renderPrice(){
       +'<td>'+pnEl+supersededNote+'</td>'
       +'<td><div class="desc-text">'+esc(a.description||'')+(isSaleItem(a)?SALE_BADGE:'')+'</div></td>'
       +'<td class="money money-msrp">'+fc(msrp)+'</td>'
-      +'<td class="money money-net">'+fc(np)+'</td>'
+      +'<td class="money money-net">'+fc(np)+(typeof shopCellNote==='function'?shopCellNote(a):'')+'</td>'
       +'<td class="money money-save">'+(sv>0.01?'&minus;'+fc(sv):'&mdash;')+'</td>'
       +'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'
       +'<td class="money money-ship">'+esc(caS)+'</td>'
@@ -1089,6 +1153,7 @@ async function portalBoot(){
     const s=await poCall({action:'status'});
     PO.hint=s.email_hint||'';PO.canUnlock=!!s.can_unlock;PO.hasPrefix=!!s.has_prefix;
     document.getElementById('tab-orders').style.display='';  // only appears when the server function answers
+    if(shOn(s))document.getElementById('tab-shop').style.display=''; // the storefront needs function v1.2 or later
     let saved=null;try{saved=JSON.parse(localStorage.getItem(poKey())||'null');}catch(e){}
     if(saved&&saved.s&&Date.parse(saved.exp)>Date.now()){PO.session=saved.s;PO.state='loading';renderStrip();await portalLoad(true);}
     else{PO.state='locked';renderStrip();}
@@ -1123,8 +1188,9 @@ async function portalLoad(first,yearToo){
     else{PO.state=(PO.year||PO.orders).length?'ready':'error';PO.err=e.message||'Could not load your orders.';}
   }
   renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
+  try{shopSync();}catch(e){console.warn('[TGK] shop',e);}
 }
-function poForget(){PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
+function poForget(){try{shopReset();}catch(e){}PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
 function poBuildMap(){
   const cut=Date.now()-365*864e5,m={};
   (PO.year||[]).forEach(o=>{if(o.status==='Cancelled')return;if(Date.parse(String(o.date).slice(0,10)+'T12:00:00')<cut)return;
@@ -1177,6 +1243,7 @@ function renderOrders(){
    +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
+   +(typeof shopReqCard==='function'?shopReqCard():'')
    +'<div class="po-stats" id="po-stats"></div><div class="po-sub" id="po-amtnote"></div>'
    +'<div class="po-bar"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="po-q" placeholder="Search PO number, order number or SKU&hellip;" value="'+esc(PO.q)+'" oninput="PO.q=this.value;PO.shown=25;poList()"></div>'
    +'<select class="po-sel" id="po-range" onchange="poRange(this.value)">'+rangeOpt+'</select><button class="btn" onclick="poExport()">Export CSV</button></div>'
@@ -1283,7 +1350,7 @@ const poStaffKey=()=>'tgk_po_staff_'+tok().slice(0,16);
 function poJwtExp(t){try{const p=JSON.parse(atob(String(t).split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return (p.exp||0)*1000;}catch(e){return 0;}}
 function poStaffSave(){try{sessionStorage.setItem(poStaffKey(),JSON.stringify({t:PO.staffTok,r:PO.staffRef,e:PO.staffExp,w:PO.staffWho}));}catch(e){}}
 function poStaffLoad(){try{const x=JSON.parse(sessionStorage.getItem(poStaffKey())||'null');if(x&&x.t){PO.staffTok=x.t;PO.staffRef=x.r||'';PO.staffExp=x.e||0;PO.staffWho=x.w||'';return true;}}catch(e){}return false;}
-function poStaffClear(keepErr){PO.staffTok='';PO.staffRef='';PO.staffExp=0;try{sessionStorage.removeItem(poStaffKey());}catch(e){}PO.orders=[];PO.year=null;PO.map=null;PO.state='locked';if(!keepErr)PO.err='';}
+function poStaffClear(keepErr){try{shopReset();}catch(e){}PO.staffTok='';PO.staffRef='';PO.staffExp=0;try{sessionStorage.removeItem(poStaffKey());}catch(e){}PO.orders=[];PO.year=null;PO.map=null;PO.state='locked';if(!keepErr)PO.err='';}
 // where a staff login can come from: (1) the ERP's View button (#st=...), (2) this tab's earlier sign-in, (3) an ERP session on this same site
 function poStaffPickup(){
   const m=/(?:^|[#&])st=([^&]+)/.exec(location.hash||'');
@@ -1301,13 +1368,13 @@ async function poStaffToken(){ // a valid token, refreshing our own sign-in when
 }
 async function staffBoot(){
   PO.staff=true;poStaffPickup();
-  const show=()=>{document.getElementById('tab-orders').style.display='';};
+  const show=(r)=>{document.getElementById('tab-orders').style.display='';if(shOn(r))document.getElementById('tab-shop').style.display='';};
   if(PO.staffTok&&await poStaffToken()){
-    try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show();PO.state='loading';renderStrip();await portalLoad(true);return;}
+    try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show(c);PO.state='loading';renderStrip();await portalLoad(true);return;}
     catch(e){if(e.status===401)poStaffClear();else if(!(e.data&&e.data.error))return;}
   }
-  try{await poCall({action:'status'});}catch(e){if(!(e.status===404&&e.data&&e.data.error))return;} // the function has to be deployed
-  show();PO.state='locked';renderStrip();
+  let sres=null;try{sres=await poCall({action:'status'});}catch(e){if(!(e.status===404&&e.data&&e.data.error))return;} // the function has to be deployed
+  show(sres);PO.state='locked';renderStrip();
 }
 function staffForm(p){
   p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Staff sign-in</h2><p>Sign in with your ERP login to see this dealer\'s orders. The dealer is not emailed anything, and the view is recorded.</p>'
@@ -1335,6 +1402,231 @@ function poStaffSignOut(){
   poStaffClear();
   if(priceFilter==='ordered'){priceFilter='all';document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));document.querySelector('.filt-btn').classList.add('on');}
   renderStrip();renderTabBadge();renderPrice();renderOrders();
+}
+
+// ── Dealer storefront: shop, cart, flat shipping, order submission ────────────
+// Prices shown here are for display. The server prices every order again from its own data when it is submitted,
+// so nothing the browser sends can change what a dealer pays.
+var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',cat:'all',flt:'',view:'grid',shown:24,
+  form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null};
+const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
+const shEsc=s=>esc(s).replace(/"/g,'&quot;');
+const shR2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
+const shMoney=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const shOn=r=>!!r&&parseFloat(String(r.build||'').replace(/^v/,''))>=1.2;
+(function(){try{SH.cart=JSON.parse(localStorage.getItem(shKey())||'{}')||{};}catch(e){SH.cart={};}try{const f=JSON.parse(localStorage.getItem(shShipKey())||'null');if(f)Object.assign(SH.form,f,{po:'',notes:'',drop:false});}catch(e){}})();
+function shopSave(){try{localStorage.setItem(shKey(),JSON.stringify(SH.cart));}catch(e){}}
+function shopReset(){SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';const c=document.getElementById('pf-specials');if(c)c.style.display='none';}
+function shopItems(){
+  if(SH._items&&SH._keyN===G.asms.length)return SH._items;
+  SH._items=(G.asms||[]).filter(isVisible);SH._keyN=G.asms.length;SH._by={};SH._items.forEach(a=>{SH._by[String(pnOf(a)).toLowerCase()]=a;});return SH._items;
+}
+function shopFind(k){shopItems();return SH._by[String(k).toLowerCase()]||null;}
+// price for a quantity: this dealer's special price from that quantity up, otherwise the standard dealer price
+function shopPrice(a,qty){
+  const k=String(pnOf(a)).toLowerCase(),msrp=a.msrp||0,std=shR2(netP(msrp,G.dealer,a.sales_price)),rows=SH.prices[k]||[];
+  let best=null;rows.forEach(r=>{if(r.min_qty<=qty&&(!best||r.min_qty>best.min_qty))best=r;});
+  const next=rows.filter(r=>r.min_qty>qty).sort((x,y)=>x.min_qty-y.min_qty)[0]||null;
+  return {unit:best?shR2(best.price):std,std,msrp,special:!!best,breakQty:best?best.min_qty:1,next,tiers:rows.filter(r=>r.min_qty>1)};
+}
+function shopHasSpecial(a){return !!(SH.prices[String(pnOf(a)).toLowerCase()]||[]).length;}
+function shopSpecial(a,qty){const r=shopPrice(a,qty||1);return r.special?{price:r.unit}:null;}
+function shopTierNote(a){const t=(SH.prices[String(pnOf(a)).toLowerCase()]||[]).filter(r=>r.min_qty>1);return t.length?t.map(r=>r.min_qty+'+ '+shMoney(r.price)).join(' · '):'';}
+function shopAfterLoad(){const c=document.getElementById('pf-specials');if(c){const n=shopItems().filter(shopHasSpecial).length;c.style.display=n?'':'none';c.innerHTML='&#9733; My specials ('+n+')';}}
+async function shopSync(){
+  if(PO.state!=='ready'){if(SH.loaded)shopReset();if(document.getElementById('panel-shop').style.display!=='none')renderShop();return;}
+  if(!SH.loaded&&!SH.loading)await shopLoad();
+}
+async function shopLoad(){
+  SH.loading=true;SH.err='';
+  try{
+    const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
+    const [p,r]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth))]);
+    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
+  }catch(e){SH.err=e.message||'The shop could not be loaded.';}
+  SH.loading=false;shopAfterLoad();renderPrice();
+  if(document.getElementById('panel-shop').style.display!=='none')renderShop();
+  if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
+}
+async function shopRefreshReqs(){try{const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};const r=await poCall(Object.assign({action:'requests'},auth));SH.reqs=r.requests||[];}catch(e){}}
+function shopShown(){if(PO.state==='ready'&&!SH.loaded&&!SH.loading)shopLoad();renderShop();}
+// ---- the cart
+function shopLines(){const out=[];Object.keys(SH.cart).forEach(k=>{const a=shopFind(k),q=SH.cart[k];if(a&&q>0){const p=shopPrice(a,q);out.push({k,a,qty:q,p,total:shR2(p.unit*q)});}});return out;}
+function shopTotals(lines){lines=lines||shopLines();const merch=shR2(lines.reduce((s,l)=>s+l.total,0)),msrp=shR2(lines.reduce((s,l)=>s+l.p.msrp*l.qty,0));return {merch,msrp,save:shR2(msrp-merch),units:lines.reduce((s,l)=>s+l.qty,0),items:lines.length};}
+function shopShipQuote(country,merch){
+  const e=SH.ship||{},c=String(country||'US').toUpperCase(),zone=(c==='US')?'us':(c==='CA')?'ca':'intl',rate=e[zone];
+  if(rate===null||rate===undefined)return {amount:null,free:false,zone};
+  if(e.free_over>0&&merch>=e.free_over)return {amount:0,free:true,zone};
+  return {amount:shR2(rate),free:false,zone};
+}
+function shopCardRefresh(k){
+  const a=shopFind(k),el=[].slice.call(document.querySelectorAll('.pcard')).find(x=>x.dataset.k===k);if(!a||!el)return;
+  const inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,p=shopPrice(a,q);
+  el.querySelector('.pprice b').textContent=shMoney(p.unit);
+  el.querySelector('.pstd').textContent=p.special?'Standard dealer price '+shMoney(p.std):'Your dealer price';
+  el.querySelector('.ptier').textContent=p.next?('Buy '+p.next.min_qty+'+ for '+shMoney(p.next.price)+' each'):(shopTierNote(a)&&p.special?shopTierNote(a):'');
+  el.querySelector('.tagsp').style.display=p.special?'':'none';
+  const inp=el.querySelector('input');if(document.activeElement!==inp)inp.value=q;
+  const btn=el.querySelector('.padd');btn.className='padd'+(inC?' in':'');btn.disabled=!!inC;btn.innerHTML=inC?'&#10003; IN ORDER':'ADD TO ORDER';
+}
+function shopBarRefresh(force){
+  const bar=document.getElementById('shop-bar');if(!bar)return;
+  const L=shopLines(),T=shopTotals(L),had=bar.dataset.has==='1';
+  if(force||(!!L.length)!==had){bar.innerHTML=shopBar();bar.dataset.has=L.length?'1':'0';return;}
+  if(!L.length)return;
+  document.getElementById('sb-items').textContent=T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' unit'+(T.units!==1?'s':'');
+  document.getElementById('sb-tot').textContent=shMoney(T.merch);
+  const sv=document.getElementById('sb-sv');sv.textContent='You save '+shMoney(T.save)+' vs MSRP';sv.style.display=T.save>0?'':'none';
+}
+function shopReviewRefresh(k){
+  const a=shopFind(k),q=SH.cart[k],el=[].slice.call(document.querySelectorAll('.rv-line')).find(x=>x.dataset.k===k);
+  if(a&&q&&el){const p=shopPrice(a,q);el.querySelector('.rl-unit').textContent=shMoney(p.unit);const sd=el.querySelector('.rl-std');sd.textContent='standard '+shMoney(p.std);sd.style.display=p.special?'':'none';
+    el.querySelector('.rl-total').textContent=shMoney(shR2(p.unit*q));const sp=el.querySelector('.sp-badge');if(sp)sp.style.display=p.special?'':'none';
+    el.querySelector('.rv-hint').textContent=p.next?('Add '+(p.next.min_qty-q)+' more to get '+shMoney(p.next.price)+' each'):'';const inp=el.querySelector('input');if(document.activeElement!==inp)inp.value=q;}
+  const T=shopTotals(),c=document.getElementById('rv-count');if(c)c.textContent=T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' units';shopReviewTotals();
+}
+function shopChanged(k){shopSave();if(SH.view==='review')shopReviewRefresh(k);else{shopCardRefresh(k);shopBarRefresh();}}
+function shopAdd(k){const q=SH.pend[k]||1;SH.cart[k]=(SH.cart[k]||0)+q;delete SH.pend[k];shopChanged(k);}
+function shopQty(k,d){
+  if(SH.cart[k]!==undefined){const n=Math.max(SH.view==='review'?1:0,Math.min(9999,SH.cart[k]+d));if(n===0)delete SH.cart[k];else SH.cart[k]=n;}
+  else SH.pend[k]=Math.max(1,Math.min(9999,(SH.pend[k]||1)+d));
+  shopChanged(k);
+}
+function shopQtySet(k,v){
+  const n=Math.max(0,Math.min(9999,parseInt(v,10)||0));
+  if(SH.cart[k]!==undefined){const m=Math.max(SH.view==='review'?1:0,n);if(m===0)delete SH.cart[k];else SH.cart[k]=m;}else SH.pend[k]=Math.max(1,n);
+  shopChanged(k);
+}
+function shopRemove(k){delete SH.cart[k];shopSave();if(!shopLines().length){SH.view='grid';renderShop();}else if(SH.view==='review')renderShop();else{shopCardRefresh(k);shopBarRefresh();}}
+// ---- the shop
+function shopMatches(a){
+  const k=String(pnOf(a)).toLowerCase();
+  if(SH.cat!=='all'&&fgSectionLabel(a.category)!==SH.cat)return false;
+  if(SH.flt==='specials'&&!shopHasSpecial(a))return false;
+  if(SH.flt==='instock'){const s=stockOf(a).st;if(s!=='instock'&&s!=='build')return false;}
+  if(SH.flt==='ordered'&&!ordInfo(a))return false;
+  const q=(SH.q||'').toLowerCase().trim();if(!q)return true;
+  const hay=(k+' '+String(a.pn||'')+' '+String(a.description||'')).toLowerCase();return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
+}
+function shopCard(a){
+  const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,p=shopPrice(a,q),st=stockOf(a),img=SH.images[k];
+  const tier=p.next?'Buy '+p.next.min_qty+'+ for '+shMoney(p.next.price)+' each':(shopTierNote(a)&&p.special?shopTierNote(a):'');
+  const dot=(st.st==='backorder')?'#f59e0b':'#22c55e',txt=(st.st==='backorder')?'Backordered &middot; ships when available':'In stock';
+  return '<div class="pcard" data-k="'+shEsc(k)+'"><div class="pimg">'+(img?'<img src="'+shEsc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'PRODUCT PHOTO')+'<span class="tagsp" style="display:'+(p.special?'':'none')+'">SPECIAL</span></div><div class="pbody">'
+   +'<div class="psku">'+esc(pnOf(a))+'</div><div class="pname">'+esc(a.description||'')+'</div>'
+   +'<div class="pprice"><b>'+shMoney(p.unit)+'</b><s>'+shMoney(p.msrp)+'</s></div><div class="pstd">'+(p.special?'Standard dealer price '+shMoney(p.std):'Your dealer price')+'</div><div class="ptier">'+esc(tier)+'</div>'
+   +'<div class="pstock"><i style="background:'+dot+'"></i>'+txt+'</div>'
+   +'<div class="pact"><div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="0" max="9999" value="'+q+'" aria-label="Quantity" data-k="'+shEsc(k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
+   +'<button type="button" class="padd'+(inC?' in':'')+'" data-k="'+shEsc(k)+'" onclick="shopAdd(this.dataset.k)"'+(inC?' disabled':'')+'>'+(inC?'&#10003; IN ORDER':'ADD TO ORDER')+'</button></div></div></div>';
+}
+function shopBar(){
+  const L=shopLines(),T=shopTotals(L);
+  if(!L.length)return '<div class="po-sub" style="padding:0 0 4px">Your order is empty. Add items to start a PO.</div>';
+  return '<div class="shop-bar"><b style="letter-spacing:.08em">YOUR ORDER</b><span id="sb-items" style="color:#c9d1d6">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' unit'+(T.units!==1?'s':'')+'</span><span class="tot" id="sb-tot">'+shMoney(T.merch)+'</span><span class="sv" id="sb-sv" style="display:'+(T.save>0?'':'none')+'">You save '+shMoney(T.save)+' vs MSRP</span><span style="flex:1"></span>'
+   +(SH.staff?'<span style="color:#fbbf24;font-size:13px">Staff view: ordering is turned off</span>':'<button type="button" class="go" onclick="shopReview()">REVIEW &amp; SUBMIT PO &rarr;</button>')+'</div>';
+}
+function shopList(){
+  const el=document.getElementById('shop-list');if(!el)return;
+  const all=shopItems(),rows=all.filter(shopMatches),show=rows.slice(0,SH.shown);
+  document.getElementById('shop-count').textContent=rows.length+' product'+(rows.length!==1?'s':'');
+  el.innerHTML=show.length?'<div class="shop-grid">'+show.map(shopCard).join('')+'</div>'+(rows.length>show.length?'<div style="text-align:center;margin-top:14px"><button class="btn" onclick="SH.shown+=24;shopList()">Show more</button></div>':''):'<div class="po-card" style="padding:40px;text-align:center;color:var(--text3)">No products match.</div>';
+  shopBarRefresh(true);
+}
+function shopSetCat(c){SH.cat=c;SH.shown=24;renderShop();}
+function shopSetFlt(f){SH.flt=(SH.flt===f?'':f);SH.shown=24;renderShop();}
+function renderShop(){
+  const p=document.getElementById('panel-shop');if(!p)return;
+  if(PO.state==='loading'||SH.loading&&!SH.loaded){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>Loading the shop&hellip;</h2></div></div>';return;}
+  if(PO.state!=='ready'){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>'+(PO.staff?'Staff sign-in needed':'Unlock to see your prices and order')+'</h2><p>'+(PO.staff?'Sign in with your ERP login to browse this dealer\'s shop.':'Your special prices and ordering are private to your account. We will email you a 6-digit code.')+'</p><button class="po-btn" onclick="showTab(\'orders\')">'+(PO.staff?'Staff sign-in':'Unlock my account')+' &rarr;</button></div></div>';return;}
+  if(SH.err&&!SH.loaded){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>The shop is not available right now</h2><p>'+esc(SH.err)+'</p><button class="po-btn" onclick="SH.err=\'\';shopLoad()">Try again</button></div></div>';return;}
+  if(SH.view==='done'&&SH.done)return shopDone(p);
+  if(SH.view==='review')return shopReviewPage(p);
+  const items=shopItems(),cats={};items.forEach(a=>{const c=fgSectionLabel(a.category);cats[c]=(cats[c]||0)+1;});
+  const chip=(label,on,fn,n)=>'<button class="po-chip'+(on?' on':'')+'" onclick="'+fn+'">'+label+(n!==undefined?' <span>'+n+'</span>':'')+'</button>';
+  const nSp=items.filter(shopHasSpecial).length;
+  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Shop</h2><div class="po-sub">'+(PO.staff?'Staff view of this dealer\'s shop. Ordering is turned off.':'Your prices, including any special pricing for your account. Add items, then review and submit your PO.')+'</div></div></div>'
+   +(SH.staff?'<div class="po-note"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
+   +(!SH.canOrder&&!SH.staff?'<div class="po-note">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')
+   +'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="po-sub" id="shop-count"></span></div>'
+   +'<div class="shop-chips">'+chip('All parts',SH.cat==='all','shopSetCat(\'all\')')+Object.keys(cats).sort().map(c=>chip(esc(c),SH.cat===c,'shopSetCat(this.dataset.c)" data-c="'+shEsc(c),cats[c])).join('')
+   +'<span style="width:1px;height:22px;background:var(--border);margin:0 4px"></span>'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')',nSp)+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>'
+   +'<div id="shop-list"></div></div><div id="shop-bar"></div>';
+  shopList();
+}
+// ---- review and submit
+function shopReview(){if(SH.staff)return;if(!shopLines().length)return;SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
+function shopBack(){SH.view='grid';SH.done=null;renderShop();}
+function shopF(name,val){SH.form[name]=val;if(name==='country'||name==='drop')shopReviewTotals();}
+function shopPayText(){return ({prepay:'You will get a secure payment link as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
+function shopReviewTotals(){
+  const el=document.getElementById('rv-tot');if(!el)return;
+  const L=shopLines(),T=shopTotals(L),sq=shopShipQuote(SH.form.country,T.merch);
+  el.innerHTML='<div><span>Merchandise (your prices)</span><b>'+shMoney(T.merch)+'</b></div>'+(T.save>0?'<div style="color:var(--green)"><span>You save vs MSRP</span><span>&minus;'+shMoney(T.save)+'</span></div>':'')
+   +'<div><span>Shipping (flat rate'+(sq.free?', free for this order':'')+')</span><b>'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</b></div><div><span>Tax</span><span style="color:var(--text3)">on your invoice if it applies</span></div>'
+   +'<div class="big"><span>Total</span><span>'+shMoney(T.merch+(sq.amount||0))+'</span></div>';
+}
+const SH_COUNTRIES=[['US','United States'],['CA','Canada'],['MX','Mexico'],['GB','United Kingdom'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['CH','Switzerland'],['AT','Austria'],['AU','Australia'],['NZ','New Zealand'],['JP','Japan'],['KR','South Korea'],['SG','Singapore'],['AE','United Arab Emirates'],['ZA','South Africa'],['BR','Brazil']];
+function shopReviewPage(p){
+  const L=shopLines(),T=shopTotals(L),F=SH.form;
+  const inp=(label,name,extra)=>'<label>'+label+'</label><input type="text" value="'+shEsc(F[name])+'" '+(extra||'')+' oninput="shopF(\''+name+'\',this.value)">';
+  const lines=L.map(l=>'<div class="rv-line" data-k="'+shEsc(l.k)+'"><div class="th">'+(SH.images[l.k]?'<img src="'+shEsc(SH.images[l.k])+'" alt="" onerror="this.remove()">':'')+'</div>'
+    +'<div><div style="font:600 12px ui-monospace,monospace;color:var(--teal-dark,#0f766e)">'+esc(pnOf(l.a))+' <span class="sp-badge" style="margin:0 0 0 6px;display:'+(l.p.special?'':'none')+'">SPECIAL</span></div><div style="font-weight:700;font-size:15px">'+esc(l.a.description||'')+'</div>'
+    +'<div style="font-size:12.5px;color:'+(stockOf(l.a).st==='backorder'?'var(--amber)':'var(--green)')+';font-weight:600">'+(stockOf(l.a).st==='backorder'?'Backordered: ships when available':'In stock')+'</div><div class="rv-hint">'+(l.p.next?'Add '+(l.p.next.min_qty-l.qty)+' more to get '+shMoney(l.p.next.price)+' each':'')+'</div></div>'
+    +'<div class="qty"><button type="button" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="1" max="9999" value="'+l.qty+'" data-k="'+shEsc(l.k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
+    +'<div style="text-align:right"><div class="rl-unit" style="font-weight:700">'+shMoney(l.p.unit)+'</div><div class="po-sub rl-std" style="display:'+(l.p.special?'':'none')+'">standard '+shMoney(l.p.std)+'</div></div><div class="rl-total" style="text-align:right;font-weight:700;font-size:16px">'+shMoney(l.total)+'</div><button type="button" class="action-btn" aria-label="Remove" data-k="'+shEsc(l.k)+'" onclick="shopRemove(this.dataset.k)" style="border:none;background:none;font-size:18px;color:var(--text3);cursor:pointer">&times;</button></div>').join('');
+  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Review your order</h2><div class="po-sub">Check your items, enter your PO number and where it ships.</div></div><button class="btn" onclick="shopBack()">&larr; Keep shopping</button></div>'
+   +'<div class="rv"><div class="rv-card"><div class="rv-head"><span>YOUR ORDER</span><span id="rv-count" style="font-weight:500;letter-spacing:0">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' units</span></div>'+lines+'<div style="padding:12px 18px;font-size:13px;color:var(--text3)">Backordered items ship when they arrive. Prices are checked again when you submit.</div></div>'
+   +'<div class="rv-card"><div class="rv-head"><span>SUBMIT PO</span></div><div class="rv-form">'
+   +'<label>PO number <span style="color:var(--orange)">*</span></label><input type="text" id="rv-po" value="'+shEsc(F.po)+'" maxlength="39" placeholder="Your PO number" oninput="shopF(\'po\',this.value)">'
+   +'<label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:500"><input type="checkbox" style="width:auto" '+(F.drop?'checked ':'')+'onchange="shopF(\'drop\',this.checked);document.getElementById(\'rv-nm\').textContent=this.checked?\'Customer name\':\'Name / company\'">Ship to my customer instead (drop-ship)</label>'
+   +'<label id="rv-nm">'+(F.drop?'Customer name':'Name / company')+'</label><input type="text" value="'+shEsc(F.name)+'" oninput="shopF(\'name\',this.value)">'
+   +inp('Street address','address1')+inp('Apartment, suite (optional)','address2')+'<div class="row2"><div>'+inp('City','city')+'</div><div>'+inp('State / province','province')+'</div></div><div class="row2"><div>'+inp('ZIP / postal code','zip')+'</div><div><label>Country</label><select onchange="shopF(\'country\',this.value)">'+SH_COUNTRIES.map(c=>'<option value="'+c[0]+'"'+(F.country===c[0]?' selected':'')+'>'+c[1]+'</option>').join('')+'</select></div></div>'+inp('Phone (optional)','phone')
+   +'<label>Notes for TGK (optional)</label><textarea rows="2" maxlength="400" oninput="shopF(\'notes\',this.value)">'+esc(F.notes)+'</textarea>'
+   +'<div class="rv-pay"><b>Payment.</b> '+esc(shopPayText())+'</div><div class="rv-tot" id="rv-tot" style="margin-top:12px"></div>'
+   +'<div class="po-err" id="rv-err">'+esc(SH.formErr)+'</div>'
+   +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder?' disabled':'')+'>'+(SH.busy?'SUBMITTING&hellip;':'SUBMIT PO')+'</button>'
+   +(!SH.canOrder?'<div class="po-sub" style="margin-top:8px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')+'</div></div></div></div>';
+  shopReviewTotals();
+}
+async function shopSubmit(){
+  if(SH.busy||SH.staff)return;const F=SH.form,L=shopLines();
+  const fail=m=>{SH.formErr=m;const e=document.getElementById('rv-err');if(e)e.textContent=m;};
+  if(!L.length)return fail('Your order is empty.');
+  if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('Please enter your PO number (letters, numbers, spaces, dashes or dots).');
+  if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
+  SH.busy=true;SH.formErr='';renderShop();
+  try{
+    const j=await poCall({action:'submit_order',session:PO.session,po:F.po.trim(),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
+    try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
+    SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.done=j;SH.view='done';SH.busy=false;
+    await shopRefreshReqs();renderShop();window.scrollTo(0,0);renderOrders();
+    portalLoad(false,true);
+  }catch(e){
+    SH.busy=false;
+    if(e.status===401){poForget();PO.state='locked';SH.formErr='';renderStrip();renderShop();return;}
+    SH.formErr=e.message||'We could not submit your order. Please try again.';renderShop();
+  }
+}
+function shopDone(p){
+  const d=SH.done,pay=d.status==='awaiting_payment'&&d.invoice_url&&/^https:\/\//i.test(d.invoice_url);
+  const head=d.status==='sent'?'Your order is in':pay?'One more step: pay for your order':'We received your PO';
+  const msg=d.status==='sent'?'Order '+esc(d.order_name||'')+' was created for PO '+esc(d.po)+'. It will show in My Orders in a moment.':pay?'PO '+esc(d.po)+' is saved. Pay now and we ship it right away. We also emailed you the link.':'PO '+esc(d.po)+' is saved and our team will confirm it shortly. You will get an email.';
+  p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div style="font-size:38px;color:var(--teal)">&#10003;</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55">'+msg+'</div>'
+   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' units<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span></div>'
+   +(pay?'<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY FOR PO '+esc(d.po)+' &rarr;</a><br>':'')
+   +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">View my orders</button></div></div></div>';
+}
+// ---- submitted POs that are not in Shopify yet, shown at the top of My Orders
+function shopReqCard(){
+  const open=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!open.length)return '';
+  const word=r=>r.status==='awaiting_payment'?'<span class="po-pill backordered">Awaiting payment</span>':r.status==='rejected'?'<span class="po-pill cancelled">Not accepted</span>':'<span class="po-pill">Received: TGK is confirming</span>';
+  return '<div class="req-card"><div style="font-weight:700;margin-bottom:4px">Submitted, not in your orders yet</div>'+open.map(r=>'<div class="req-row"><b>PO '+esc(r.po)+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span>'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; '+shMoney(r.total)+'</span>'+word(r)
+    +(r.status==='awaiting_payment'&&r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<a class="po-link" href="'+shEsc(r.invoice_url)+'" target="_blank" rel="noopener">Pay now &rarr;</a>':'')+(r.status==='rejected'&&r.reject_reason?'<span class="po-sub">'+esc(r.reject_reason)+'</span>':'')+'</div>').join('')+'</div>';
+}
+function shopCellNote(a){
+  const rows=SH.prices[String(pnOf(a)).toLowerCase()]||[];if(!rows.length)return '';
+  const t=shopTierNote(a);return (rows.some(r=>r.min_qty<=1)?'<div class="sp-badge">SPECIAL</div>':'')+(t?'<div style="font-size:10.5px;color:var(--text3);font-weight:600;margin-top:2px">'+esc(t)+'</div>':'');
 }
 
 init();
