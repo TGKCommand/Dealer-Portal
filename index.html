@@ -559,6 +559,28 @@ tr:hover td{background:#f6f8f8}
 .tm-role{height:38px}
 .t3{color:var(--text3)}
 @media(max-width:760px){.tm-form{grid-template-columns:1fr}.tm-form .po-btn{width:100%}}
+/* ── Sign-in screen ── */
+#acct-screen{display:none;min-height:100vh;background:#f2f4f4}
+.ac-top{background:var(--band);height:56px;display:flex;align-items:center;gap:16px;padding:0 28px;color:#fff;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.ac-top img{height:30px;width:auto}
+.ac-stripe{height:4px;background:var(--stripe)}
+.ac-wrap{max-width:460px;margin:48px auto;padding:0 16px}
+.ac-card{background:#fff;border:1px solid var(--line);border-radius:2px}
+.ac-body{padding:22px}
+.ac-body label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text2);margin:14px 0 5px}
+.ac-body label:first-of-type{margin-top:0}
+.ac-in{width:100%;height:46px;padding:0 12px;border:1px solid #c9ccd1;border-radius:2px;font-size:16px;background:#fff;color:var(--onacc)}
+.ac-in:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.ac-go{width:100%;height:50px;margin-top:20px;font-size:15px}
+.ac-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;font-size:14px}
+.ac-p{font-size:14.5px;line-height:1.55;color:var(--text2);margin:0 0 14px}
+.ac-show{display:flex!important;gap:8px;align-items:center;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important;margin-top:10px!important}
+.ac-pick{display:block;width:100%;height:46px;margin:8px 0 0;text-align:left}
+.ac-foot{font-size:12.5px;color:var(--text3);text-align:center;margin-top:18px;line-height:1.6}
+.ac-ov{position:fixed;inset:0;background:rgba(20,23,26,.62);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px}
+.ac-modal{width:min(440px,100%)}
+@media(max-width:700px){.ac-top{padding:0 12px}.ac-wrap{margin:24px auto}}
+@media print{#acct-screen,.ac-ov{display:none!important}}
 /* ── Dealer shop, in the website look: dark cut-corner cards with a white photo panel, vehicle band, cart drawer, checkout ── */
 .shop-wrap{padding:24px 28px 90px;display:flex;flex-direction:column}
 .shop-wrap .po-unlock{margin:20px auto}
@@ -800,6 +822,34 @@ a.rv-t:hover{text-decoration:underline}
   .shop-done{margin:16px 12px;padding:22px 16px}
 }
 @media print{.cd,.cd-ov,.shop-bar{display:none!important}}
+
+/* ── Category tabs with a dropdown panel ── */
+.cat-wrap{position:relative;margin:0 0 4px}
+.cat-tabs{display:flex;width:max-content;max-width:100%;border:1px solid var(--line);background:#fff;overflow-x:auto}
+.cat-tab{display:flex;align-items:center;gap:8px;padding:13px 24px;border:0;border-right:1px solid var(--line);background:#fff;color:#14171a;font:700 14px/1 var(--font,'Saira Semi Condensed',sans-serif);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.cat-tab:last-child{border-right:0}
+.cat-tab:hover{background:#f2f4f4}
+.cat-tab.on{background:#22272b;color:#fff}
+.cat-tab:focus-visible,.cat-it:focus-visible,.cat-h:focus-visible,.cat-clear:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.cat-caret{transition:transform .12s}.cat-caret.up{transform:rotate(180deg)}
+.cat-panel{position:absolute;left:0;top:100%;margin-top:-1px;z-index:40;background:#fff;border:1px solid var(--line);padding:20px 24px;display:flex;gap:40px;flex-wrap:wrap;width:max-content;max-width:min(100%,1040px);max-height:72vh;overflow:auto}
+.cat-col{min-width:180px}
+.cat-h{display:block;width:100%;text-align:left;border:0;border-bottom:2px solid var(--teal);background:none;padding:0 0 7px;margin:0 0 8px;font:700 12px/1.2 var(--font,'Saira Semi Condensed',sans-serif);letter-spacing:.1em;text-transform:uppercase;color:#111;cursor:pointer}
+.cat-h.static{cursor:default}
+.cat-it{display:block;width:100%;text-align:left;border:0;background:none;padding:6px 0;font:500 15px var(--font,'Saira Semi Condensed',sans-serif);color:#33383d;cursor:pointer}
+.cat-h:not(.static):hover,.cat-it:hover{color:#0b7f77}
+.cat-h.on,.cat-it.on{color:#0b7f77;font-weight:700}
+.cat-crumb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;font-size:15px;color:#33383d}
+.cat-crumb .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-right:2px}
+.cat-crumb .sep{color:var(--text3)}
+.cat-clear{margin-left:6px;padding:4px 11px;border:1px solid var(--line);background:#fff;border-radius:2px;font:700 12px var(--font,'Saira Semi Condensed',sans-serif);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:#22272b}
+.cat-clear:hover{border-color:#22272b}
+@media(max-width:700px){
+  .cat-wrap,.cat-crumb{margin-left:12px;margin-right:12px}
+  .cat-tabs{width:100%}.cat-tab{flex:1;justify-content:center;padding:13px 10px;font-size:13px}
+  .cat-panel{position:static;margin:8px 0 0;width:auto;max-width:none;flex-direction:column;gap:18px;padding:16px;max-height:none}
+}
+@media print{.cat-wrap,.cat-crumb{display:none!important}}
 </style>
 </head>
 <body>
@@ -1056,7 +1106,7 @@ function dedupeFits(rows){
     if(seen[k])return false;seen[k]=1;return true;
   });
 }
-function tok(){return new URLSearchParams(location.search).get('d')||'';}
+function tok(){return new URLSearchParams(location.search).get('d')||(typeof acctToken==='function'?acctToken():'');}
 function isProspect(){return new URLSearchParams(location.search).get('prospect')==='1';}
 // Set by TGK's own staff when previewing a dealer's price list (the ERP's "View" button appends
 // this). A staff member checking a price shouldn't be counted as -- or shown in the log as -- a
@@ -1418,10 +1468,10 @@ function dl(name,uri){const a=document.createElement('a');a.href=uri;a.download=
 // ── Init ─────────────────────────────────────────────────────────────────────
 function showError(t,s){document.getElementById('loading').style.display='none';document.getElementById('err-title').textContent=t;document.getElementById('err-sub').innerHTML=s;document.getElementById('error').style.display='block';}
 
-async function init(){
+async function init(){ if(new URLSearchParams(location.search).get('setup')){acctShowSetup();return;}
   const token=tok();
   const prospect=isProspect();
-  if(!token&&!prospect){showError('No dealer token','Use the link provided by TGK Motorsport.');return;}
+  if(!token&&!prospect){acctShowLogin();return;}
   try{
     // ── Prospect mode: no dealer token needed ────────────────────────────────
     if(prospect){
@@ -1509,7 +1559,7 @@ async function portalBoot(){
     SH.available=shOn(s);if(SH.available)document.getElementById('tab-shop').style.display='';shopHdr(); // the storefront needs function v1.2 or later
     let saved=null;try{saved=JSON.parse(localStorage.getItem(poKey())||'null');}catch(e){}
     if(saved&&saved.s&&Date.parse(saved.exp)>Date.now()){PO.session=saved.s;PO.state='loading';renderStrip();await portalLoad(true);}
-    else{PO.state='locked';renderStrip();}
+    else{if(acctActive()){acctExpire();return;}PO.state='locked';renderStrip();}   // an account sign-in that has ended goes back to the sign-in screen
   }catch(e){console.warn('[TGK] order history is not available:',e.message);}
 }
 function poDays(){const r=PO.range||'365';if(r==='ytd'){const n=new Date();return Math.max(1,Math.ceil((n-new Date(n.getFullYear(),0,1))/864e5)+1);}return parseInt(r,10)||0;}
@@ -1543,7 +1593,7 @@ async function portalLoad(first,yearToo){
   renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
   try{shopSync();}catch(e){console.warn('[TGK] shop',e);}
 }
-function poForget(){try{shopReset();}catch(e){}PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
+function poForget(){try{if(acctActive())setTimeout(function(){acctExpire();},0);}catch(e){}try{shopReset();}catch(e){}PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
 function poBuildMap(){
   const cut=Date.now()-365*864e5,m={};
   (PO.year||[]).forEach(o=>{if(o.status==='Cancelled')return;if(Date.parse(String(o.date).slice(0,10)+'T12:00:00')<cut)return;
@@ -1594,7 +1644,7 @@ function renderOrders(){
   }
   const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time'],['custom','Custom range&hellip;']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button>'+(acctActive()?'<button class="btn" onclick="acctPwOpen()">Password</button>':'')+'<button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff||acctActive()?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +(typeof shopReqCard==='function'?shopReqCard():'')
@@ -1699,7 +1749,9 @@ async function poVerify(){
   }catch(e){PO.err=e.message+(e.data&&e.data.attempts_left!=null&&e.data.attempts_left<4?' ('+e.data.attempts_left+' tries left)':'');}
   PO.busy=false;renderOrders();
 }
-async function poSignOut(){const s=PO.session;poForget();PO.state='locked';PO.codeSent=false;PO.info='';PO.err='';if(s){try{await poCall({action:'signout',session:s});}catch(e){}}
+async function poSignOut(){
+  if(acctActive()){const s0=PO.session;try{if(s0)await poCall({action:'signout',session:s0});}catch(e){}acctForget();location.replace(location.pathname);return;}   // signed in with an account: end it and go back to the sign-in screen
+  const s=PO.session;poForget();PO.state='locked';PO.codeSent=false;PO.info='';PO.err='';if(s){try{await poCall({action:'signout',session:s});}catch(e){}}
   if(priceFilter==='ordered'){priceFilter='all';document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));document.querySelector('.filt-btn').classList.add('on');}
   renderStrip();renderTabBadge();renderPrice();renderOrders();}
 
@@ -1765,7 +1817,7 @@ function poStaffSignOut(){
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
-var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],flt:'',view:'grid',shown:24,
+var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
   form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
   veh:{make:'',model:'',year:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
@@ -1777,7 +1829,7 @@ const SH_SITE='https://tgkmotorsport.com';
 const SH_CAR='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 15v-3l2-5h14l2 5v3M3 15h18M3 15v3h3v-3M18 15v3h3v-3"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="16.5" cy="12.5" r="1"/></svg>';
 (function(){try{SH.cart=JSON.parse(localStorage.getItem(shKey())||'{}')||{};}catch(e){SH.cart={};}try{const f=JSON.parse(localStorage.getItem(shShipKey())||'null');if(f)Object.assign(SH.form,f,{po:'',notes:'',drop:false});}catch(e){}})();
 function shopSave(){try{localStorage.setItem(shKey(),JSON.stringify(SH.cart));}catch(e){}if(typeof shopHdr==='function')shopHdr();}
-function shopReset(){const wasLoaded=SH.loaded;SH.me=null;if(typeof TM!=='undefined'){TM.loaded=false;TM.users=[];}SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';shopDrawerClose();const c=document.getElementById('pf-specials');if(c)c.style.display='none';if(wasLoaded&&typeof filterFit==='function'){try{filterFit();}catch(e){}}}
+function shopReset(){SH.catOpen='';payStop();if(PAY&&PAY.win&&!PAY.win.closed){try{PAY.win.close();}catch(e){}}PAY.id=null;PAY.state='';const wasLoaded=SH.loaded;SH.me=null;if(typeof TM!=='undefined'){TM.loaded=false;TM.users=[];}SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';shopDrawerClose();const c=document.getElementById('pf-specials');if(c)c.style.display='none';if(wasLoaded&&typeof filterFit==='function'){try{filterFit();}catch(e){}}}
 function shopItems(){
   if(SH._items&&SH._keyN===G.asms.length)return SH._items;
   SH._items=(G.asms||[]).filter(isVisible);SH._keyN=G.asms.length;SH._by={};SH._items.forEach(a=>{SH._by[String(pnOf(a)).toLowerCase()]=a;});return SH._items;
@@ -1983,7 +2035,38 @@ function shopCatRows(items){ // one row of chips per level that is open: the dep
   }
   return rows;
 }
-function shopCatPick(level,name){const cur=SH.catSel[level];SH.catSel=SH.catSel.slice(0,level);if(name&&String(cur||'').toLowerCase()!==String(name).toLowerCase())SH.catSel.push(name);SH.shown=24;renderShop();}
+function shopCatPick(level,name){SH.catOpen='';const cur=SH.catSel[level];SH.catSel=SH.catSel.slice(0,level);if(name&&String(cur||'').toLowerCase()!==String(name).toLowerCase())SH.catSel.push(name);SH.shown=24;renderShop();}
+function shopCatTree(items,main){   // the open main category: its departments, and what sits inside each
+  const t={};items.forEach(a=>shopCatPaths(a).forEach(p=>{if(String(p[0]).toLowerCase()!==main.toLowerCase())return;const l1=p[1];if(!l1)return;const k=String(l1).toLowerCase();t[k]=t[k]||{name:l1,kids:{}};if(p[2])t[k].kids[String(p[2]).toLowerCase()]=p[2];}));
+  return Object.keys(t).map(k=>({name:t[k].name,kids:Object.keys(t[k].kids).map(x=>t[k].kids[x]).sort((x,y)=>x.localeCompare(y))})).sort((x,y)=>x.name.localeCompare(y.name));
+}
+function shopCatTab(main){
+  if(!main){SH.catSel=[];SH.catOpen='';}
+  else if(String(SH.catSel[0]||'').toLowerCase()===main.toLowerCase()){SH.catOpen=(SH.catOpen===main?'':main);}   // already narrowed to it: just open or close its panel
+  else{SH.catSel=[main];SH.catOpen=main;}
+  SH.shown=24;renderShop();
+}
+function shopCatSet(el){SH.catSel=[el.dataset.a,el.dataset.b,el.dataset.c].filter(Boolean);SH.catOpen='';SH.shown=24;renderShop();window.scrollTo({top:Math.max(0,(document.querySelector('.cat-wrap')||{offsetTop:0}).offsetTop-70)});}
+function shopCatClear(){SH.catSel=[];SH.catOpen='';SH.shown=24;renderShop();}
+function shopCatUi(items,crow,chip){
+  const mains=crow[0]?crow[0].list:[],sel0=String(SH.catSel[0]||'').toLowerCase(),caret=on=>'<svg class="cat-caret'+(on?' up':'')+'" width="10" height="7" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  let h='<div class="cat-wrap"><div class="cat-tabs" role="group" aria-label="Browse by category"><button type="button" class="cat-tab'+(!SH.catSel.length?' on':'')+'" onclick="shopCatTab(\'\')">All</button>'
+   +mains.map(c=>{const on=sel0===c.toLowerCase(),open=SH.catOpen===c;return '<button type="button" class="cat-tab'+(on?' on':'')+'" aria-haspopup="true" aria-expanded="'+(open?'true':'false')+'" data-c="'+shEsc(c)+'" onclick="shopCatTab(this.dataset.c)">'+esc(c)+caret(open)+'</button>';}).join('')+'</div>';
+  if(SH.catOpen){
+    const main=SH.catOpen,tree=shopCatTree(items,main),n=items.filter(a=>shopCatPaths(a).some(p=>String(p[0]).toLowerCase()===main.toLowerCase())).length;
+    const here=(l1,l2)=>String(SH.catSel[1]||'').toLowerCase()===String(l1||'').toLowerCase()&&String(SH.catSel[2]||'').toLowerCase()===String(l2||'').toLowerCase()&&sel0===main.toLowerCase();
+    h+='<div class="cat-panel" role="group" aria-label="'+shEsc(main)+' categories"><div class="cat-col"><div class="cat-h static">All '+esc(main)+'</div><button type="button" class="cat-it'+(SH.catSel.length===1?' on':'')+'" data-a="'+shEsc(main)+'" onclick="shopCatSet(this)">Show all '+n+' part'+(n===1?'':'s')+'</button></div>'
+     +tree.map(c=>'<div class="cat-col"><button type="button" class="cat-h'+(here(c.name,'')?' on':'')+'" data-a="'+shEsc(main)+'" data-b="'+shEsc(c.name)+'" onclick="shopCatSet(this)">'+esc(c.name)+'</button>'+c.kids.map(k=>'<button type="button" class="cat-it'+(here(c.name,k)?' on':'')+'" data-a="'+shEsc(main)+'" data-b="'+shEsc(c.name)+'" data-c="'+shEsc(k)+'" onclick="shopCatSet(this)">'+esc(k)+'</button>').join('')+'</div>').join('')+'</div>';
+  }
+  h+='</div>';
+  if(SH.catSel.length)h+='<div class="cat-crumb" role="status"><b class="k">Showing</b>'+SH.catSel.map((x,i)=>i===SH.catSel.length-1?'<b>'+esc(x)+'</b>':esc(x)+' <span class="sep">/</span>').join(' ')+'<button type="button" class="cat-clear" onclick="shopCatClear()">Clear &times;</button></div>';
+  h+='<div class="shop-chips" style="margin-top:14px">'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')')+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>';
+  // deeper than the panel shows (a fourth level and beyond): narrow with chips
+  h+=crow.slice(3).map(r=>'<div class="shop-chips shop-subchips" role="group" aria-label="'+shEsc(SH.catSel[r.level-1])+' categories"><span class="cf-lbl">'+esc(SH.catSel[r.level-1])+'</span>'+chip('All',!SH.catSel[r.level],'shopCatPick('+r.level+',\'\')')+r.list.map(c=>chip(esc(c),String(SH.catSel[r.level]||'').toLowerCase()===c.toLowerCase(),'shopCatPick('+r.level+',this.dataset.c)" data-c="'+shEsc(c))).join('')+'</div>').join('');
+  return h;
+}
+document.addEventListener('click',function(e){if(SH.catOpen&&!(e.target.closest&&e.target.closest('.cat-wrap'))){SH.catOpen='';if(SH.view==='grid')renderShop();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SH.catOpen){SH.catOpen='';renderShop();}});
 function shopSetFlt(f){SH.flt=(SH.flt===f?'':f);SH.shown=24;renderShop();}
 function renderShop(){
   const p=document.getElementById('panel-shop');if(!p)return;
@@ -1999,9 +2082,7 @@ function renderShop(){
    +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
    +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">'+shopNoOrderText()+'</div>':'')
    +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span></div>'
-   +'<div class="shop-chips">'+chip('All parts',!SH.catSel.length,'shopCatPick(0,\'\')')+(crow[0]?crow[0].list.map(c=>chip(esc(c),String(SH.catSel[0]||'').toLowerCase()===c.toLowerCase(),'shopCatPick(0,this.dataset.c)" data-c="'+shEsc(c))).join(''):'')
-   +'<span class="chip-sep"></span>'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')')+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>'
-   +crow.slice(1).map(r=>'<div class="shop-chips shop-subchips" role="group" aria-label="'+shEsc(SH.catSel[r.level-1])+' categories"><span class="cf-lbl">'+esc(SH.catSel[r.level-1])+'</span>'+chip('All',!SH.catSel[r.level],'shopCatPick('+r.level+',\'\')')+r.list.map(c=>chip(esc(c),String(SH.catSel[r.level]||'').toLowerCase()===c.toLowerCase(),'shopCatPick('+r.level+',this.dataset.c)" data-c="'+shEsc(c))).join('')+'</div>').join('')
+   +shopCatUi(items,crow,chip)
    +'<div id="shop-list"></div></div><div id="shop-bar"></div>';
   shopList();shopVehChip();
 }
@@ -2059,34 +2140,87 @@ async function shopSubmit(){
   if(!L.length)return fail('Your order is empty.');
   if(shopNeedsPo()){if(!F.po.trim())return fail('Please enter your PO number. Orders billed to your account need one.');if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('That PO number has an unusual character. Use letters, numbers, spaces, dashes or dots.');}
   if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
+  let pop=null;if(SH.payMode==='prepay')pop=payOpenBlank();   // opened right now, inside the click, so the browser allows it
   SH.busy=true;SH.formErr='';renderShop();
   try{
     const j=await poCall({action:'submit_order',session:PO.session,po:shopNeedsPo()?F.po.trim():'',lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
     try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
     SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.done=j;SH.view='done';SH.busy=false;
+    if(j.status==='awaiting_payment'&&payOk(j.invoice_url))payGo(pop,j.id,j.invoice_url);else if(pop){try{pop.close();}catch(e2){}}
     await shopRefreshReqs();renderShop();window.scrollTo(0,0);renderOrders();
     portalLoad(false,true);
   }catch(e){
-    SH.busy=false;
+    SH.busy=false;if(pop){try{pop.close();}catch(e2){}}
     if(e.status===401){poForget();PO.state='locked';SH.formErr='';renderStrip();renderShop();return;}
     SH.formErr=e.message||'We could not submit your order. Please try again.';renderShop();
   }
 }
 function shopDone(p){
-  const d=SH.done,pay=d.status==='awaiting_payment'&&d.invoice_url&&/^https:\/\//i.test(d.invoice_url),lab=d.po?'PO '+esc(d.po):'your order';
-  const head=d.status==='sent'?'Your order is in':pay?'One more step: pay for your order':'We received your order';
-  const msg=d.status==='sent'?'Order '+esc(d.order_name||'')+' was created ('+lab+'). It will show in My Orders in a moment.':pay?'Your order ('+lab+') is saved. Pay now and we ship it right away. We also emailed you the link.':'Your order ('+lab+') is saved and our team will confirm it shortly. You will get an email.';
-  p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div class="ok">&#10003;</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55">'+msg+'</div>'
-   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' units<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span><br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
-   +(pay?'<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY NOW &rarr;</a><br>':'')
+  const d=SH.done,ref=d.po?' (PO '+esc(d.po)+')':'',waiting=d.status==='awaiting_payment'&&d.invoice_url&&payOk(d.invoice_url);
+  const ps=(waiting&&String(PAY.id)===String(d.id))?PAY.state:(d.status==='sent'&&String(PAY.id)===String(d.id)&&PAY.state==='paid'?'paid':'');
+  let head,msg,btn='';
+  if(ps==='paid'){head='Payment received: your order is in';msg='Order '+esc(d.order_name||'')+' was created'+ref+'. We ship it right away. It will show in My Orders in a moment.';}
+  else if(ps==='waiting'){head='Complete your payment';msg='A secure Shopify payment window is open. Finish paying there and this page updates by itself. Your order'+ref+' is saved.';btn='<button type="button" class="btn" onclick="shopPayReopen()">Reopen the payment window</button>';}
+  else if(ps==='closed'){head='Payment not finished';msg='The payment window was closed before the payment went through. Your order'+ref+' is saved and waiting for payment.';btn='<button type="button" class="big-btn" style="border:0;cursor:pointer" onclick="shopPayReopen()">PAY NOW &rarr;</button>';}
+  else if(waiting){head='One more step: pay for your order';msg='Your order'+ref+' is saved. Pay now and we ship it right away. We also emailed you the link.';btn='<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY NOW &rarr;</a>';}
+  else if(d.status==='sent'){head='Your order is in';msg='Order '+esc(d.order_name||'')+' was created'+ref+'. It will show in My Orders in a moment.';}
+  else{head='We received your order';msg='Your order'+ref+' is saved and our team will confirm it shortly. You will get an email.';}
+  p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div class="ok">'+(ps==='waiting'||ps==='closed'||(waiting&&!ps)?'&#9679;':'&#10003;')+'</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55" role="status">'+msg+'</div>'
+   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' unit'+(d.totals.units!==1?'s':'')+'<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span><br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
+   +(btn?'<div style="margin-bottom:6px">'+btn+'</div>':'')
    +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">View my orders</button></div></div></div>';
+}
+// ---- paying: Shopify's secure payment page opens in a popup window; the portal notices the payment and closes it
+var PAY={id:null,url:'',win:null,state:'',timer:null,since:0,busy:false};
+function payOk(u){return /^https:\/\//i.test(u||'');}
+function payOpenBlank(){
+  let w=null;try{w=window.open('','tgkpay','popup=yes,width=560,height=800,left='+Math.max(0,Math.round(((screen&&screen.width)||1200)/2-280))+',top=40');}catch(e){w=null;}
+  if(w){try{w.document.write('<!doctype html><title>TGK Motorsport payment</title><body style="margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;background:#1b2529;color:#fff;font-family:Arial,sans-serif;letter-spacing:.04em"><p>Preparing your secure payment&hellip;</p></body>');}catch(e){}}
+  return w;
+}
+function payGo(win,id,url){   // send the popup to Shopify and start watching for the payment
+  PAY.id=id;PAY.url=url;PAY.since=Date.now();PAY.win=(win&&!win.closed)?win:null;
+  if(PAY.win){try{PAY.win.location.href=url;PAY.win.focus();}catch(e){}PAY.state='waiting';}else PAY.state='blocked';   // blocked: the page shows a normal PAY NOW link
+  payWatch();
+}
+function payWatch(){if(PAY.timer)clearInterval(PAY.timer);PAY.timer=setInterval(payTick,PAY.interval||4000);}
+function payStop(){if(PAY.timer)clearInterval(PAY.timer);PAY.timer=null;}
+async function payTick(){
+  if(!PAY.id||PAY.busy)return;
+  if(Date.now()-PAY.since>30*60*1000){payStop();if(PAY.state==='waiting')PAY.state='closed';shopPayRender();return;}
+  PAY.busy=true;
+  try{
+    const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
+    const r=await poCall(Object.assign({action:'requests'},auth));SH.reqs=r.requests||[];   // asking also makes the server check Shopify for the payment
+    const mine=SH.reqs.find(x=>String(x.id)===String(PAY.id));
+    if(mine&&mine.status==='sent'){
+      payStop();if(PAY.win&&!PAY.win.closed){try{PAY.win.close();}catch(e){}}
+      PAY.state='paid';if(SH.done&&String(SH.done.id)===String(PAY.id)){SH.done.status='sent';SH.done.order_name=mine.order_name;SH.done.invoice_url=null;}
+      shopPayRender();portalLoad(false,true);
+    }else if(PAY.state==='waiting'&&(!PAY.win||PAY.win.closed)){PAY.state='closed';shopPayRender();}   // they closed it without paying
+  }catch(e){/* try again on the next tick */}
+  PAY.busy=false;
+}
+function shopPayRender(){
+  if(SH.view==='done'&&document.getElementById('panel-shop').style.display!=='none')renderShop();
+  if(document.getElementById('panel-orders').style.display!=='none'&&typeof renderOrders==='function')renderOrders();
+}
+function shopPayReopen(){
+  const w=payOpenBlank();if(!w||!payOk(PAY.url)){PAY.state='blocked';shopPayRender();return;}
+  PAY.win=w;PAY.state='waiting';PAY.since=Date.now();try{w.location.href=PAY.url;w.focus();}catch(e){}payWatch();shopPayRender();
+}
+function shopPayNow(id,url){   // from My Orders: pay an order that is waiting for payment
+  if(!payOk(url))return;const w=payOpenBlank();payGo(w,id,url);
+  if(PAY.state==='blocked'){window.open(url,'_blank','noopener');return;}
+  SH.done=(SH.reqs||[]).filter(r=>String(r.id)===String(id)).map(r=>({id:r.id,po:r.po,status:'awaiting_payment',invoice_url:url,totals:{total:r.total,units:r.units,merchandise:r.merchandise,shipping:r.shipping}}))[0]||null;
+  if(SH.done){SH.view='done';showTab('shop');}
 }
 // ---- submitted POs that are not in Shopify yet, shown at the top of My Orders
 function shopReqCard(){
   const open=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!open.length)return '';
   const word=r=>r.status==='awaiting_payment'?'<span class="po-pill backordered">Awaiting payment</span>':r.status==='rejected'?'<span class="po-pill cancelled">Not accepted</span>':'<span class="po-pill">Received: TGK is confirming</span>';
   return '<div class="req-card"><b>Submitted, not in your orders yet</b>'+open.map(r=>'<div class="req-row"><b>'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span>'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; '+shMoney(r.total)+'</span>'+word(r)
-    +(r.status==='awaiting_payment'&&r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<a class="po-link" href="'+shEsc(r.invoice_url)+'" target="_blank" rel="noopener">Pay now &rarr;</a>':'')+(r.status==='rejected'&&r.reject_reason?'<span class="po-sub">'+esc(r.reject_reason)+'</span>':'')+'</div>').join('')+'</div>';
+    +(r.status==='awaiting_payment'&&r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<a class="po-link" data-i="'+shEsc(r.id)+'" data-u="'+shEsc(r.invoice_url)+'" onclick="shopPayNow(this.dataset.i,this.dataset.u)">Pay now &rarr;</a>':'')+(r.status==='rejected'&&r.reject_reason?'<span class="po-sub">'+esc(r.reject_reason)+'</span>':'')+'</div>').join('')+'</div>';
 }
 function shopCellNote(a){
   const rows=SH.prices[String(pnOf(a)).toLowerCase()]||[];if(!rows.length)return '';
@@ -2186,9 +2320,14 @@ async function teamAdd(){
   if(TM.busy)return;const F=TM.form,em=String(F.email||'').trim();
   if(!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(em)){TM.err='Enter a valid email address.';TM.ok='';renderTeam();return;}
   TM.busy=true;TM.err='';TM.ok='';renderTeam();
-  try{await poCall(Object.assign({action:'users_add',email:em,name:F.name,role:F.role},await teamAuth()));TM.ok='Added '+em+'. We emailed them an invitation with a link to sign in.';TM.form={email:'',name:'',role:'buyer'};TM.loaded=false;await teamLoad();}
+  try{await poCall(Object.assign({action:'users_add',email:em,name:F.name,role:F.role},await teamAuth()));TM.ok='Added '+em+'. We emailed them a link to choose their password.';TM.form={email:'',name:'',role:'buyer'};TM.loaded=false;await teamLoad();}
   catch(e){teamFail(e);}
   TM.busy=false;renderTeam();
+}
+async function teamResend(email){
+  TM.err='';TM.ok='';
+  try{await poCall(Object.assign({action:'users_resend_setup',email},await teamAuth()));TM.ok='Sent a new link to '+email+'. It works once.';}catch(e){teamFail(e);}
+  renderTeam();
 }
 async function teamRole(email,role){
   TM.err='';TM.ok='';
@@ -2205,14 +2344,116 @@ function renderTeam(){
   const p=document.getElementById('panel-team');if(!p)return;
   if(!teamVisible()){p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Team</h2><p>Only an admin on this account can manage the team.</p></div></div>';return;}
   const ro=!!PO.staff,F=TM.form;
-  const rows=(TM.primary?'<tr><td><b>'+esc(TM.primary.name||'Main contact')+'</b></td><td>'+esc(TM.primary.email)+'</td><td><span class="po-pill delivered">Main contact</span></td><td class="t3">&mdash;</td><td class="t3">&mdash;</td><td></td></tr>':'')
-   +TM.users.map(u=>'<tr><td><b>'+esc(u.name||'')+'</b></td><td>'+esc(u.email)+'</td><td>'+(ro?'<span class="po-pill">'+esc(u.role)+'</span>':'<select class="po-sel tm-role" aria-label="Role for '+shEsc(u.email)+'" data-e="'+shEsc(u.email)+'" onchange="teamRole(this.dataset.e,this.value)">'+TM_ROLES.map(r=>'<option value="'+r[0]+'"'+(u.role===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select>')+'</td><td class="t3">'+(u.created_at?poDate(String(u.created_at).slice(0,10)):'')+'</td><td class="t3">'+(u.last_login_at?poDate(String(u.last_login_at).slice(0,10)):'Not yet')+'</td><td class="r">'+(ro||(SH.me&&SH.me.email===u.email)?'':'<button type="button" class="btn" data-e="'+shEsc(u.email)+'" onclick="teamRemove(this.dataset.e)">Remove</button>')+'</td></tr>').join('');
+  const rows=(TM.primary?'<tr><td><b>'+esc(TM.primary.name||'Main contact')+'</b></td><td>'+esc(TM.primary.email)+'</td><td><span class="po-pill delivered">Main contact</span></td><td>'+(TM.primary.has_password?'<span class="po-pill shipped">Has a password</span>':'<span class="po-pill">No password yet</span>')+'</td><td class="t3">&mdash;</td><td class="t3">&mdash;</td><td></td></tr>':'')
+   +TM.users.map(u=>'<tr><td><b>'+esc(u.name||'')+'</b></td><td>'+esc(u.email)+'</td><td>'+(ro?'<span class="po-pill">'+esc(u.role)+'</span>':'<select class="po-sel tm-role" aria-label="Role for '+shEsc(u.email)+'" data-e="'+shEsc(u.email)+'" onchange="teamRole(this.dataset.e,this.value)">'+TM_ROLES.map(r=>'<option value="'+r[0]+'"'+(u.role===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select>')+'</td><td>'+(u.has_password?'<span class="po-pill shipped">Has a password</span>':'<span class="po-pill">Invited: no password yet</span>')+'<div class="po-sub">'+(u.last_login_at?'Last sign-in '+poDate(String(u.last_login_at).slice(0,10)):'Never signed in')+'</div></td><td class="t3">'+(u.created_at?poDate(String(u.created_at).slice(0,10)):'')+'</td><td class="r">'+(ro?'':'<button type="button" class="btn" data-e="'+shEsc(u.email)+'" onclick="teamResend(this.dataset.e)">'+(u.has_password?'Send reset link':'Resend invite')+'</button> '+((SH.me&&SH.me.email===u.email)?'':'<button type="button" class="btn" data-e="'+shEsc(u.email)+'" onclick="teamRemove(this.dataset.e)">Remove</button>'))+'</td></tr>').join('');
   p.innerHTML='<div class="po-wrap"><div class="po-head"><div><h2>Team</h2><div class="po-sub">People who can sign in to this account. Each person signs in with their own email and a code we send to it.</div></div></div>'
    +(ro?'<div class="po-note"><b>Staff view</b>: you can see this team. Add or remove people in the ERP (Dealers, Storefront, Portal users).</div>':'')
    +(TM.err?'<div class="po-err" role="alert">'+esc(TM.err)+'</div>':'')+(TM.ok?'<div class="po-ok" role="status">'+esc(TM.ok)+'</div>':'')
-   +'<div class="po-card"><table style="min-width:720px"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added</th><th>Last sign-in</th><th></th></tr></thead><tbody>'+(TM.loading&&!TM.loaded?'<tr><td colspan="6" class="t3" style="padding:18px">Loading&hellip;</td></tr>':rows)+'</tbody></table></div>'
+   +'<div class="po-card"><table style="min-width:720px"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Sign-in</th><th>Added</th><th></th></tr></thead><tbody>'+(TM.loading&&!TM.loaded?'<tr><td colspan="6" class="t3" style="padding:18px">Loading&hellip;</td></tr>':rows)+'</tbody></table></div>'
    +(ro?'':'<div class="po-card tm-add"><div class="co-bar" style="margin:0"><span>Add a person</span><span>'+TM.users.length+' of '+TM.max+'</span></div><div class="tm-form"><div><label for="tm-email">Email</label><input class="tm-in" id="tm-email" type="email" autocomplete="off" value="'+shEsc(F.email)+'" oninput="TM.form.email=this.value" onkeydown="if(event.key===\'Enter\')teamAdd()"></div><div><label for="tm-name">Name (optional)</label><input class="tm-in" id="tm-name" type="text" value="'+shEsc(F.name)+'" oninput="TM.form.name=this.value" onkeydown="if(event.key===\'Enter\')teamAdd()"></div><div><label for="tm-role">Role</label><select class="tm-in" id="tm-role" onchange="TM.form.role=this.value">'+TM_ROLES.map(r=>'<option value="'+r[0]+'"'+(F.role===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></div><button type="button" class="po-btn" id="tm-go" onclick="teamAdd()"'+(TM.busy?' disabled':'')+'>'+(TM.busy?'Adding&hellip;':'Add person')+'</button></div></div>')
-   +'<div class="po-card tm-help"><div><b>Admin</b> can add and remove people, change roles and place orders.</div><div><b>Buyer</b> can see prices and orders and place orders.</div><div><b>Viewer</b> can see prices and orders, but cannot place orders.</div><div class="t3" style="margin-top:6px">Everyone you add can see your prices and your order history. We email the person you add, and the main contact when someone else on the team makes a change.</div></div></div>';
+   +'<div class="po-card tm-help"><div><b>Admin</b> can add and remove people, change roles and place orders.</div><div><b>Buyer</b> can see prices and orders and place orders.</div><div><b>Viewer</b> can see prices and orders, but cannot place orders.</div><div class="t3" style="margin-top:6px">Each person chooses their own password from an emailed link and signs in with their email. Everyone you add can see your prices and your order history. We email the person you add, and the main contact when someone else on the team makes a change.</div></div></div>';
+}
+
+// ── Accounts: each person signs in with their own email and password at the portal address ──
+// (The personal ?d= links keep working exactly as before. This adds sign-in for people who have no link.)
+var ACCT={view:'login',busy:false,err:'',ok:'',email:'',choose:null,pass:'',setup:null,hint:'',dealer:''};
+function acctStored(){try{const x=JSON.parse(localStorage.getItem('tgk_acct')||'null');if(x&&x.tok&&Date.parse(x.exp)>Date.now())return x;}catch(e){}return null;}
+function acctToken(){const x=acctStored();return x?x.tok:'';}
+function acctActive(){return !!acctStored()&&!new URLSearchParams(location.search).get('d');}
+function acctForget(){try{localStorage.removeItem('tgk_acct');}catch(e){}}
+function acctExpire(msg){acctForget();acctShowLogin(msg||'Your session ended. Please sign in again.');}
+function acctScreen(){let s=document.getElementById('acct-screen');if(!s){s=document.createElement('div');s.id='acct-screen';document.body.appendChild(s);}return s;}
+function acctHideOthers(){['loading','error','app'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});const o=document.getElementById('acct-pw');if(o)o.remove();document.body.classList.remove('cd-open');}
+function acctShowLogin(msg){ACCT.view='login';ACCT.err=msg||'';ACCT.ok='';ACCT.busy=false;acctHideOthers();acctRender();}
+async function acctShowSetup(){
+  acctHideOthers();ACCT.view='setupwait';ACCT.err='';acctRender();
+  const raw=new URLSearchParams(location.search).get('setup')||'';
+  try{const j=await poCall({action:'setup_check',setup:raw});ACCT.setup=raw;ACCT.hint=j.email_hint||'';ACCT.dealer=j.dealer||'';ACCT.kind=j.kind;ACCT.view='setup';}
+  catch(e){ACCT.view='badlink';ACCT.err=e.message;}
+  acctRender();
+}
+function acctRender(){
+  const s=acctScreen(),logo=(document.querySelector('.hdr-logo')||{}).src||'';
+  const bar=t=>'<div class="co-bar" style="margin:0"><span>'+t+'</span></div>';
+  const err=()=>ACCT.err?'<div class="po-err" role="alert" style="margin:12px 0 0">'+esc(ACCT.err)+'</div>':'';
+  const ok=()=>ACCT.ok?'<div class="po-ok" role="status" style="margin:12px 0 0">'+esc(ACCT.ok)+'</div>':'';
+  const field=(id,label,type,val,extra)=>'<label for="'+id+'">'+label+'</label><input class="ac-in" id="'+id+'" type="'+type+'" value="'+shEsc(val||'')+'" '+(extra||'')+'>';
+  let body='';
+  if(ACCT.view==='login'){
+    body=bar('Dealer portal sign-in')+'<form class="ac-body" onsubmit="acctLogin();return false" novalidate>'+field('ac-email','Email','email',ACCT.email,'autocomplete="username" autofocus')+field('ac-pass','Password','password','','autocomplete="current-password"')
+     +err()+ok()+'<button class="po-btn ac-go" type="submit"'+(ACCT.busy?' disabled':'')+'>'+(ACCT.busy?'Signing in&hellip;':'Sign in')+'</button>'
+     +'<div class="ac-links"><a class="po-link" onclick="acctGo(\'forgot\')">Forgot your password?</a><a class="po-link" onclick="acctGo(\'forgot\')">First time? Set up your account</a></div></form>';
+  }else if(ACCT.view==='choose'){
+    body=bar('Which account?')+'<div class="ac-body"><p class="ac-p">This email belongs to more than one dealer account. Choose one to open.</p>'+(ACCT.choose||[]).map(c=>'<button type="button" class="btn ac-pick" data-d="'+shEsc(c.dealer_id)+'" onclick="acctPick(this.dataset.d)">'+esc(c.name)+'</button>').join('')+err()+'</div>';
+  }else if(ACCT.view==='forgot'){
+    body=bar('Choose or reset your password')+'<form class="ac-body" onsubmit="acctForgot();return false" novalidate><p class="ac-p">Enter your email. If it is approved for a dealer account, we email a one-time link to choose a password.</p>'+field('ac-email','Email','email',ACCT.email,'autocomplete="username" autofocus')+err()+ok()
+     +'<button class="po-btn ac-go" type="submit"'+(ACCT.busy?' disabled':'')+'>'+(ACCT.busy?'Sending&hellip;':'Email me a link')+'</button><div class="ac-links"><a class="po-link" onclick="acctGo(\'login\')">&larr; Back to sign in</a></div></form>';
+  }else if(ACCT.view==='setupwait'){
+    body=bar('One moment')+'<div class="ac-body"><p class="ac-p">Checking your link&hellip;</p></div>';
+  }else if(ACCT.view==='badlink'){
+    body=bar('This link will not work')+'<div class="ac-body"><p class="ac-p">'+esc(ACCT.err||'This link has expired or was already used.')+'</p><button class="po-btn ac-go" type="button" onclick="history.replaceState(null,\'\',location.pathname);acctGo(\'forgot\')">Get a new link</button></div>';
+  }else if(ACCT.view==='setup'){
+    body=bar(ACCT.kind==='reset'?'Choose a new password':'Choose your password')+'<form class="ac-body" onsubmit="acctSetPassword();return false" novalidate><p class="ac-p">'+(ACCT.dealer?'Dealer account: <b>'+esc(ACCT.dealer)+'</b><br>':'')+'Signing in as <b>'+esc(ACCT.hint)+'</b></p>'
+     +field('ac-new','New password','password','','autocomplete="new-password" autofocus')+field('ac-new2','Type it again','password','','autocomplete="new-password"')
+     +'<label class="ac-show"><input type="checkbox" onchange="document.getElementById(\'ac-new\').type=document.getElementById(\'ac-new2\').type=this.checked?\'text\':\'password\'"> Show the password</label>'
+     +'<p class="po-sub" style="margin:8px 0 0">At least 10 characters. A few words together make a strong, easy-to-remember password.</p>'+err()
+     +'<button class="po-btn ac-go" type="submit"'+(ACCT.busy?' disabled':'')+'>'+(ACCT.busy?'Saving&hellip;':'Save and sign in')+'</button></form>';
+  }
+  s.innerHTML='<div class="ac-top">'+(logo?'<img src="'+shEsc(logo)+'" alt="TGK Motorsport">':'')+'<span>Authorized Dealer Program</span></div><div class="ac-stripe"></div><div class="ac-wrap"><div class="ac-card">'+body+'</div><p class="ac-foot">Need access? Contact <a href="mailto:info@tgkmotorsport.com">info@tgkmotorsport.com</a>. Prices are confidential and for the named dealer only.</p></div>';
+  s.style.display='block';
+  const f=s.querySelector('[autofocus]');if(f&&document.activeElement!==f)try{f.focus();}catch(e){}
+}
+function acctGo(v){const e=document.getElementById('ac-email');if(e)ACCT.email=e.value.trim();ACCT.view=v;ACCT.err='';ACCT.ok='';acctRender();}
+function acctRead(){const e=document.getElementById('ac-email');if(e)ACCT.email=e.value.trim();const p=document.getElementById('ac-pass');if(p)ACCT.pass=p.value;}
+function acctFinish(j){   // signed in: remember who, hand the portal its session, and open the portal
+  try{
+    localStorage.setItem('tgk_acct',JSON.stringify({tok:j.dealer.token,exp:j.expires_at,email:j.user.email,name:j.dealer.name}));
+    localStorage.setItem('tgk_po_'+String(j.dealer.token).slice(0,16),JSON.stringify({s:j.session,exp:j.expires_at}));
+  }catch(e){}
+  ACCT.pass='';history.replaceState(null,'',location.pathname);location.reload();
+}
+async function acctLogin(dealerId){
+  if(ACCT.busy)return;acctRead();
+  if(!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(ACCT.email)){ACCT.err='Enter your email address.';acctRender();return;}
+  if(!ACCT.pass){ACCT.err='Enter your password.';acctRender();return;}
+  ACCT.busy=true;ACCT.err='';acctRender();
+  try{
+    const j=await poCall({action:'login',email:ACCT.email,password:ACCT.pass,dealer_id:dealerId});
+    if(j.choose){ACCT.busy=false;ACCT.choose=j.choose;ACCT.view='choose';acctRender();return;}
+    acctFinish(j);return;
+  }catch(e){ACCT.err=e.message;}
+  ACCT.busy=false;ACCT.pass='';acctRender();
+}
+function acctPick(id){acctLogin(id);}
+async function acctForgot(){
+  if(ACCT.busy)return;acctRead();
+  if(!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(ACCT.email)){ACCT.err='Enter your email address.';acctRender();return;}
+  ACCT.busy=true;ACCT.err='';ACCT.ok='';acctRender();
+  try{await poCall({action:'request_reset',email:ACCT.email});ACCT.ok='If that email is approved for a dealer account, we have sent a link to it. It works once. Check your inbox (and spam).';}catch(e){ACCT.err=e.message;}
+  ACCT.busy=false;acctRender();
+}
+async function acctSetPassword(){
+  if(ACCT.busy)return;const a=document.getElementById('ac-new'),b=document.getElementById('ac-new2');
+  if(!a||!b)return;if(a.value!==b.value){ACCT.err='The two passwords do not match.';acctRender();return;}
+  ACCT.busy=true;ACCT.err='';acctRender();
+  try{const j=await poCall({action:'setup_password',setup:ACCT.setup,password:a.value});acctFinish(j);return;}catch(e){ACCT.err=e.message;if(e.status===400&&/link/i.test(e.message)&&!/password|character/i.test(e.message)){ACCT.view='badlink';}}
+  ACCT.busy=false;acctRender();
+}
+// ---- change your password (from My Orders)
+function acctPwOpen(){
+  if(document.getElementById('acct-pw'))return;
+  const o=document.createElement('div');o.id='acct-pw';o.className='ac-ov';
+  o.innerHTML='<div class="ac-card ac-modal" role="dialog" aria-modal="true" aria-label="Change your password"><div class="co-bar" style="margin:0"><span>Change your password</span></div><form class="ac-body" onsubmit="acctPwSave();return false" novalidate><label for="pw-cur">Current password</label><input class="ac-in" id="pw-cur" type="password" autocomplete="current-password" autofocus><label for="pw-new">New password</label><input class="ac-in" id="pw-new" type="password" autocomplete="new-password"><label for="pw-new2">Type the new one again</label><input class="ac-in" id="pw-new2" type="password" autocomplete="new-password"><div id="pw-msg" role="alert"></div><div style="display:flex;gap:10px;margin-top:16px"><button class="po-btn" type="submit" id="pw-go">Save password</button><button class="btn" type="button" onclick="acctPwClose()">Cancel</button></div></form></div>';
+  o.addEventListener('click',e=>{if(e.target===o)acctPwClose();});document.body.appendChild(o);const f=document.getElementById('pw-cur');if(f)f.focus();
+}
+function acctPwClose(){const o=document.getElementById('acct-pw');if(o)o.remove();}
+async function acctPwSave(){
+  const c=document.getElementById('pw-cur').value,n=document.getElementById('pw-new').value,n2=document.getElementById('pw-new2').value,m=document.getElementById('pw-msg'),btn=document.getElementById('pw-go');
+  const say=(t,good)=>{m.className=good?'po-ok':'po-err';m.textContent=t;};
+  if(!c||!n){say('Fill in all three boxes.');return;}if(n!==n2){say('The new passwords do not match.');return;}
+  btn.disabled=true;
+  try{await poCall({action:'change_password',session:PO.session,current_password:c,new_password:n});say('Your password was changed. Your other sign-ins were ended.',true);setTimeout(acctPwClose,1800);}
+  catch(e){say(e.message);btn.disabled=false;if(e.status===401){acctPwClose();acctExpire();}}
 }
 
 init();
