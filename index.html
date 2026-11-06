@@ -906,7 +906,7 @@ function isHWPack(pn){return /^TGK-P\d/i.test(pn||'');}
 // based rather than startsWith so "Bolts/Washers/Nuts" can never be mistaken for a finished good.
 function catTop(c){return String(c||'').split('/')[0].trim();}
 function catSub(c){var p=String(c||'').split('/');return p.length>1?p.slice(1).join('/').trim():'';}
-function fgSectionLabel(c){return catSub(c)||'Uncategorised';}
+function fgSectionLabel(x){ if(x&&typeof x==='object'){ var p=(typeof shopCatPaths==='function')?shopCatPaths(x)[0]:null; if(p&&p.length)return p.slice(0,2).join(' / '); return catSub(x.category)||'Uncategorised'; } return catSub(x)||'Uncategorised'; }
 // Per-dealer visibility. null / missing / empty array all mean "no restriction", so every dealer
 // that predates this feature keeps seeing the full list with no migration needed.
 function dealerAllows(a){
@@ -977,7 +977,7 @@ async function apiAllRaw(p){
 // that). A SKU sold under two product pages (e.g. a C7 page and a D4 page) is listed once per vehicle.
 async function loadFits(){
   var cols='pn,year_from,year_to,make,model,submodel',ord='&order=pn,make,model,year_from',rows;
-  G.fprods=await apiAll('fit_products?select=handle,sku,fit_type').catch(function(){return [];});
+  G.fprods=await apiAll('fit_products?select=handle,sku,fit_type,category').catch(function(){return apiAll('fit_products?select=handle,sku,fit_type');}).catch(function(){return [];});
   try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes,transmission,drivetrain,engine_code'+ord);}
   catch(e0){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes'+ord);}
   catch(e){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle'+ord);}
@@ -1123,11 +1123,11 @@ function renderProspect(tiers){
   // The prospect list honours the same category filter as the dealer list - a visitor comparing
   // tiers benefits from narrowing the view just as much, and having the chip bar visibly do
   // nothing on this tab would be worse than not showing it.
-  var items=asms.filter(isVisible).filter(catAllows).sort(function(a,b){var ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
+  var items=asms.filter(isVisible).filter(catAllows).sort(function(a,b){var ca=fgSectionLabel(a),cb=fgSectionLabel(b);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   var total=0,inC=0,boC=0,btC=0,lastCat='',html2='';
   items.forEach(function(a){
     var pn=pnOf(a);var st=stockOf(a);
-    if(fgSectionLabel(a.category)!==lastCat){lastCat=fgSectionLabel(a.category);html2+='<tr class="cat-row"><td colspan="'+(6+tiers.length)+'">'+esc(lastCat)+'</td></tr>';}
+    if(fgSectionLabel(a)!==lastCat){lastCat=fgSectionLabel(a);html2+='<tr class="cat-row"><td colspan="'+(6+tiers.length)+'">'+esc(lastCat)+'</td></tr>';}
     var msrp=a.msrp||0;
     var usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
     var caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
@@ -1166,12 +1166,12 @@ var catSel=null; // null = show every category available to this dealer
 function _catKey(){try{return 'tgk_cats_'+(new URLSearchParams(location.search).get('t')||'p');}catch(e){return 'tgk_cats';}}
 function availableCats(){
   var m={};
-  G.asms.filter(isVisible).forEach(function(a){var c=fgSectionLabel(a.category);m[c]=(m[c]||0)+1;});
+  G.asms.filter(isVisible).forEach(function(a){var c=fgSectionLabel(a);m[c]=(m[c]||0)+1;});
   return Object.keys(m).sort().map(function(k){return{name:k,count:m[k]};});
 }
 function catAllows(a){
   if(!catSel||!catSel.length)return true;
-  return catSel.indexOf(fgSectionLabel(a.category))!==-1;
+  return catSel.indexOf(fgSectionLabel(a))!==-1;
 }
 function renderCatBar(){
   var bar=document.getElementById('cat-filter-bar');
@@ -1231,7 +1231,7 @@ function renderPrice(){
   var _dtbl=document.querySelector('#panel-price table');if(_dtbl)_dtbl.classList.remove('pl-prospect');
   const q=(document.getElementById('q-price').value||'').toLowerCase().trim();
   const d=safeDealer();
-  const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
+  const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a),cb=fgSectionLabel(b);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   let total=0,inC=0,boC=0,btC=0,lastCat='',html='';
   // [FIX] The category header was emitted from the position of the item in the list, BEFORE the
   // per-row visibility test below - so any filter that hid every item in a category still left its
@@ -1247,12 +1247,12 @@ function renderPrice(){
     return matchQ&&matchF&&catAllows(a);
   });
   const catHasVisible={};
-  items.forEach((a,i)=>{if(visMap[i])catHasVisible[fgSectionLabel(a.category)]=1;});
+  items.forEach((a,i)=>{if(visMap[i])catHasVisible[fgSectionLabel(a)]=1;});
   items.forEach((a,i)=>{
     const pn=pnOf(a);
     const {cls,txt,st}=stockOf(a);
     const vis=visMap[i];
-    const _cat=fgSectionLabel(a.category);
+    const _cat=fgSectionLabel(a);
     if(_cat!==lastCat&&catHasVisible[_cat]){lastCat=_cat;html+='<tr class="cat-row"><td colspan="11">'+esc(_cat)+'</td></tr>';}
     const msrp=a.msrp||0,_sp=(typeof shopSpecial==='function')?shopSpecial(a,1):null,np=_sp?_sp.price:netP(msrp,d,a.sales_price),sv=msrp-np;
     const usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
@@ -1375,7 +1375,7 @@ function doExport(tab,fmt){
     rows=[['SKU','Description','MSRP','Your Price','Savings','US Ship','Canada','Intl','Stock','Notes']];
     // Exports follow the category filter: a dealer who has narrowed to one category and hits
     // Export expects that category, not the entire catalogue back again.
-    G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
+    G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>{const ca=fgSectionLabel(a),cb=fgSectionLabel(b);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;const{txt}=stockOf(a);
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
@@ -1744,7 +1744,7 @@ function poStaffSignOut(){
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
-var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',cat:'all',cat2:'',flt:'',view:'grid',shown:24,
+var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],flt:'',view:'grid',shown:24,
   form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
   veh:{make:'',model:'',year:''},editVeh:true,prefix:'',available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
@@ -1900,7 +1900,7 @@ function shopInitDrawer(){
 function shopMatches(a){
   if(shopVehActive()&&!shopFitHits(a).length)return false; // a chosen vehicle: only parts that fit it, by the Fitment Guide's own rules
   const k=String(pnOf(a)).toLowerCase();
-  if(SH.cat!=='all'){const p=shopCatParts(a);if(p[0]!==SH.cat)return false;if(SH.cat2&&p[1]!==SH.cat2)return false;}
+  if(SH.catSel.length&&!shopCatPaths(a).some(p=>shopPathStarts(p,SH.catSel)))return false;
   if(SH.flt==='specials'&&!shopHasSpecial(a))return false;
   if(SH.flt==='instock'){const s=stockOf(a).st;if(s!=='instock'&&s!=='build')return false;}
   if(SH.flt==='ordered'&&!ordInfo(a))return false;
@@ -1932,10 +1932,34 @@ function shopList(){
   el.innerHTML=show.length?'<div class="shop-grid">'+show.map(shopCard).join('')+'</div>'+(rows.length>show.length?'<div style="text-align:center;margin-top:16px"><button class="btn" onclick="SH.shown+=24;shopList()">Show more</button></div>':''):'<div class="po-card" style="padding:40px;text-align:center;color:var(--text3)">No products match.</div>';
   shopBarRefresh(true);
 }
-// categories: the path after "Finished Goods" (Automotive, Automotive/Engine, ...). Top level first; its next level appears as a second row.
-function shopCatParts(a){return String(catSub(a.category)||'Uncategorised').split('/').map(x=>x.trim()).filter(Boolean);}
-function shopSetCat(c){SH.cat=c;SH.cat2='';SH.shown=24;renderShop();}
-function shopSetCat2(c){SH.cat2=(SH.cat2===c?'':c);SH.shown=24;renderShop();}
+// ---- categories: the same departments as the website. They come from fit_products.category: "Engine > Intake, Fuel > Pumps"
+// (a product can be in more than one path); a leading "All Categories" / "Categories" is dropped, exactly as the site does.
+function shCatIndex(){
+  const key=(G.fprods||[]).length+'|'+G.asms.length;if(SH._ci&&SH._ciKey===key)return SH._ci;
+  const fi=fitIndex(),m={};
+  (G.fprods||[]).forEach(p=>{
+    if(!p.sku||!p.category)return;const seen={},paths=[];
+    String(p.category).split(',').forEach(s=>{let e=s.split('>').map(x=>x.trim()).filter(Boolean);if(e.length&&/^(all categories|categories|all products|home page|frontpage)$/i.test(e[0]))e=e.slice(1);const id=e.join('>').toLowerCase();if(e.length&&!seen[id]){seen[id]=1;paths.push(e);}});
+    if(paths.length){const k=fi.C(p.sku);m[k]=(m[k]||[]).concat(paths);}
+  });
+  SH._ci=m;SH._ciKey=key;return m;
+}
+function shopCatPaths(a){
+  const idx=shCatIndex();
+  if(!Object.keys(idx).length){const t=String(catSub(a.category)||'Uncategorised').split('/').map(x=>x.trim()).filter(Boolean);return [t];}   // no category data in the database: the old two-level labels
+  const m=idx[fitIndex().C(a.pn)];return m&&m.length?m:[['Other']];
+}
+function shopPathStarts(p,sel){return sel.every((s,i)=>p[i]&&String(p[i]).toLowerCase()===String(s).toLowerCase());}
+function shopCatRows(items){ // one row of chips per level that is open: the departments, then the chosen one's sub-categories, and so on
+  const rows=[];let prefix=[];
+  for(let level=0;level<6;level++){
+    const names={};items.forEach(a=>shopCatPaths(a).forEach(p=>{if(p[level]&&shopPathStarts(p,prefix)&&!names[String(p[level]).toLowerCase()])names[String(p[level]).toLowerCase()]=p[level];}));
+    const list=Object.keys(names).map(k=>names[k]).sort((x,y)=>x.localeCompare(y));if(!list.length)break;
+    rows.push({level,list});if(SH.catSel.length>level)prefix=SH.catSel.slice(0,level+1);else break;
+  }
+  return rows;
+}
+function shopCatPick(level,name){const cur=SH.catSel[level];SH.catSel=SH.catSel.slice(0,level);if(name&&String(cur||'').toLowerCase()!==String(name).toLowerCase())SH.catSel.push(name);SH.shown=24;renderShop();}
 function shopSetFlt(f){SH.flt=(SH.flt===f?'':f);SH.shown=24;renderShop();}
 function renderShop(){
   const p=document.getElementById('panel-shop');if(!p)return;
@@ -1945,15 +1969,15 @@ function renderShop(){
   if(SH.err&&!SH.loaded){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>The shop is not available right now</h2><p>'+esc(SH.err)+'</p><button class="po-btn" onclick="SH.err=\'\';shopLoad()">Try again</button></div></div>';return;}
   if(SH.view==='done'&&SH.done)return shopDone(p);
   if(SH.view==='review')return shopReviewPage(p);
-  const items=shopItems(),cats={},subs={};items.forEach(a=>{const p=shopCatParts(a);cats[p[0]]=1;if(p[1]){(subs[p[0]]=subs[p[0]]||{})[p[1]]=1;}});
+  const items=shopItems(),crow=shopCatRows(items);
   const chip=(label,on,fn)=>'<button type="button" class="chip'+(on?' on':'')+'" onclick="'+fn+'">'+label+'</button>';
   p.innerHTML='<div class="shop-wrap">'
    +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
    +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')
    +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span></div>'
-   +'<div class="shop-chips">'+chip('All parts',SH.cat==='all','shopSetCat(\'all\')')+Object.keys(cats).sort().map(c=>chip(esc(c),SH.cat===c,'shopSetCat(this.dataset.c)" data-c="'+shEsc(c))).join('')
+   +'<div class="shop-chips">'+chip('All parts',!SH.catSel.length,'shopCatPick(0,\'\')')+(crow[0]?crow[0].list.map(c=>chip(esc(c),String(SH.catSel[0]||'').toLowerCase()===c.toLowerCase(),'shopCatPick(0,this.dataset.c)" data-c="'+shEsc(c))).join(''):'')
    +'<span class="chip-sep"></span>'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')')+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>'
-   +(SH.cat!=='all'&&subs[SH.cat]?'<div class="shop-chips shop-subchips" role="group" aria-label="'+shEsc(SH.cat)+' categories"><span class="cf-lbl">'+esc(SH.cat)+'</span>'+chip('All',!SH.cat2,'shopSetCat2(\'\')')+Object.keys(subs[SH.cat]).sort().map(c=>chip(esc(c),SH.cat2===c,'shopSetCat2(this.dataset.c)" data-c="'+shEsc(c))).join('')+'</div>':'')
+   +crow.slice(1).map(r=>'<div class="shop-chips shop-subchips" role="group" aria-label="'+shEsc(SH.catSel[r.level-1])+' categories"><span class="cf-lbl">'+esc(SH.catSel[r.level-1])+'</span>'+chip('All',!SH.catSel[r.level],'shopCatPick('+r.level+',\'\')')+r.list.map(c=>chip(esc(c),String(SH.catSel[r.level]||'').toLowerCase()===c.toLowerCase(),'shopCatPick('+r.level+',this.dataset.c)" data-c="'+shEsc(c))).join('')+'</div>').join('')
    +'<div id="shop-list"></div></div><div id="shop-bar"></div>';
   shopList();shopVehChip();
 }
