@@ -595,6 +595,9 @@ tr:hover td{background:#f6f8f8}
 .po-pill.pay-paid{background:#e6f6ef;color:#0b6b46;border:1px solid #bfe6d3}
 .po-pill.pay-unpaid{background:#fff4e5;color:#9a5200;border:1px solid #f3d3a4}
 .po-chip.pay{border-style:dashed}
+
+.po-pill.pay-over{background:#fdecea;color:#a1260d;border:1px solid #f3b6ad}
+.po-pill.pay-wait{background:#eef1f3;color:#4b5963;border:1px solid #d5dbe0}
 /* ── Dealer shop, in the website look: dark cut-corner cards with a white photo panel, vehicle band, cart drawer, checkout ── */
 .shop-wrap{padding:24px 28px 90px;display:flex;flex-direction:column}
 .shop-wrap .po-unlock{margin:20px auto}
@@ -885,20 +888,29 @@ a.rv-t:hover{text-decoration:underline}
 @media(max-width:700px){.req-card{margin-left:12px;margin-right:12px}.req-row{align-items:flex-start}.rq-grow{display:none}.rq-pay{width:100%}}
 @media print{.req-card{display:none!important}}
 
-/* ── Finder: Year, Make, Model, then Engine and Chassis (optional), like the website ── */
-.sf-row{margin-bottom:0}
-.sf-optrow{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
-.sf-field{display:block}
-.sf-field .sf-lab{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9fb0b8;margin-bottom:5px}
-.sf-lab em{font-style:normal;margin-left:6px;font-weight:600;letter-spacing:.04em;text-transform:lowercase;opacity:.75}
-.sf-field.is-off .sf-in{opacity:.55}
+/* ── Finder: one slim bar like the website's ── */
+.shop-finder.sf-compact{padding:8px 12px 8px;margin-bottom:24px}
+.sf-line{display:flex;align-items:center;gap:14px}
+.shop-finder.sf-compact .sf-t{display:block;margin:0;font-size:16px;font-weight:600;letter-spacing:0;text-transform:none;white-space:nowrap;color:#e8eef0}
+.sf-t b{font-weight:800;color:#fff}.sf-t b.hl{color:var(--teal)}
+.sf-fields{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.sf-fields .sf-field{display:block;flex:1 1 0;min-width:0;position:relative}
+.sf-fields .sf-field.yr{flex:1 1 0}
+.sf-lab{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sf-fields .sf-in{height:36px;padding:0 8px;font-size:13.5px;font-weight:500;border-color:transparent;border-radius:2px}
+.sf-field.is-off .sf-in{opacity:.6}
 .sf-field.is-next .sf-in{box-shadow:0 0 0 2px var(--teal)}
 .sf-field.is-done .sf-in{font-weight:700}
-.sf-actions{display:flex;align-items:center;gap:18px;margin-top:14px}
-.sf-go[disabled]{opacity:.4;cursor:not-allowed}
-.sf-reset{border:0;background:none;padding:6px 2px;color:#9fb0b8;font:600 13px var(--font,'Saira Semi Condensed',sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:.05em}
-.sf-reset:hover{color:#fff}
-@media(max-width:700px){.sf-actions{flex-wrap:wrap}.sf-go{flex:1 1 100%}}
+.sf-fields .sf-go{flex:none;height:36px;padding:0 18px;font-size:13px;letter-spacing:.09em}
+.sf-go[disabled]{opacity:.45;cursor:not-allowed}
+.sf-reset{flex:none;width:34px;height:36px;border:1px solid rgba(255,255,255,.28);border-radius:2px;background:transparent;color:#b8c6cc;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.sf-reset:hover{color:#fff;border-color:#fff}
+.shop-finder.sf-compact #sf-chip{margin-top:6px}
+@media(max-width:900px){
+  .sf-line{flex-direction:column;align-items:stretch;gap:8px}
+  .sf-fields{flex-wrap:wrap}.sf-fields .sf-field{flex:1 1 calc(50% - 4px)}
+  .sf-fields .sf-go{flex:1 1 calc(100% - 42px)}
+}
 /* ── Added to your order ── */
 #shop-toast{position:fixed;left:50%;bottom:92px;z-index:350;width:min(520px,calc(100% - 24px));display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--band);color:#fff;border-left:4px solid var(--teal);border-radius:2px;transform:translate(-50%,16px);opacity:0;visibility:hidden;transition:opacity .16s,transform .16s,visibility 0s .16s}
 #shop-toast.on{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .16s,transform .16s}
@@ -1635,11 +1647,11 @@ async function portalLoad(first,yearToo){
     const rangeIsYear=(PO.range||'365')==='365';let stale=false;
     if(first||yearToo||!PO.year||rangeIsYear){ // the last 12 months always stay loaded: they feed the account strip, the tab badge and the price list column
       const jy=await poFetchOrders({days:365});
-      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';PO.billed=!!(jy.billing&&jy.billing.billed);
+      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';PO.billed=!!(jy.billing&&jy.billing.billed);PO.termsLabel=(jy.billing&&jy.billing.terms_label)||'';
     }
     if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;}
     else{
-      const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;if(jr.billing)PO.billed=!!jr.billing.billed;
+      const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;if(jr.billing){PO.billed=!!jr.billing.billed;PO.termsLabel=jr.billing.terms_label||'';}
       if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
       else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
     }
@@ -1735,7 +1747,7 @@ function poApplyCustom(){
 function poCustomLabel(){return (PO.from?poDate(PO.from):'the beginning')+' to '+(PO.to?poDate(PO.to):'today');}
 function poMatches(o){
   const q=(PO.q||'').toLowerCase().trim();if(PO.status!=='all'&&o.status!==PO.status)return false;
-  if(PO.payF==='unpaid'&&!(o.bill&&!o.bill.paid&&o.status!=='Cancelled'))return false;if(PO.payF==='paid'&&!(o.bill&&o.bill.paid))return false;
+  if(PO.payF==='unpaid'&&!poIsUnpaid(o))return false;if(PO.payF==='overdue'&&!(poIsUnpaid(o)&&o.bill.state==='overdue'))return false;if(PO.payF==='paid'&&!(o.bill&&o.bill.paid))return false;
   if(!q)return true;
   const hay=[o.po,o.order_number,o.status].concat((o.tracking||[]).map(t=>t.number)).concat(o.lines.flatMap(l=>[l.sku,l.pn,l.desc])).join(' ').toLowerCase();
   return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
@@ -1752,9 +1764,10 @@ function poList(){
    +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
    +(PO.billed?poBalTile(all):'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>');
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
+  if(PO.billed){const an=document.getElementById('po-amtnote');an.textContent=an.textContent+' '+(PO.termsLabel?'Your terms: '+PO.termsLabel+', counted from the day the last item on a PO ships.':'A PO is billed on the day its last item ships.');}
   if(typeof liveChip==='function')liveChip();document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
-  document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+(PO.billed?'<button class="po-chip pay'+(PO.payF==='unpaid'?' on':'')+'" data-f="unpaid" onclick="poPay(this.dataset.f)">Unpaid <span>'+poUnpaid(all).length+'</span></button><button class="po-chip pay'+(PO.payF==='paid'?' on':'')+'" data-f="paid" onclick="poPay(this.dataset.f)">Paid <span>'+all.filter(o=>o.bill&&o.bill.paid).length+'</span></button>':'')+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
+  document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+(PO.billed?poPayChips(all):'')+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
   if(PO.noPrefix){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No orders are linked to your account yet. If you expected to see orders here, please contact support@tgkmotorsport.com.</div>';return;}
   if(!rows.length){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">'+(all.length?'No orders match your search.':'No orders in this period.')+'</div>';return;}
@@ -1762,17 +1775,39 @@ function poList(){
   card.innerHTML='<table><thead><tr><th>PO #</th><th>Ordered</th><th>Status</th><th>Items</th><th class="r">Merchandise</th>'+(PO.billed?'<th>Payment</th>':'')+'<th>Tracking</th><th style="width:30px"></th></tr></thead><tbody>'+show.map(poRow).join('')+'</tbody></table>'
    +'<div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text3)"><span>Showing '+show.length+' of '+rows.length+' PO'+(rows.length!==1?'s':'')+(PO.truncated?' (very long history: use a shorter date range for the full list)':'')+'</span>'+(rows.length>show.length?'<button class="btn" onclick="PO.shown+=25;poList()">Show more</button>':'')+'</div>';
 }
-function poUnpaid(all){return all.filter(o=>o.status!=='Cancelled'&&o.po&&o.bill&&!o.bill.paid);}
+function poIsUnpaid(o){return !!(o.bill&&o.status!=='Cancelled'&&(o.bill.state==='due'||o.bill.state==='overdue'||o.bill.state==='unpaid'));}   // billed and not paid (a PO not shipped yet has not been billed)
+function poUnpaid(all){return all.filter(poIsUnpaid);}
+function poPOs(list){return new Set(list.map(o=>o.po)).size;}
 function poAge(o){const t=Date.parse(String(o.date).slice(0,10)+'T12:00:00');return t?Math.max(0,Math.floor((Date.now()-t)/864e5)):0;}
-function poBalTile(all){   // dealers we bill: what is still owed (merchandise on POs that are not marked paid)
-  const u=poUnpaid(all),sum=u.reduce((s,o)=>s+(o.amounts?(o.amounts.subtotal||0):0),0),miss=u.filter(o=>!o.amounts).length;
-  return '<div class="po-stat"><div class="l">Balance due</div><div class="n" style="color:'+(u.length?'var(--amber)':'#0f766e')+'">'+(PO.amountsAvail?poMoney(sum):'&mdash;')+'</div><div class="s">'+(u.length?u.length+' unpaid PO'+(u.length!==1?'s':'')+' &middot; merchandise, before shipping and tax'+(miss&&PO.amountsAvail?' &middot; '+miss+' still pricing':''):'every PO is paid')+'</div></div>';
+function poPayChips(all){
+  const u=poUnpaid(all),od=u.filter(o=>o.bill.state==='overdue'),pd=all.filter(o=>o.bill&&o.bill.paid);
+  const chip=(f,l,n)=>'<button class="po-chip pay'+(PO.payF===f?' on':'')+'" data-f="'+f+'" onclick="poPay(this.dataset.f)">'+l+' <span>'+n+'</span></button>';
+  return chip('unpaid','Unpaid',u.length)+(od.length?chip('overdue','Overdue',od.length):'')+chip('paid','Paid',pd.length);
+}
+function poBalTile(all){   // dealers we bill: what is owed now (POs that have shipped, been billed, and are not marked paid)
+  const u=poUnpaid(all),od=u.filter(o=>o.bill.state==='overdue'),sum=l=>l.reduce((s,o)=>s+(o.amounts?(o.amounts.subtotal||0):0),0),miss=u.filter(o=>!o.amounts).length;
+  const col=od.length?'#b42318':(u.length?'var(--amber)':'#0f766e');
+  return '<div class="po-stat"><div class="l">Balance due</div><div class="n" style="color:'+col+'">'+(PO.amountsAvail?poMoney(sum(u)):'&mdash;')+'</div><div class="s">'+(u.length?poPOs(u)+' unpaid PO'+(poPOs(u)!==1?'s':'')+' &middot; '+(od.length?'<b style="color:#b42318">'+(PO.amountsAvail?poMoney(sum(od))+' ':'')+'overdue ('+poPOs(od)+')</b>':'none overdue')+(miss&&PO.amountsAvail?' &middot; '+miss+' still pricing':''):'nothing owed right now')+'</div></div>';
 }
 function poPayCell(o){
   if(!o.bill||o.status==='Cancelled')return '<td><span class="ord-none">&mdash;</span></td>';
-  return o.bill.paid?'<td><span class="po-pill pay-paid">Paid</span>'+(o.bill.paid_on?'<span class="po-ord">'+poDate(o.bill.paid_on)+'</span>':'')+'</td>':'<td><span class="po-pill pay-unpaid">Unpaid</span><span class="po-ord">'+poAge(o)+' days</span></td>';
+  const b=o.bill,sub=t=>'<span class="po-ord">'+t+'</span>',dd=x=>poDate(x).replace(/, \d{4}$/,'');
+  if(b.state==='paid')return '<td><span class="po-pill pay-paid">Paid</span>'+(b.paid_on?sub(poDate(b.paid_on)):'')+'</td>';
+  if(b.state==='unbilled')return '<td><span class="po-pill pay-wait">Not billed yet</span>'+sub('starts when the last item ships')+'</td>';
+  if(b.state==='overdue')return '<td><span class="po-pill pay-over">Overdue</span>'+sub(b.days_over+' day'+(b.days_over!==1?'s':'')+' &middot; was due '+dd(b.due_on))+'</td>';
+  if(b.state==='due')return '<td><span class="po-pill pay-unpaid">Due '+dd(b.due_on)+'</span>'+sub(b.days_to_due===0?'today':'in '+b.days_to_due+' day'+(b.days_to_due!==1?'s':''))+'</td>';
+  return '<td><span class="po-pill pay-unpaid">Unpaid</span>'+(b.billed_on?sub('billed '+dd(b.billed_on)):'')+'</td>';
 }
-function poPayText(o){return o.bill.paid?'Paid'+(o.bill.paid_on?' on '+poDate(o.bill.paid_on):''):'Unpaid ('+poAge(o)+' days since the order)';}
+function poPayLabel(o){const b=o.bill;if(!b)return '';return ({paid:'Paid',unbilled:'Not billed yet',due:'Due',overdue:'Overdue',unpaid:'Unpaid'})[b.state]||'';}
+function poPayText(o){
+  const b=o.bill,t=PO.termsLabel?PO.termsLabel+' ':'';
+  if(b.state==='paid')return 'Paid'+(b.paid_on?' on '+poDate(b.paid_on):'');
+  if(b.state==='unbilled')return 'Not billed yet. '+(PO.termsLabel?'Your '+PO.termsLabel+' terms':'The clock')+' start the day the last item on this PO ships';
+  const head='Billed '+poDate(b.billed_on)+(PO.termsLabel?' &middot; '+esc(PO.termsLabel):'');
+  if(b.state==='overdue')return head+' &middot; due '+poDate(b.due_on)+' &middot; <b style="color:#b42318">overdue by '+b.days_over+' day'+(b.days_over!==1?'s':'')+'</b>';
+  if(b.state==='due')return head+' &middot; due '+poDate(b.due_on)+(b.days_to_due===0?' (today)':' (in '+b.days_to_due+' day'+(b.days_to_due!==1?'s':'')+')');
+  return head+' &middot; unpaid';
+}
 function poPay(f){PO.payF=PO.payF===f?'':f;PO.shown=25;poList();}
 function poStatus(s){PO.status=PO.status===s?'all':s;PO.shown=25;poList();}
 function poTrackLinks(o,short){
@@ -1788,7 +1823,7 @@ function poRow(o){
    +(PO.billed?poPayCell(o):'')+'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
   if(op){
     const A=o.amounts;
-    h+='<tr class="po-detail"><td colspan="'+(PO.billed?8:7)+'"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(PO.billed&&o.bill?'<span><b>Payment</b> '+poPayText(o)+'</span>':(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':''))+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
+    h+='<tr class="po-detail"><td colspan="'+(PO.billed?8:7)+'"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(PO.billed&&o.bill&&o.status!=='Cancelled'?'<span><b>Payment</b> '+poPayText(o)+'</span>':(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':''))+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
      +'<table><thead><tr><th>SKU</th><th>Description</th><th class="r">Ordered</th><th class="r">Shipped</th><th class="r">Backordered</th><th class="r">Unit price</th><th class="r">Line total</th><th>Status</th></tr></thead><tbody>'
      +o.lines.map(l=>'<tr><td style="font-family:ui-monospace,monospace;font-weight:600;color:#0f766e">'+esc(l.sku)+'</td><td>'+esc(l.desc)+'</td><td class="r">'+l.qty+'</td><td class="r">'+l.shipped+'</td><td class="r"'+(l.backordered?' style="color:var(--amber);font-weight:700"':'')+'>'+l.backordered+'</td><td class="r">'+poMoney(l.unit)+'</td><td class="r" style="font-weight:600;color:var(--text)">'+poMoney(l.total)+'</td><td><span class="po-pill '+poSlug(l.status)+'">'+esc(l.status)+'</span></td></tr>').join('')
      +(A?'<tr class="po-tot"><td colspan="6" class="r">Merchandise</td><td class="r">'+poMoney(A.subtotal)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Shipping</td><td class="r">'+poMoney(A.shipping)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Tax</td><td class="r">'+poMoney(A.tax)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r" style="color:var(--text)">Order total</td><td class="r" style="color:var(--text)">'+poMoney(A.total)+'</td><td></td></tr>':'')
@@ -1798,8 +1833,8 @@ function poRow(o){
 }
 function poToggle(k){PO.open[k]=!PO.open[k];poList();}
 function poExport(){
-  const rows=[['PO','TGK order','Ordered','Status','Tracking','SKU','Description','Qty','Shipped','Backordered','Unit price','Line total','Order merchandise','Shipping','Tax','Order total'].concat(PO.billed?['Payment','Paid on']:[])];
-  PO.orders.filter(poMatches).forEach(o=>o.lines.forEach(l=>rows.push([o.po,o.order_number,String(o.date).slice(0,10),o.status,(o.tracking||[]).map(t=>t.number).join(' '),l.sku,l.desc,l.qty,l.shipped,l.backordered,l.unit==null?'':l.unit,l.total==null?'':l.total,o.amounts?o.amounts.subtotal:'',o.amounts?o.amounts.shipping:'',o.amounts?o.amounts.tax:'',o.amounts?o.amounts.total:''].concat(PO.billed?[o.bill?(o.bill.paid?'Paid':'Unpaid'):'',o.bill&&o.bill.paid_on||'']:[]))));
+  const rows=[['PO','TGK order','Ordered','Status','Tracking','SKU','Description','Qty','Shipped','Backordered','Unit price','Line total','Order merchandise','Shipping','Tax','Order total'].concat(PO.billed?['Payment','Billed on','Due on','Paid on']:[])];
+  PO.orders.filter(poMatches).forEach(o=>o.lines.forEach(l=>rows.push([o.po,o.order_number,String(o.date).slice(0,10),o.status,(o.tracking||[]).map(t=>t.number).join(' '),l.sku,l.desc,l.qty,l.shipped,l.backordered,l.unit==null?'':l.unit,l.total==null?'':l.total,o.amounts?o.amounts.subtotal:'',o.amounts?o.amounts.shipping:'',o.amounts?o.amounts.tax:'',o.amounts?o.amounts.total:''].concat(PO.billed?[poPayLabel(o),o.bill&&o.bill.billed_on||'',o.bill&&o.bill.due_on||'',o.bill&&o.bill.paid_on||'']:[]))));
   const csv=rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
   dl('TGK-Orders.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv));
 }
@@ -2409,18 +2444,20 @@ function shopVehSpec(){   // the chassis and engine codes, as small chips: the o
 }
 function shopFitTag(a){return shopVehActive()?'<span class="tagfit">&#10003; FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
 function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
-function shopFinderFields(){
+function shopFinderTitle(){   // "Find parts for your vehicle." and, once a make is chosen, "Find parts for your Audi."
+  const mk=SH.veh&&SH.veh.make;return 'Find <b class="hl">parts</b> for your '+(mk?'<b class="hl">'+esc(mk)+'</b>':'<b>vehicle</b>')+'.';
+}
+function shopFinderFields(){   // one slim row, like the website's: the labels are for screen readers, the dropdowns name themselves
   shopVehNormalize();
-  const V=SH.veh;let nextShown=false,req='',opt='';
+  const V=SH.veh;let nextShown=false,h='';
   SH_VF.forEach((f,i)=>{
     const on=i===0||V[SH_VF[i-1]],o=on?shopVehOpts(f):[],optional=(f==='engine'||f==='chassis');
     let cls=V[f]?'is-done':(!on||!o.length)?'is-off':'is-next';
     if(cls==='is-next'){if(optional||nextShown)cls='is-open';else nextShown=true;}   // only the next required field is lit
-    const h='<label class="sf-field '+cls+(f==='year'?' yr':'')+'" for="sf-'+f+'"><span class="sf-lab">'+SH_VL[f]+(optional?'<em>optional</em>':'')+'</span><select class="sf-in" id="sf-'+f+'" onchange="shopVehSet(\''+f+'\',this.value)"'+((!on||!o.length)?' disabled':'')+'><option value="">'+(optional?'Any':'Select '+f)+'</option>'+o.map(x=>'<option'+(x===V[f]?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
-    if(optional)opt+=h;else req+=h;
+    h+='<label class="sf-field '+cls+(optional?' opt':'')+'" for="sf-'+f+'" title="'+SH_VL[f]+(optional?' (optional)':'')+'"><span class="sf-lab">'+SH_VL[f]+(optional?' (optional)':'')+'</span><select class="sf-in" id="sf-'+f+'" onchange="shopVehSet(\''+f+'\',this.value)"'+((!on||!o.length)?' disabled':'')+'><option value="">'+(optional?SH_VL[f]:'Select '+f)+'</option>'+o.map(x=>'<option'+(x===V[f]?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
   });
   const ready=!!(V.year&&V.make&&V.model);
-  return '<div class="sf-row">'+req+'</div><div class="sf-row sf-optrow">'+opt+'</div><div class="sf-actions"><button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()"'+(ready?'':' disabled')+'>FIND MY PARTS</button><button type="button" class="sf-reset" onclick="shopVehClear()">Reset</button></div>';
+  return h+'<button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()"'+(ready?'':' disabled')+'>FIND MY PARTS</button><button type="button" class="sf-reset" onclick="shopVehClear()" title="Start over" aria-label="Start over"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>';
 }
 function shopFinderHtml(){
   if(shopVehActive()&&!SH.editVeh&&SH.veh.year&&SH.veh.make&&SH.veh.model){
@@ -2428,7 +2465,7 @@ function shopFinderHtml(){
     return '<div class="vband"><div class="vb-ic">'+SH_CAR+'</div><div style="min-width:0">'+(SH.veh.make?'<div class="vb-make">'+esc(SH.veh.make)+'</div>':'')+'<div class="vb-row"><span class="vb-title">'+esc(shopVehLabel())+'</span>'+(spec.length?'<span class="vb-spec">'+spec.map(x=>'<span>'+esc(x)+'</span>').join('')+'</span>':'')+'</div></div>'
      +'<div class="vb-side"><div class="vb-count"><b>'+shopVehCount()+'</b>PARTS FIT</div><a class="vb-fit" onclick="shopOpenFit()">Fitment Guide</a><button type="button" class="vb-change" onclick="shopVehEdit()">CHANGE VEHICLE</button><button type="button" class="vb-clear" onclick="shopVehClear()">CLEAR</button></div></div>';
   }
-  return '<div class="shop-finder"><span class="sf-t">FIND PARTS FOR YOUR VEHICLE</span><div id="sf-fields">'+shopFinderFields()+'</div><div id="sf-chip"></div></div>';
+  return '<div class="shop-finder sf-compact"><div class="sf-line"><span class="sf-t" id="sf-title">'+shopFinderTitle()+'</span><div id="sf-fields" class="sf-fields">'+shopFinderFields()+'</div></div><div id="sf-chip"></div></div>';
 }
 function shopVehChip(){
   const el=document.getElementById('sf-chip');if(!el)return;
@@ -2436,6 +2473,7 @@ function shopVehChip(){
 }
 function shopVehSet(f,v){
   SH.veh[f]=String(v).trim();shopVehNormalize();shopSaveVeh();
+  const ttl=document.getElementById('sf-title');if(ttl)ttl.innerHTML=shopFinderTitle();
   const box=document.getElementById('sf-fields');if(box){box.innerHTML=shopFinderFields();const el=document.getElementById('sf-'+f);if(el&&!el.disabled)el.focus();}
   shopVehChip();SH.shown=24;shopList();
 }
