@@ -426,6 +426,19 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
 .req-row{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);font-size:13.5px}
 .req-row:last-child{border-bottom:none}
 @media(max-width:860px){.rv{grid-template-columns:1fr}.rv-line{grid-template-columns:48px 1fr 96px;grid-template-areas:'a b c' 'a d e'}.shop-wrap{padding:14px 12px 90px}.shop-bar{padding:10px 14px}.shop-grid{grid-template-columns:1fr}}
+
+.shop-finder{background:#1b2127;border:1px solid #2c353d;border-radius:8px;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#fff}
+.shop-finder .sf-t{font-weight:700;letter-spacing:.1em;font-size:12.5px;color:#c9d1d6;margin-right:4px}
+.sf-in{background:#0f1418;color:#fff;border:1px solid #2c353d;border-radius:6px;height:36px;padding:0 10px;font-family:inherit;font-size:14px}
+.sf-in:disabled{opacity:.5}
+.sf-garage{background:var(--teal);color:#06201c;font-weight:800;font-size:12px;letter-spacing:.04em;padding:6px 10px;border-radius:4px;display:inline-flex;gap:8px;align-items:center}
+.sf-garage button{background:none;border:none;color:#06201c;font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+.tagfit{position:absolute;left:10px;bottom:8px;font-size:11px;font-weight:800;color:var(--teal);letter-spacing:.06em}
+.pfit{font-size:11.5px;color:#fbbf24;margin:2px 0 4px;line-height:1.35}
+.hdr-cart{display:inline-flex;align-items:center;gap:8px;position:relative;border:1.5px solid var(--border);background:#fff;border-radius:8px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;margin-right:10px;color:var(--text);font-family:inherit}
+.hdr-cart:hover{border-color:var(--teal)}
+.hdr-cart-n{background:var(--teal);color:#06201c;font-size:11px;font-weight:800;min-width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+@media print{.hdr-cart{display:none!important}}
 </style>
 </head>
 <body>
@@ -445,7 +458,8 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
       </div>
     </div>
     <div class="hdr-right">
-      <button class="btn-print" onclick="window.print()">
+      <button type="button" class="hdr-cart" id="hdr-cart" style="display:none" onclick="shopOpenCart()" aria-label="Open your order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>Order <span class="hdr-cart-n" id="hdr-cart-n" style="display:none">0</span></button>
+    <button class="btn-print" onclick="window.print()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Print / PDF
       </button>
@@ -1153,7 +1167,7 @@ async function portalBoot(){
     const s=await poCall({action:'status'});
     PO.hint=s.email_hint||'';PO.canUnlock=!!s.can_unlock;PO.hasPrefix=!!s.has_prefix;
     document.getElementById('tab-orders').style.display='';  // only appears when the server function answers
-    if(shOn(s))document.getElementById('tab-shop').style.display=''; // the storefront needs function v1.2 or later
+    SH.available=shOn(s);if(SH.available)document.getElementById('tab-shop').style.display='';shopHdr(); // the storefront needs function v1.2 or later
     let saved=null;try{saved=JSON.parse(localStorage.getItem(poKey())||'null');}catch(e){}
     if(saved&&saved.s&&Date.parse(saved.exp)>Date.now()){PO.session=saved.s;PO.state='loading';renderStrip();await portalLoad(true);}
     else{PO.state='locked';renderStrip();}
@@ -1282,7 +1296,7 @@ function poList(){
   st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+(sm.miss&&PO.amountsAvail?' &middot; '+sm.miss+' still pricing':'')+'</div></div>'
    +'<div class="po-stat"><div class="l">Open POs</div><div class="n" style="color:var(--amber)">'+open.length+'</div><div class="s">'+(bo.length?bo.length+' with backordered items':'none backordered')+'</div></div>'
    +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
-   +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?'PO '+esc(last.po)+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
+   +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
   document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
@@ -1302,7 +1316,7 @@ function poTrackLinks(o,short){
 }
 function poRow(o){
   const op=!!PO.open[o.order_number],n=o.lines.filter(l=>l.status!=='Cancelled').length;
-  let h='<tr class="po-row'+(op?' open':'')+'" onclick="poToggle(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')"><td><span class="po-num">'+esc(o.po)+'</span><span class="po-ord">Order '+esc(o.order_number)+'</span></td><td>'+poDate(o.date)+'</td>'
+  let h='<tr class="po-row'+(op?' open':'')+'" onclick="poToggle(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')"><td><span class="po-num">'+esc(o.po||'No PO')+'</span><span class="po-ord">Order '+esc(o.order_number)+'</span></td><td>'+poDate(o.date)+'</td>'
    +'<td><span class="po-pill '+poSlug(o.status)+'">'+esc(o.status)+'</span>'+(o.status_detail?'<span class="ord-bo">'+esc(o.status_detail)+'</span>':'')+'</td>'
    +'<td>'+n+' item'+(n!==1?'s':'')+' &middot; '+o.units+' unit'+(o.units!==1?'s':'')+'</td><td class="r" style="font-weight:700;color:var(--text)">'+(o.amounts?poMoney(o.amounts.subtotal):'<span class="ord-none">'+(PO.amountsAvail?'pricing&hellip;':'&mdash;')+'</span>')+'</td>'
    +'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
@@ -1368,7 +1382,7 @@ async function poStaffToken(){ // a valid token, refreshing our own sign-in when
 }
 async function staffBoot(){
   PO.staff=true;poStaffPickup();
-  const show=(r)=>{document.getElementById('tab-orders').style.display='';if(shOn(r))document.getElementById('tab-shop').style.display='';};
+  const show=(r)=>{document.getElementById('tab-orders').style.display='';SH.available=shOn(r);if(SH.available||PO.staff)document.getElementById('tab-shop').style.display='';shopHdr();}; // staff always see the Shop tab, with an explanation when the server is too old
   if(PO.staffTok&&await poStaffToken()){
     try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show(c);PO.state='loading';renderStrip();await portalLoad(true);return;}
     catch(e){if(e.status===401)poStaffClear();else if(!(e.data&&e.data.error))return;}
@@ -1408,14 +1422,14 @@ function poStaffSignOut(){
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
 var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',cat:'all',flt:'',view:'grid',shown:24,
-  form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null};
+  form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,veh:{make:'',model:'',year:''},prefix:'',available:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
 const shEsc=s=>esc(s).replace(/"/g,'&quot;');
 const shR2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const shMoney=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const shOn=r=>!!r&&parseFloat(String(r.build||'').replace(/^v/,''))>=1.2;
 (function(){try{SH.cart=JSON.parse(localStorage.getItem(shKey())||'{}')||{};}catch(e){SH.cart={};}try{const f=JSON.parse(localStorage.getItem(shShipKey())||'null');if(f)Object.assign(SH.form,f,{po:'',notes:'',drop:false});}catch(e){}})();
-function shopSave(){try{localStorage.setItem(shKey(),JSON.stringify(SH.cart));}catch(e){}}
+function shopSave(){try{localStorage.setItem(shKey(),JSON.stringify(SH.cart));}catch(e){}if(typeof shopHdr==='function')shopHdr();}
 function shopReset(){SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';const c=document.getElementById('pf-specials');if(c)c.style.display='none';}
 function shopItems(){
   if(SH._items&&SH._keyN===G.asms.length)return SH._items;
@@ -1442,7 +1456,7 @@ async function shopLoad(){
   try{
     const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
     const [p,r]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth))]);
-    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
     if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
   }catch(e){SH.err=e.message||'The shop could not be loaded.';}
   SH.loading=false;shopAfterLoad();renderPrice();
@@ -1501,6 +1515,7 @@ function shopQtySet(k,v){
 function shopRemove(k){delete SH.cart[k];shopSave();if(!shopLines().length){SH.view='grid';renderShop();}else if(SH.view==='review')renderShop();else{shopCardRefresh(k);shopBarRefresh();}}
 // ---- the shop
 function shopMatches(a){
+  if(shopVehActive()&&!shopFitHits(a).length)return false; // a chosen vehicle: only parts that fit it, by the Fitment Guide's own rules
   const k=String(pnOf(a)).toLowerCase();
   if(SH.cat!=='all'&&fgSectionLabel(a.category)!==SH.cat)return false;
   if(SH.flt==='specials'&&!shopHasSpecial(a))return false;
@@ -1513,8 +1528,8 @@ function shopCard(a){
   const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,p=shopPrice(a,q),st=stockOf(a),img=SH.images[k];
   const tier=p.next?'Buy '+p.next.min_qty+'+ for '+shMoney(p.next.price)+' each':(shopTierNote(a)&&p.special?shopTierNote(a):'');
   const dot=(st.st==='backorder')?'#f59e0b':'#22c55e',txt=(st.st==='backorder')?'Backordered &middot; ships when available':'In stock';
-  return '<div class="pcard" data-k="'+shEsc(k)+'"><div class="pimg">'+(img?'<img src="'+shEsc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'PRODUCT PHOTO')+'<span class="tagsp" style="display:'+(p.special?'':'none')+'">SPECIAL</span></div><div class="pbody">'
-   +'<div class="psku">'+esc(pnOf(a))+'</div><div class="pname">'+esc(a.description||'')+'</div>'
+  return '<div class="pcard" data-k="'+shEsc(k)+'"><div class="pimg">'+(img?'<img src="'+shEsc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'PRODUCT PHOTO')+'<span class="tagsp" style="display:'+(p.special?'':'none')+'">SPECIAL</span>'+shopFitTag(a)+'</div><div class="pbody">'
+   +'<div class="psku">'+esc(pnOf(a))+'</div><div class="pname">'+esc(a.description||'')+'</div>'+shopFitHint(a)
    +'<div class="pprice"><b>'+shMoney(p.unit)+'</b><s>'+shMoney(p.msrp)+'</s></div><div class="pstd">'+(p.special?'Standard dealer price '+shMoney(p.std):'Your dealer price')+'</div><div class="ptier">'+esc(tier)+'</div>'
    +'<div class="pstock"><i style="background:'+dot+'"></i>'+txt+'</div>'
    +'<div class="pact"><div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="0" max="9999" value="'+q+'" aria-label="Quantity" data-k="'+shEsc(k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
@@ -1524,12 +1539,12 @@ function shopBar(){
   const L=shopLines(),T=shopTotals(L);
   if(!L.length)return '<div class="po-sub" style="padding:0 0 4px">Your order is empty. Add items to start a PO.</div>';
   return '<div class="shop-bar"><b style="letter-spacing:.08em">YOUR ORDER</b><span id="sb-items" style="color:#c9d1d6">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' unit'+(T.units!==1?'s':'')+'</span><span class="tot" id="sb-tot">'+shMoney(T.merch)+'</span><span class="sv" id="sb-sv" style="display:'+(T.save>0?'':'none')+'">You save '+shMoney(T.save)+' vs MSRP</span><span style="flex:1"></span>'
-   +(SH.staff?'<span style="color:#fbbf24;font-size:13px">Staff view: ordering is turned off</span>':'<button type="button" class="go" onclick="shopReview()">REVIEW &amp; SUBMIT PO &rarr;</button>')+'</div>';
+   +(SH.staff?'<span style="color:#fbbf24;font-size:13px">Staff view: ordering is turned off</span><button type="button" class="go" onclick="shopReview()">PREVIEW CHECKOUT &rarr;</button>':'<button type="button" class="go" onclick="shopReview()">CHECKOUT &rarr;</button>')+'</div>';
 }
 function shopList(){
   const el=document.getElementById('shop-list');if(!el)return;
   const all=shopItems(),rows=all.filter(shopMatches),show=rows.slice(0,SH.shown);
-  document.getElementById('shop-count').textContent=rows.length+' product'+(rows.length!==1?'s':'');
+  document.getElementById('shop-count').textContent=rows.length+' product'+(rows.length!==1?'s':'')+(shopVehActive()?' fit your '+shopVehLabel():'');
   el.innerHTML=show.length?'<div class="shop-grid">'+show.map(shopCard).join('')+'</div>'+(rows.length>show.length?'<div style="text-align:center;margin-top:14px"><button class="btn" onclick="SH.shown+=24;shopList()">Show more</button></div>':''):'<div class="po-card" style="padding:40px;text-align:center;color:var(--text3)">No products match.</div>';
   shopBarRefresh(true);
 }
@@ -1537,6 +1552,7 @@ function shopSetCat(c){SH.cat=c;SH.shown=24;renderShop();}
 function shopSetFlt(f){SH.flt=(SH.flt===f?'':f);SH.shown=24;renderShop();}
 function renderShop(){
   const p=document.getElementById('panel-shop');if(!p)return;
+  if(PO.staff&&!SH.available){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>The dealer shop is not switched on yet</h2><p>The server function this page talks to (dealer-portal) is an older version'+(PO.build?' ('+esc(PO.build)+')':'')+'. Deploy <b>dealer-portal.ts</b> v1.2 or later, then reload this page. Dealers will not see the Shop tab until you do.</p></div></div>';return;}
   if(PO.state==='loading'||SH.loading&&!SH.loaded){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>Loading the shop&hellip;</h2></div></div>';return;}
   if(PO.state!=='ready'){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>'+(PO.staff?'Staff sign-in needed':'Unlock to see your prices and order')+'</h2><p>'+(PO.staff?'Sign in with your ERP login to browse this dealer\'s shop.':'Your special prices and ordering are private to your account. We will email you a 6-digit code.')+'</p><button class="po-btn" onclick="showTab(\'orders\')">'+(PO.staff?'Staff sign-in':'Unlock my account')+' &rarr;</button></div></div>';return;}
   if(SH.err&&!SH.loaded){p.innerHTML='<div class="shop-wrap"><div class="po-unlock"><h2>The shop is not available right now</h2><p>'+esc(SH.err)+'</p><button class="po-btn" onclick="SH.err=\'\';shopLoad()">Try again</button></div></div>';return;}
@@ -1545,19 +1561,19 @@ function renderShop(){
   const items=shopItems(),cats={};items.forEach(a=>{const c=fgSectionLabel(a.category);cats[c]=(cats[c]||0)+1;});
   const chip=(label,on,fn,n)=>'<button class="po-chip'+(on?' on':'')+'" onclick="'+fn+'">'+label+(n!==undefined?' <span>'+n+'</span>':'')+'</button>';
   const nSp=items.filter(shopHasSpecial).length;
-  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Shop</h2><div class="po-sub">'+(PO.staff?'Staff view of this dealer\'s shop. Ordering is turned off.':'Your prices, including any special pricing for your account. Add items, then review and submit your PO.')+'</div></div></div>'
+  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Shop</h2><div class="po-sub">'+(PO.staff?'Staff view of this dealer\'s shop. Ordering is turned off.':'Your prices, including any special pricing for your account. Add items, then check out.')+'</div></div></div>'
    +(SH.staff?'<div class="po-note"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
    +(!SH.canOrder&&!SH.staff?'<div class="po-note">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')
-   +'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="po-sub" id="shop-count"></span></div>'
+   +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="po-sub" id="shop-count"></span></div>'
    +'<div class="shop-chips">'+chip('All parts',SH.cat==='all','shopSetCat(\'all\')')+Object.keys(cats).sort().map(c=>chip(esc(c),SH.cat===c,'shopSetCat(this.dataset.c)" data-c="'+shEsc(c),cats[c])).join('')
    +'<span style="width:1px;height:22px;background:var(--border);margin:0 4px"></span>'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')',nSp)+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>'
    +'<div id="shop-list"></div></div><div id="shop-bar"></div>';
-  shopList();
+  shopList();shopVehChip();
 }
 // ---- review and submit
-function shopReview(){if(SH.staff)return;if(!shopLines().length)return;SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
+function shopReview(){if(!shopLines().length)return;SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
 function shopBack(){SH.view='grid';SH.done=null;renderShop();}
-function shopF(name,val){SH.form[name]=val;if(name==='country'||name==='drop')shopReviewTotals();}
+function shopF(name,val){SH.form[name]=val;if(name==='country'||name==='drop')shopReviewTotals();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.value=shopCode();}}
 function shopPayText(){return ({prepay:'You will get a secure payment link as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
 function shopReviewTotals(){
   const el=document.getElementById('rv-tot');if(!el)return;
@@ -1575,25 +1591,26 @@ function shopReviewPage(p){
     +'<div style="font-size:12.5px;color:'+(stockOf(l.a).st==='backorder'?'var(--amber)':'var(--green)')+';font-weight:600">'+(stockOf(l.a).st==='backorder'?'Backordered: ships when available':'In stock')+'</div><div class="rv-hint">'+(l.p.next?'Add '+(l.p.next.min_qty-l.qty)+' more to get '+shMoney(l.p.next.price)+' each':'')+'</div></div>'
     +'<div class="qty"><button type="button" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="1" max="9999" value="'+l.qty+'" data-k="'+shEsc(l.k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
     +'<div style="text-align:right"><div class="rl-unit" style="font-weight:700">'+shMoney(l.p.unit)+'</div><div class="po-sub rl-std" style="display:'+(l.p.special?'':'none')+'">standard '+shMoney(l.p.std)+'</div></div><div class="rl-total" style="text-align:right;font-weight:700;font-size:16px">'+shMoney(l.total)+'</div><button type="button" class="action-btn" aria-label="Remove" data-k="'+shEsc(l.k)+'" onclick="shopRemove(this.dataset.k)" style="border:none;background:none;font-size:18px;color:var(--text3);cursor:pointer">&times;</button></div>').join('');
-  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Review your order</h2><div class="po-sub">Check your items, enter your PO number and where it ships.</div></div><button class="btn" onclick="shopBack()">&larr; Keep shopping</button></div>'
-   +'<div class="rv"><div class="rv-card"><div class="rv-head"><span>YOUR ORDER</span><span id="rv-count" style="font-weight:500;letter-spacing:0">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' units</span></div>'+lines+'<div style="padding:12px 18px;font-size:13px;color:var(--text3)">Backordered items ship when they arrive. Prices are checked again when you submit.</div></div>'
-   +'<div class="rv-card"><div class="rv-head"><span>SUBMIT PO</span></div><div class="rv-form">'
-   +'<label>PO number <span style="color:var(--orange)">*</span></label><input type="text" id="rv-po" value="'+shEsc(F.po)+'" maxlength="39" placeholder="Your PO number" oninput="shopF(\'po\',this.value)">'
+  p.innerHTML='<div class="shop-wrap"><div class="po-head"><div><h2>Review your order</h2><div class="po-sub">Check your items, add a PO number if you have one, and enter where it ships.</div></div><button class="btn" onclick="shopBack()">&larr; Keep shopping</button></div>'
+   +(SH.staff?'<div class="po-note"><b>Staff preview.</b> This is exactly what the dealer sees at checkout. Only the dealer can submit an order.</div>':'')+'<div class="rv"><div class="rv-card"><div class="rv-head"><span>YOUR ORDER</span><span id="rv-count" style="font-weight:500;letter-spacing:0">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' units</span></div>'+lines+'<div style="padding:12px 18px;font-size:13px;color:var(--text3)">Backordered items ship when they arrive. Prices are checked again when you submit.</div></div>'
+   +'<div class="rv-card"><div class="rv-head"><span>CHECKOUT</span></div><div class="rv-form">'
+   +'<label>Discount code</label><input type="text" id="rv-code" readonly value="'+shEsc(shopCode())+'" style="background:var(--bg3);font-weight:700"><div class="po-sub" style="margin:3px 0 0">Always filled in. It is your dealer code; if you add a PO number, it follows the code.</div>'
+   +'<label>PO number (optional)</label><input type="text" id="rv-po" value="'+shEsc(F.po)+'" maxlength="39" placeholder="Leave empty if you have no PO" oninput="shopF(\'po\',this.value)">'
    +'<label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:500"><input type="checkbox" style="width:auto" '+(F.drop?'checked ':'')+'onchange="shopF(\'drop\',this.checked);document.getElementById(\'rv-nm\').textContent=this.checked?\'Customer name\':\'Name / company\'">Ship to my customer instead (drop-ship)</label>'
    +'<label id="rv-nm">'+(F.drop?'Customer name':'Name / company')+'</label><input type="text" value="'+shEsc(F.name)+'" oninput="shopF(\'name\',this.value)">'
    +inp('Street address','address1')+inp('Apartment, suite (optional)','address2')+'<div class="row2"><div>'+inp('City','city')+'</div><div>'+inp('State / province','province')+'</div></div><div class="row2"><div>'+inp('ZIP / postal code','zip')+'</div><div><label>Country</label><select onchange="shopF(\'country\',this.value)">'+SH_COUNTRIES.map(c=>'<option value="'+c[0]+'"'+(F.country===c[0]?' selected':'')+'>'+c[1]+'</option>').join('')+'</select></div></div>'+inp('Phone (optional)','phone')
    +'<label>Notes for TGK (optional)</label><textarea rows="2" maxlength="400" oninput="shopF(\'notes\',this.value)">'+esc(F.notes)+'</textarea>'
    +'<div class="rv-pay"><b>Payment.</b> '+esc(shopPayText())+'</div><div class="rv-tot" id="rv-tot" style="margin-top:12px"></div>'
    +'<div class="po-err" id="rv-err">'+esc(SH.formErr)+'</div>'
-   +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder?' disabled':'')+'>'+(SH.busy?'SUBMITTING&hellip;':'SUBMIT PO')+'</button>'
-   +(!SH.canOrder?'<div class="po-sub" style="margin-top:8px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')+'</div></div></div></div>';
+   +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder||SH.staff?' disabled':'')+'>'+(SH.staff?'STAFF PREVIEW: CANNOT SUBMIT':SH.busy?'SUBMITTING&hellip;':'SUBMIT ORDER')+'</button>'
+   +(!SH.canOrder&&!SH.staff?'<div class="po-sub" style="margin-top:8px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')+'</div></div></div></div>';
   shopReviewTotals();
 }
 async function shopSubmit(){
   if(SH.busy||SH.staff)return;const F=SH.form,L=shopLines();
   const fail=m=>{SH.formErr=m;const e=document.getElementById('rv-err');if(e)e.textContent=m;};
   if(!L.length)return fail('Your order is empty.');
-  if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('Please enter your PO number (letters, numbers, spaces, dashes or dots).');
+  if(F.po.trim()&&!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('That PO number has an unusual character. Use letters, numbers, spaces, dashes or dots, or leave it empty.');
   if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
   SH.busy=true;SH.formErr='';renderShop();
   try{
@@ -1609,25 +1626,72 @@ async function shopSubmit(){
   }
 }
 function shopDone(p){
-  const d=SH.done,pay=d.status==='awaiting_payment'&&d.invoice_url&&/^https:\/\//i.test(d.invoice_url);
-  const head=d.status==='sent'?'Your order is in':pay?'One more step: pay for your order':'We received your PO';
-  const msg=d.status==='sent'?'Order '+esc(d.order_name||'')+' was created for PO '+esc(d.po)+'. It will show in My Orders in a moment.':pay?'PO '+esc(d.po)+' is saved. Pay now and we ship it right away. We also emailed you the link.':'PO '+esc(d.po)+' is saved and our team will confirm it shortly. You will get an email.';
+  const d=SH.done,pay=d.status==='awaiting_payment'&&d.invoice_url&&/^https:\/\//i.test(d.invoice_url),lab=d.po?'PO '+esc(d.po):'your order';
+  const head=d.status==='sent'?'Your order is in':pay?'One more step: pay for your order':'We received your order';
+  const msg=d.status==='sent'?'Order '+esc(d.order_name||'')+' was created ('+lab+'). It will show in My Orders in a moment.':pay?'Your order ('+lab+') is saved. Pay now and we ship it right away. We also emailed you the link.':'Your order ('+lab+') is saved and our team will confirm it shortly. You will get an email.';
   p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div style="font-size:38px;color:var(--teal)">&#10003;</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55">'+msg+'</div>'
-   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' units<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span></div>'
-   +(pay?'<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY FOR PO '+esc(d.po)+' &rarr;</a><br>':'')
+   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' units<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span><br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
+   +(pay?'<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY NOW &rarr;</a><br>':'')
    +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">View my orders</button></div></div></div>';
 }
 // ---- submitted POs that are not in Shopify yet, shown at the top of My Orders
 function shopReqCard(){
   const open=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!open.length)return '';
   const word=r=>r.status==='awaiting_payment'?'<span class="po-pill backordered">Awaiting payment</span>':r.status==='rejected'?'<span class="po-pill cancelled">Not accepted</span>':'<span class="po-pill">Received: TGK is confirming</span>';
-  return '<div class="req-card"><div style="font-weight:700;margin-bottom:4px">Submitted, not in your orders yet</div>'+open.map(r=>'<div class="req-row"><b>PO '+esc(r.po)+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span>'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; '+shMoney(r.total)+'</span>'+word(r)
+  return '<div class="req-card"><div style="font-weight:700;margin-bottom:4px">Submitted, not in your orders yet</div>'+open.map(r=>'<div class="req-row"><b>'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span>'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; '+shMoney(r.total)+'</span>'+word(r)
     +(r.status==='awaiting_payment'&&r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<a class="po-link" href="'+shEsc(r.invoice_url)+'" target="_blank" rel="noopener">Pay now &rarr;</a>':'')+(r.status==='rejected'&&r.reject_reason?'<span class="po-sub">'+esc(r.reject_reason)+'</span>':'')+'</div>').join('')+'</div>';
 }
 function shopCellNote(a){
   const rows=SH.prices[String(pnOf(a)).toLowerCase()]||[];if(!rows.length)return '';
   const t=shopTierNote(a);return (rows.some(r=>r.min_qty<=1)?'<div class="sp-badge">SPECIAL</div>':'')+(t?'<div style="font-size:10.5px;color:var(--text3);font-weight:600;margin-top:2px">'+esc(t)+'</div>':'');
 }
+
+// ---- the discount code: always the dealer's code; a PO, when there is one, follows it
+function shopCode(){const po=String((SH.form&&SH.form.po)||'').trim();return (SH.prefix||'')+(po?' '+po:'');}
+// ---- the fitment finder: the Fitment Guide's own data and rules, so a part fits here exactly when it fits there
+const shGarageKey=()=>'tgk_garage_'+tok().slice(0,16);
+(function(){try{const g=JSON.parse(localStorage.getItem(shGarageKey())||'null');if(g&&(g.make||g.model||g.year))SH.veh=Object.assign({make:'',model:'',year:''},g);}catch(e){}})();
+function shopSaveVeh(){try{localStorage.setItem(shGarageKey(),JSON.stringify(SH.veh));}catch(e){}}
+function shopVehicles(){
+  const n=(G.fits||[]).length;if(SH._veh&&SH._vehN===n&&SH._vehA===SH._items)return SH._veh;
+  const makes={},models={};
+  if(typeof fitRowsFor==='function')shopItems().forEach(a=>{fitRowsFor(a).forEach(f=>{if(!f.make)return;makes[f.make]=1;(models[f.make]=models[f.make]||{})[f.model||'']=1;});});
+  SH._veh={makes:Object.keys(makes).sort(),models:models};SH._vehN=n;SH._vehA=SH._items;return SH._veh;
+}
+function shopVehActive(){const v=SH.veh;return !!(v&&(v.make||v.model||parseInt(v.year,10)>1949));}
+function shopVehLabel(){const v=SH.veh;return [v.year,v.make,v.model].filter(Boolean).join(' ');}
+function shopFitHits(a){
+  if(typeof fitRowsFor!=='function')return [];
+  const v=SH.veh,make=(v.make||'').toLowerCase(),model=(v.model||'').toLowerCase(),yr=parseInt(v.year,10)||0;
+  return fitRowsFor(a).filter(f=>(!make||String(f.make||'').toLowerCase()===make)&&(!model||String(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to)));
+}
+function shopFitTag(a){return shopVehActive()?'<span class="tagfit">FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
+function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a class="po-link" style="color:#fbbf24" onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
+function shopFinderHtml(){
+  const V=shopVehicles(),mods=Object.keys(V.models[SH.veh.make]||{}).filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  return '<div class="shop-finder"><span class="sf-t">FIND PARTS FOR A VEHICLE</span><input class="sf-in" id="sf-year" type="number" inputmode="numeric" min="1950" max="2100" placeholder="Year" value="'+shEsc(SH.veh.year)+'" style="width:92px" oninput="shopVehSet(\'year\',this.value)">'
+   +'<select class="sf-in" id="sf-make" aria-label="Make" onchange="shopVehSet(\'make\',this.value)"><option value="">Make</option>'+V.makes.map(m=>'<option'+(m===SH.veh.make?' selected':'')+'>'+esc(m)+'</option>').join('')+'</select>'
+   +'<select class="sf-in" id="sf-model" aria-label="Model" onchange="shopVehSet(\'model\',this.value)"'+(SH.veh.make?'':' disabled')+'><option value="">Model</option>'+mods.map(m=>'<option'+(m===SH.veh.model?' selected':'')+'>'+esc(m)+'</option>').join('')+'</select><span id="sf-chip"></span></div>';
+}
+function shopFillModels(){const sel=document.getElementById('sf-model');if(!sel)return;const mods=Object.keys(shopVehicles().models[SH.veh.make]||{}).filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));sel.innerHTML='<option value="">Model</option>'+mods.map(m=>'<option'+(m===SH.veh.model?' selected':'')+'>'+esc(m)+'</option>').join('');sel.disabled=!SH.veh.make;}
+function shopVehChip(){
+  const el=document.getElementById('sf-chip');if(!el)return;
+  el.innerHTML=shopVehActive()?'<span class="sf-garage">&#128663; MY GARAGE &middot; '+esc(shopVehLabel().toUpperCase())+' <button type="button" aria-label="Clear vehicle" onclick="shopVehClear()">&times;</button></span> <a class="po-link" style="color:#5eead4" onclick="shopOpenFit()">Fitment Guide &rarr;</a>':'';
+}
+function shopVehSet(f,v){const o=SH.veh;o[f]=String(v).trim();if(f==='make'){o.model='';shopFillModels();}shopSaveVeh();shopVehChip();SH.shown=24;shopList();}
+function shopVehClear(){SH.veh={make:'',model:'',year:''};shopSaveVeh();SH.shown=24;renderShop();}
+function shopOpenFit(){
+  const v=SH.veh;showTab('fit');
+  const mk=document.getElementById('make-sel'),md=document.getElementById('model-sel'),yr=document.getElementById('year-sel');
+  if(mk)mk.value=v.make||'';if(typeof fillModels==='function')fillModels();if(md)md.value=v.model||'';if(yr)yr.value=v.year||'';if(typeof filterFit==='function')filterFit();
+}
+// ---- the cart icon in the page header, on every tab
+function shopCount(){return Object.keys(SH.cart).filter(k=>SH.cart[k]>0).length;}
+function shopHdr(){
+  const b=document.getElementById('hdr-cart');if(!b)return;b.style.display=SH.available?'':'none';
+  const n=shopCount(),c=document.getElementById('hdr-cart-n');if(c){c.textContent=n;c.style.display=n?'':'none';}
+}
+function shopOpenCart(){showTab('shop');if(PO.state==='ready'&&shopLines().length)shopReview();}
 
 init();
 
