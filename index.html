@@ -581,6 +581,15 @@ tr:hover td{background:#f6f8f8}
 .ac-modal{width:min(440px,100%)}
 @media(max-width:700px){.ac-top{padding:0 12px}.ac-wrap{margin:24px auto}}
 @media print{#acct-screen,.ac-ov{display:none!important}}
+
+/* ── Live indicator ── */
+.live-chip{display:inline-flex;align-items:center;gap:6px;margin-left:10px;padding:1px 9px 1px 7px;border:1px solid rgba(255,255,255,.28);border-radius:10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#cfd6d8;vertical-align:middle}
+.live-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:#8a949a}
+.live-chip.on{color:#fff;border-color:rgba(42,191,170,.7)}
+.live-chip.on::before{background:#2abfaa;box-shadow:0 0 0 0 rgba(42,191,170,.6);animation:livepulse 2.4s infinite}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(42,191,170,.55)}70%{box-shadow:0 0 0 7px rgba(42,191,170,0)}100%{box-shadow:0 0 0 0 rgba(42,191,170,0)}}
+@media(prefers-reduced-motion:reduce){.live-chip.on::before{animation:none}}
+@media print{.live-chip{display:none!important}}
 /* ── Dealer shop, in the website look: dark cut-corner cards with a white photo panel, vehicle band, cart drawer, checkout ── */
 .shop-wrap{padding:24px 28px 90px;display:flex;flex-direction:column}
 .shop-wrap .po-unlock{margin:20px auto}
@@ -1602,6 +1611,7 @@ async function portalLoad(first,yearToo){
       if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
       else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
     }
+    try{if(typeof liveStart==='function')liveStart();}catch(e){}   // from here the page keeps itself fresh
     PO.state='ready';PO.err='';PO.rangeErr=stale?(PO.staff?'The dealer-portal function on the server is an older version that ignores dates. Redeploy the newest dealer-portal.ts (v1.1 or later). The list below is unchanged.':'Custom dates are not available right now. Please use one of the standard ranges, or email support@tgkmotorsport.com.'):'';
     poBuildMap();
     if(Math.max(PO.pendY,PO.pendR)>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false,PO.pendY>0),1500);}else PO.retries=0;
@@ -1613,7 +1623,7 @@ async function portalLoad(first,yearToo){
   renderStrip();renderTabBadge();renderPrice();if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
   try{shopSync();}catch(e){console.warn('[TGK] shop',e);}
 }
-function poForget(){try{if(acctActive())setTimeout(function(){acctExpire();},0);}catch(e){}try{shopReset();}catch(e){}PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
+function poForget(){try{if(typeof liveStop==='function')liveStop();}catch(e){}try{if(acctActive())setTimeout(function(){acctExpire();},0);}catch(e){}try{shopReset();}catch(e){}PO.session=null;PO.orders=[];PO.year=null;PO.map=null;try{localStorage.removeItem(poKey());}catch(e){}}
 function poBuildMap(){
   const cut=Date.now()-365*864e5,m={};
   (PO.year||[]).forEach(o=>{if(o.status==='Cancelled')return;if(Date.parse(String(o.date).slice(0,10)+'T12:00:00')<cut)return;
@@ -1664,7 +1674,7 @@ function renderOrders(){
   }
   const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time'],['custom','Custom range&hellip;']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button>'+(acctActive()?'<button class="btn" onclick="acctPwOpen()">Password</button>':'')+'<button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff||acctActive()?'Sign out':'Lock')+'</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub"><span id="po-upd"></span><span id="live-chip" class="live-chip off" role="status">Auto-refresh</span></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button>'+(acctActive()?'<button class="btn" onclick="acctPwOpen()">Password</button>':'')+'<button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff||acctActive()?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +(typeof shopReqCard==='function'?shopReqCard():'')
@@ -1708,7 +1718,7 @@ function poList(){
    +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
    +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
-  document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
+  if(typeof liveChip==='function')liveChip();document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
   document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
@@ -1844,7 +1854,9 @@ const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().sl
 const shEsc=s=>esc(s).replace(/"/g,'&quot;');
 const shR2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const shMoney=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const shOn=r=>!!r&&parseFloat(String(r.build||'').replace(/^v/,''))>=1.2;
+// Versions compare part by part: v1.10 is newer than v1.2 (as a decimal number 1.10 would read as 1.1, and the shop would switch off).
+const shVer=b=>{const m=/^v?(\d+)\.(\d+)/.exec(String(b||''));return m?(+m[1])*1000+(+m[2]):0;};
+const shOn=r=>!!r&&shVer(r.build)>=1002;
 const SH_SITE='https://tgkmotorsport.com';
 const SH_CAR='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 15v-3l2-5h14l2 5v3M3 15h18M3 15v3h3v-3M18 15v3h3v-3"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="16.5" cy="12.5" r="1"/></svg>';
 (function(){try{SH.cart=JSON.parse(localStorage.getItem(shKey())||'{}')||{};}catch(e){SH.cart={};}try{const f=JSON.parse(localStorage.getItem(shShipKey())||'null');if(f)Object.assign(SH.form,f,{po:'',notes:'',drop:false});}catch(e){}})();
@@ -2507,6 +2519,124 @@ async function acctPwSave(){
   btn.disabled=true;
   try{await poCall({action:'change_password',session:PO.session,current_password:c,new_password:n});say('Your password was changed. Your other sign-ins were ended.',true);setTimeout(acctPwClose,1800);}
   catch(e){say(e.message);btn.disabled=false;if(e.status===401){acctPwClose();acctExpire();}}
+}
+
+// ── Live updates ──
+// The portal refreshes itself the moment something changes for this dealer: a staff action, a payment, a shipment, a teammate's order.
+// It listens on a private live channel named from the dealer's link token (only the dealer and TGK staff hold it). A nudge on it says only
+// WHAT changed; the page then asks the server for the data, so nothing private travels over the channel. If the live connection is
+// down the page checks for changes on a timer instead, and says so ("Auto-refresh" instead of "Live").
+var LIVE={ws:null,on:false,topic:'',token:'',tries:0,hb:null,hbMs:25000,retry:null,retryBase:2000,poll:null,pollMs:0,pend:null,pendWhat:{},refreshAt:0,joinRef:'',ref:0,wanted:false,wasDown:false,visBound:false,busy:false};
+// SHA-256 that works anywhere (the browser's own is only offered on secure pages): the channel name must come out the same as on the server.
+function liveSha256(msg){
+  const rr=(v,a)=>(v>>>a)|(v<<(32-a)),bytes=new TextEncoder().encode(msg),l=bytes.length;
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const n=Math.ceil((l+9)/64)*64,buf=new Uint8Array(n);buf.set(bytes);buf[l]=0x80;
+  const dv=new DataView(buf.buffer);dv.setUint32(n-8,Math.floor(l*8/4294967296));dv.setUint32(n-4,(l*8)>>>0);
+  const w=new Array(64);
+  for(let i=0;i<n;i+=64){
+    for(let t=0;t<16;t++)w[t]=dv.getUint32(i+t*4);
+    for(let t=16;t<64;t++){const s0=rr(w[t-15],7)^rr(w[t-15],18)^(w[t-15]>>>3),s1=rr(w[t-2],17)^rr(w[t-2],19)^(w[t-2]>>>10);w[t]=(w[t-16]+s0+w[t-7]+s1)>>>0;}
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(let t=0;t<64;t++){const S1=rr(e,6)^rr(e,11)^rr(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[t]+w[t])>>>0,S0=rr(a,2)^rr(a,13)^rr(a,22),maj=(a&b)^(a&c)^(b&c),t2=(S0+maj)>>>0;h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}
+    H=[(H[0]+a)>>>0,(H[1]+b)>>>0,(H[2]+c)>>>0,(H[3]+d)>>>0,(H[4]+e)>>>0,(H[5]+f)>>>0,(H[6]+g)>>>0,(H[7]+h)>>>0];
+  }
+  return H.map(x=>x.toString(16).padStart(8,'0')).join('');
+}
+async function liveTopicOf(token){
+  const msg='tgk-live:'+token;let hex='';
+  try{if(window.crypto&&crypto.subtle){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));hex=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}}catch(e){}
+  if(!hex)hex=liveSha256(msg);
+  return 'dealer-'+hex.slice(0,40);
+}
+function liveChip(){
+  const el=document.getElementById('live-chip');if(!el)return;
+  el.className='live-chip '+(LIVE.on?'on':'off');el.textContent=LIVE.on?'Live':'Auto-refresh';
+  el.title=LIVE.on?'This page updates the moment something changes.':'This page checks for changes every little while.';
+}
+async function liveStart(){
+  const token=(typeof tok==='function'?tok():'');if(!token)return;
+  if(LIVE.wanted&&LIVE.token===token)return;   // already running for this dealer
+  liveStop();LIVE.wanted=true;LIVE.token=token;
+  try{LIVE.topic=await liveTopicOf(token);}catch(e){LIVE.topic='';}
+  if(!LIVE.wanted)return;
+  liveConnect();liveSchedulePoll();
+  if(!LIVE.visBound){LIVE.visBound=true;document.addEventListener('visibilitychange',liveVis);window.addEventListener('online',liveVis);}
+}
+function liveStop(){
+  LIVE.wanted=false;LIVE.on=false;LIVE.token='';LIVE.tries=0;LIVE.wasDown=false;
+  clearInterval(LIVE.hb);clearTimeout(LIVE.retry);clearTimeout(LIVE.poll);clearTimeout(LIVE.pend);LIVE.pendWhat={};
+  const ws=LIVE.ws;LIVE.ws=null;if(ws){try{ws.onclose=null;ws.close();}catch(e){}}
+  liveChip();
+}
+function liveConnect(){
+  if(!LIVE.wanted||!LIVE.topic||typeof WebSocket==='undefined'||LIVE.ws)return;
+  let ws;
+  try{ws=new WebSocket(SB.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(SK)+'&vsn=1.0.0');}catch(e){liveRetry();return;}
+  LIVE.ws=ws;
+  ws.onopen=function(){
+    if(LIVE.ws!==ws)return;
+    LIVE.joinRef=String(++LIVE.ref);
+    try{ws.send(JSON.stringify({topic:'realtime:'+LIVE.topic,event:'phx_join',payload:{config:{broadcast:{self:false,ack:false},presence:{key:''},postgres_changes:[],private:false},access_token:SK},ref:LIVE.joinRef,join_ref:LIVE.joinRef}));}catch(e){}
+    clearInterval(LIVE.hb);LIVE.hb=setInterval(function(){if(LIVE.ws===ws){try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(++LIVE.ref)}));}catch(e){}}},LIVE.hbMs);
+  };
+  ws.onmessage=function(ev){
+    if(LIVE.ws!==ws)return;let m;try{m=JSON.parse(ev.data);}catch(e){return;}
+    if(m.event==='phx_reply'&&String(m.ref)===LIVE.joinRef){
+      if(m.payload&&m.payload.status==='ok'){const was=LIVE.wasDown;LIVE.on=true;LIVE.tries=0;LIVE.wasDown=false;liveChip();if(was)liveNudge('requests orders');}   // events missed while offline are not replayed: catch up
+      else{try{ws.close();}catch(e){}}
+    }else if(m.event==='broadcast'&&m.payload&&m.payload.event==='changed'){liveNudge(m.payload.payload&&m.payload.payload.what);}
+    else if(m.event==='phx_error'||m.event==='phx_close'){try{ws.close();}catch(e){}}
+  };
+  ws.onclose=function(){if(LIVE.ws!==ws)return;LIVE.ws=null;LIVE.on=false;LIVE.wasDown=true;clearInterval(LIVE.hb);liveChip();liveRetry();};
+  ws.onerror=function(){try{ws.close();}catch(e){}};
+}
+function liveRetry(){
+  if(!LIVE.wanted)return;clearTimeout(LIVE.retry);
+  const delay=Math.min(30000,LIVE.retryBase*Math.pow(2,Math.min(LIVE.tries++,8)));
+  LIVE.retry=setTimeout(liveConnect,delay);
+}
+function liveNudge(what){
+  String(what||'requests orders').split(/\s+/).forEach(w=>{if(w)LIVE.pendWhat[w]=1;});
+  clearTimeout(LIVE.pend);LIVE.pend=setTimeout(liveRun,400);   // a burst of changes is one refresh
+}
+function liveRun(){
+  const set=LIVE.pendWhat;LIVE.pendWhat={};
+  const a=document.activeElement,po=document.getElementById('panel-orders');
+  if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&po&&po.contains(a)&&a.value){   // never redraw under someone who is typing: try again in a moment
+    Object.assign(LIVE.pendWhat,set);clearTimeout(LIVE.pend);LIVE.pend=setTimeout(liveRun,3000);return;
+  }
+  liveRefresh(set);
+}
+async function liveRefresh(set){
+  if(!LIVE.wanted||PO.state!=='ready'||LIVE.busy)return;
+  LIVE.busy=true;LIVE.refreshAt=Date.now();
+  try{
+    if(set.requests||set.orders){await shopRefreshReqs();}
+    if(set.orders||set.requests){await portalLoad(false,true);}
+    if(set.team&&typeof teamLoad==='function'&&typeof renderTeam==='function'&&document.getElementById('panel-team')&&document.getElementById('panel-team').style.display!=='none'){await teamLoad();renderTeam();}
+    if(document.getElementById('panel-orders')&&document.getElementById('panel-orders').style.display!=='none')renderOrders();
+  }catch(e){/* the next nudge or timer tries again */}
+  LIVE.busy=false;
+}
+function livePollMs(){
+  if(LIVE.pollMs)return LIVE.pollMs;
+  const busy=(SH.reqs||[]).some(r=>r.status!=='sent'&&r.status!=='rejected');
+  return LIVE.on?180000:(busy?20000:60000);   // with the live connection a slow safety check; without it, check often while something is in progress
+}
+function liveSchedulePoll(){
+  clearTimeout(LIVE.poll);if(!LIVE.wanted)return;
+  const ms=livePollMs();
+  LIVE.poll=setTimeout(function(){
+    if(document.visibilityState!=='hidden'&&Date.now()-LIVE.refreshAt>ms*0.8)liveRefresh({requests:1,orders:1});
+    liveSchedulePoll();
+  },ms);
+}
+function liveVis(){
+  if(!LIVE.wanted||document.visibilityState==='hidden')return;
+  if(!LIVE.ws){clearTimeout(LIVE.retry);LIVE.tries=0;liveConnect();}
+  if(Date.now()-LIVE.refreshAt>15000)liveRefresh({requests:1,orders:1});   // back on this tab after a while: show what changed
 }
 
 init();
