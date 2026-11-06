@@ -778,10 +778,6 @@ a.rv-t:hover{text-decoration:underline}
 .shop-done .ok{font-size:38px;color:var(--teal-d)}
 .big-btn{display:inline-block;margin-top:14px;background:var(--orange);color:var(--onacc);font-weight:700;letter-spacing:.1em;padding:14px 28px;border-radius:2px;text-decoration:none;font-size:15px;text-transform:uppercase}
 .big-btn:hover{background:#d4670f}
-.req-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:2px;padding:12px 18px}
-.req-card>b{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#111}
-.req-row{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line2);font-size:14.5px}
-.req-row:last-child{border-bottom:none}
 /* phones: two cards across, edge to edge on one gutter */
 @media(max-width:860px){
   .co-grid{grid-template-columns:1fr}
@@ -850,6 +846,30 @@ a.rv-t:hover{text-decoration:underline}
   .cat-panel{position:static;margin:8px 0 0;width:auto;max-width:none;flex-direction:column;gap:18px;padding:16px;max-height:none}
 }
 @media print{.cat-wrap,.cat-crumb{display:none!important}}
+
+/* ── Orders in progress (top of My Orders) ── */
+.req-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:2px;padding:14px 18px 6px;margin-bottom:16px}
+.rq-top{display:flex;align-items:center;gap:10px;padding-bottom:6px}
+.rq-top>b{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#111}
+.rq-count{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#22272b;color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.rq-sec{margin:10px 0 12px;border-top:1px solid var(--line2)}
+.rq-sech{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:10px 0 4px}
+.rq-t{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#111;border-bottom:2px solid var(--teal);padding-bottom:3px}
+.rq-sec.pay .rq-t{border-color:var(--orange)}.rq-sec.bad .rq-t{border-color:#b42318}
+.rq-n{margin-left:8px;color:var(--text3)}
+.rq-sub{font-size:13px;color:var(--text3)}
+.req-row{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line2);font-size:14.5px}
+.req-row:last-child{border-bottom:none}
+.rq-grow{flex:1 1 20px}
+.rq-pay{height:38px;padding:0 20px;font-size:13px}
+.rq-link{border:0;background:none;padding:6px 2px;color:#0b7f77;font:600 13.5px var(--font,'Saira Semi Condensed',sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:.03em}
+.rq-link:hover{color:#075e58}
+.rq-why{font-size:13.5px;color:#8a1f11}
+.rq-ask{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:#33383d}
+.rq-yes{height:34px;padding:0 14px;font-size:12.5px}
+.rq-keep{height:34px;padding:0 14px;font-size:12.5px}
+@media(max-width:700px){.req-card{margin-left:12px;margin-right:12px}.req-row{align-items:flex-start}.rq-grow{display:none}.rq-pay{width:100%}}
+@media print{.req-card{display:none!important}}
 </style>
 </head>
 <body>
@@ -2215,12 +2235,45 @@ function shopPayNow(id,url){   // from My Orders: pay an order that is waiting f
   SH.done=(SH.reqs||[]).filter(r=>String(r.id)===String(id)).map(r=>({id:r.id,po:r.po,status:'awaiting_payment',invoice_url:url,totals:{total:r.total,units:r.units,merchandise:r.merchandise,shipping:r.shipping}}))[0]||null;
   if(SH.done){SH.view='done';showTab('shop');}
 }
-// ---- submitted POs that are not in Shopify yet, shown at the top of My Orders
+// ---- orders in progress (not in Shopify's order list yet), shown at the top of My Orders
+// Three groups, each with what you can do: pay, cancel, or dismiss. Orders that are done leave this panel by themselves.
+SH.reqOpen=true;SH.cancelAsk=null;SH.reqMsg='';SH.reqBusy=false;
+function shopMayCancel(r){return !!(SH.canOrder&&r.can_cancel&&SH.me&&(SH.me.role==='admin'||String(r.by||'').toLowerCase()===String(SH.me.email||'').toLowerCase()));}
 function shopReqCard(){
-  const open=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!open.length)return '';
-  const word=r=>r.status==='awaiting_payment'?'<span class="po-pill backordered">Awaiting payment</span>':r.status==='rejected'?'<span class="po-pill cancelled">Not accepted</span>':'<span class="po-pill">Received: TGK is confirming</span>';
-  return '<div class="req-card"><b>Submitted, not in your orders yet</b>'+open.map(r=>'<div class="req-row"><b>'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span>'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; '+shMoney(r.total)+'</span>'+word(r)
-    +(r.status==='awaiting_payment'&&r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<a class="po-link" data-i="'+shEsc(r.id)+'" data-u="'+shEsc(r.invoice_url)+'" onclick="shopPayNow(this.dataset.i,this.dataset.u)">Pay now &rarr;</a>':'')+(r.status==='rejected'&&r.reject_reason?'<span class="po-sub">'+esc(r.reject_reason)+'</span>':'')+'</div>').join('')+'</div>';
+  const all=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!all.length)return '';
+  const pay=all.filter(r=>r.status==='awaiting_payment'),wait=all.filter(r=>r.status!=='awaiting_payment'&&r.status!=='rejected'),bad=all.filter(r=>r.status==='rejected');
+  const head=r=>'<b class="rq-po">'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span class="rq-amt">'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; <b>'+shMoney(r.total)+'</b></span>';
+  const cancel=r=>{
+    if(!shopMayCancel(r))return '';
+    if(String(SH.cancelAsk)===String(r.id))return '<span class="rq-ask" role="alertdialog" aria-label="Confirm cancel">Cancel this order?'+(r.status==='awaiting_payment'?' The payment link stops working.':'')+' <button type="button" class="po-btn rq-yes" data-i="'+shEsc(r.id)+'" onclick="shopCancelDo(this.dataset.i)"'+(SH.reqBusy?' disabled':'')+'>Yes, cancel it</button><button type="button" class="btn rq-keep" onclick="SH.cancelAsk=null;renderOrders()">Keep it</button></span>';
+    return '<button type="button" class="rq-link" data-i="'+shEsc(r.id)+'" onclick="SH.cancelAsk=this.dataset.i;SH.reqMsg=\'\';renderOrders()">Cancel order</button>';
+  };
+  const sec=(cls,title,sub,rows,extra)=>rows.length?'<div class="rq-sec '+cls+'"><div class="rq-sech"><span class="rq-t">'+title+'<span class="rq-n">'+rows.length+'</span></span><span class="rq-sub">'+sub+'</span>'+(extra||'')+'</div>'+rows.map(r=>'<div class="req-row">'+head(r)+'<span class="rq-grow"></span>'+({pay:()=>(r.invoice_url&&/^https:\/\//i.test(r.invoice_url)?'<button type="button" class="po-btn rq-pay" data-i="'+shEsc(r.id)+'" data-u="'+shEsc(r.invoice_url)+'" onclick="shopPayNow(this.dataset.i,this.dataset.u)">Pay now</button>':'<span class="po-sub">Payment link is on its way</span>')+cancel(r),wait:()=>'<span class="po-pill">'+(r.status==='attention'?'TGK is looking at it':'Received')+'</span>'+cancel(r),bad:()=>(r.reject_reason?'<span class="rq-why">'+esc(r.reject_reason)+'</span>':'')+(SH.canOrder?'<button type="button" class="rq-link" data-i="'+shEsc(r.id)+'" onclick="shopDismiss([this.dataset.i])">Dismiss</button>':'')})[cls]()+'</div>').join('')+'</div>':'';
+  const dismissAll=bad.length>1&&SH.canOrder?'<button type="button" class="rq-link" style="margin-left:auto" onclick="shopDismiss('+shEsc(JSON.stringify(bad.map(r=>String(r.id)))).replace(/"/g,'&quot;')+')">Dismiss all</button>':'';
+  return '<div class="req-card"><div class="rq-top"><b>Orders in progress</b><span class="rq-count">'+all.length+'</span><button type="button" class="rq-link" style="margin-left:auto" aria-expanded="'+(SH.reqOpen?'true':'false')+'" onclick="SH.reqOpen=!SH.reqOpen;renderOrders()">'+(SH.reqOpen?'Hide':'Show')+'</button></div>'
+    +(SH.reqOpen?(SH.reqMsg?'<div class="po-err" role="alert" style="margin:10px 0 0">'+esc(SH.reqMsg)+'</div>':'')
+      +sec('pay','Ready to pay','Your order is saved. Pay and we ship it right away.',pay)
+      +sec('wait','With TGK','Received and being confirmed. You will get an email.',wait)
+      +sec('bad','Not accepted','TGK could not take these as submitted. Contact support if you are unsure why.',bad,dismissAll):'')+'</div>';
+}
+async function shopCancelDo(id){
+  if(SH.reqBusy)return;SH.reqBusy=true;SH.reqMsg='';renderOrders();
+  try{
+    await poCall({action:'cancel_request',session:PO.session,id:id});
+    if(String(PAY.id)===String(id)){payStop();PAY.state='';if(PAY.win&&!PAY.win.closed){try{PAY.win.close();}catch(e){}}PAY.id=null;}
+    SH.cancelAsk=null;await shopRefreshReqs();
+  }catch(e){
+    SH.reqMsg=e.message;SH.cancelAsk=null;
+    if(e.status===401){poForget();PO.state='locked';}
+    else await shopRefreshReqs();   // it may have just been paid: show it as it now is
+  }
+  SH.reqBusy=false;renderOrders();
+}
+async function shopDismiss(ids){
+  if(SH.reqBusy||!ids||!ids.length)return;SH.reqBusy=true;SH.reqMsg='';
+  try{await poCall({action:'dismiss_requests',session:PO.session,ids:ids});await shopRefreshReqs();}
+  catch(e){SH.reqMsg=e.message;if(e.status===401){poForget();PO.state='locked';}}
+  SH.reqBusy=false;renderOrders();
 }
 function shopCellNote(a){
   const rows=SH.prices[String(pnOf(a)).toLowerCase()]||[];if(!rows.length)return '';
