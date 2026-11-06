@@ -855,7 +855,7 @@ a.rv-t:hover{text-decoration:underline}
 <body>
 
 <div id="loading" class="state"><div class="spinner"></div><div class="state-title">Loading your price list&hellip;</div><div class="state-sub">Fetching live data from TGK Motorsport</div></div>
-<div id="error" class="state" style="display:none"><div style="font-size:36px;margin-bottom:14px">&#x26A0;&#xFE0F;</div><div class="state-title" id="err-title">Link not recognised</div><div class="state-sub" id="err-sub">Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a></div></div>
+<div id="error" class="state" style="display:none"><div style="font-size:36px;margin-bottom:14px">&#x26A0;&#xFE0F;</div><div class="state-title" id="err-title">Link not recognised</div><div class="state-sub" id="err-sub">Contact <a href="mailto:support@tgkmotorsport.com" style="color:var(--teal)">support@tgkmotorsport.com</a></div></div>
 
 <div id="app" style="display:none">
   <div class="hdr">
@@ -949,7 +949,7 @@ a.rv-t:hover{text-decoration:underline}
 
   <div class="footer">
     <div class="footer-note">Prices are exclusive of applicable taxes and shipping. This document is confidential and intended solely for the named dealer. Pricing subject to change without notice.</div>
-    <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; info@tgkmotorsport.com</div>
+    <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; support@tgkmotorsport.com</div>
   </div>
 </div>
 
@@ -1511,7 +1511,7 @@ async function init(){ if(new URLSearchParams(location.search).get('setup')){acc
       apiAll('parts?select=pn,total_unpckgd'),
       loadFits()
     ]);
-    if(!dlrRows.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>.');return;}
+    if(!dlrRows.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:support@tgkmotorsport.com" style="color:var(--teal)">support@tgkmotorsport.com</a>.');return;}
     G.dealer=dlrRows[0];
     try{var _nhD=await api('settings?key=eq.note_highlights&select=value&limit=1');G.noteHL=(_nhD&&_nhD[0]&&_nhD[0].value)||[];}catch(e){G.noteHL=[];}
     G.asms=asms;
@@ -1582,7 +1582,7 @@ async function portalLoad(first,yearToo){
       if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
       else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
     }
-    PO.state='ready';PO.err='';PO.rangeErr=stale?(PO.staff?'The dealer-portal function on the server is an older version that ignores dates. Redeploy the newest dealer-portal.ts (v1.1 or later). The list below is unchanged.':'Custom dates are not available right now. Please use one of the standard ranges, or email info@tgkmotorsport.com.'):'';
+    PO.state='ready';PO.err='';PO.rangeErr=stale?(PO.staff?'The dealer-portal function on the server is an older version that ignores dates. Redeploy the newest dealer-portal.ts (v1.1 or later). The list below is unchanged.':'Custom dates are not available right now. Please use one of the standard ranges, or email support@tgkmotorsport.com.'):'';
     poBuildMap();
     if(Math.max(PO.pendY,PO.pendR)>0&&PO.retries<4&&PO.amountsAvail){PO.retries++;setTimeout(()=>portalLoad(false,PO.pendY>0),1500);}else PO.retries=0;
   }catch(e){
@@ -1629,7 +1629,7 @@ function renderOrders(){
     const sent=PO.codeSent;
     p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Unlock your orders</h2>'
      +(PO.state==='error'?'<div class="po-err">'+esc(PO.err)+'</div>':'')
-     +(!PO.canUnlock?'<p>We do not have an email address on file for your account, so we cannot send an access code. Please contact <a class="po-link" href="mailto:info@tgkmotorsport.com">info@tgkmotorsport.com</a>.</p>'
+     +(!PO.canUnlock?'<p>We do not have an email address on file for your account, so we cannot send an access code. Please contact <a class="po-link" href="mailto:support@tgkmotorsport.com">support@tgkmotorsport.com</a>.</p>'
       :'<p>Orders and amounts are private. '+(PO.useOther?'Enter your email and we will send a 6-digit code to it.':'We will email a 6-digit code to the address on file'+(PO.hint?': <b>'+esc(PO.hint)+'</b>':'')+'.')+'</p>'
        +(sent?'':(PO.useOther?'<div style="margin-bottom:12px"><label for="po-email" style="display:block;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text2);margin-bottom:5px">Your email</label><input class="po-em" id="po-email" type="email" autocomplete="email" value="'+esc(PO.email||'')+'" onkeydown="if(event.key===\'Enter\')poRequest()"></div><p style="margin:0 0 14px"><a class="po-link" onclick="poUseOther(false)">Use the address on file instead</a></p>':'<p style="margin:0 0 14px"><a class="po-link" onclick="poUseOther(true)">Signing in as a team member? Use your own email</a></p>'))
        +(sent?'<div style="margin-bottom:14px"><input class="po-code" id="po-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="------" onkeydown="if(event.key===\'Enter\')poVerify()" oninput="this.value=this.value.replace(/\\D/g,\'\')"></div>':'')
@@ -1653,7 +1653,7 @@ function renderOrders(){
    +'<select class="po-sel" id="po-range" onchange="poRange(this.value)">'+rangeOpt+'</select><button class="btn" onclick="poExport()">Export CSV</button></div>'
    +(PO.range==='custom'?'<div class="po-bar" id="po-custom"><label class="po-sub" style="display:flex;align-items:center;gap:6px">From <input type="date" class="po-sel" id="po-from" value="'+esc(PO.from)+'" max="'+poISO(new Date())+'" onkeydown="if(event.key===\'Enter\')poApplyCustom()"></label><label class="po-sub" style="display:flex;align-items:center;gap:6px">To <input type="date" class="po-sel" id="po-to" value="'+esc(PO.to)+'" max="'+poISO(new Date())+'" onkeydown="if(event.key===\'Enter\')poApplyCustom()"></label><button class="btn" onclick="poApplyCustom()">Apply</button><span class="po-sub">Leave a date empty for no limit on that side.</span>'+(PO.rangeErr?'<span class="po-err" style="margin:0">'+esc(PO.rangeErr)+'</span>':'')+'</div>':'')
    +'<div class="po-chips" id="po-chips"></div><div class="po-card" id="po-card"></div>'
-   +'<div class="po-sub">Questions about an order? Email <b>info@tgkmotorsport.com</b> and quote the PO number.</div></div>';
+   +'<div class="po-sub">Questions about an order? Email <b>support@tgkmotorsport.com</b> and quote the PO number.</div></div>';
   poList();
 }
 function poISO(d){const z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());}
@@ -1692,7 +1692,7 @@ function poList(){
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
   document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
-  if(PO.noPrefix){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No orders are linked to your account yet. If you expected to see orders here, please contact info@tgkmotorsport.com.</div>';return;}
+  if(PO.noPrefix){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No orders are linked to your account yet. If you expected to see orders here, please contact support@tgkmotorsport.com.</div>';return;}
   if(!rows.length){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">'+(all.length?'No orders match your search.':'No orders in this period.')+'</div>';return;}
   const show=rows.slice(0,PO.shown);
   card.innerHTML='<table><thead><tr><th>PO #</th><th>Ordered</th><th>Status</th><th>Items</th><th class="r">Merchandise</th><th>Tracking</th><th style="width:30px"></th></tr></thead><tbody>'+show.map(poRow).join('')+'</tbody></table>'
@@ -2099,7 +2099,7 @@ function shopReviewTotals(){
    +'<div class="big"><span>TOTAL</span><span>'+shMoney(T.merch+(sq.amount||0))+'</span></div>';
 }
 const SH_COUNTRIES=[['US','United States'],['CA','Canada'],['MX','Mexico'],['GB','United Kingdom'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['CH','Switzerland'],['AT','Austria'],['AU','Australia'],['NZ','New Zealand'],['JP','Japan'],['KR','South Korea'],['SG','Singapore'],['AE','United Arab Emirates'],['ZA','South Africa'],['BR','Brazil']];
-function shopNoOrderText(){return SH.me&&SH.me.role==='viewer'?'You have <b>view-only</b> access: you can see prices and orders. Ask an admin on your team to give you ordering access.':'Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.';}
+function shopNoOrderText(){return SH.me&&SH.me.role==='viewer'?'You have <b>view-only</b> access: you can see prices and orders. Ask an admin on your team to give you ordering access.':'Ordering is not set up for your account yet. Please contact support@tgkmotorsport.com.';}
 function shopNeedsPo(){return SH.payMode!=='prepay';}
 function shopCode(){const po=String((SH.form&&SH.form.po)||'').trim();return (SH.prefix||'')+(shopNeedsPo()&&po?' '+po:'');}
 // Pays up front: the code is just the dealer's code. Billed (marked paid): the code with the PO after it, and the PO is required.
@@ -2399,7 +2399,7 @@ function acctRender(){
      +'<p class="po-sub" style="margin:8px 0 0">At least 10 characters. A few words together make a strong, easy-to-remember password.</p>'+err()
      +'<button class="po-btn ac-go" type="submit"'+(ACCT.busy?' disabled':'')+'>'+(ACCT.busy?'Saving&hellip;':'Save and sign in')+'</button></form>';
   }
-  s.innerHTML='<div class="ac-top">'+(logo?'<img src="'+shEsc(logo)+'" alt="TGK Motorsport">':'')+'<span>Authorized Dealer Program</span></div><div class="ac-stripe"></div><div class="ac-wrap"><div class="ac-card">'+body+'</div><p class="ac-foot">Need access? Contact <a href="mailto:info@tgkmotorsport.com">info@tgkmotorsport.com</a>. Prices are confidential and for the named dealer only.</p></div>';
+  s.innerHTML='<div class="ac-top">'+(logo?'<img src="'+shEsc(logo)+'" alt="TGK Motorsport">':'')+'<span>Authorized Dealer Program</span></div><div class="ac-stripe"></div><div class="ac-wrap"><div class="ac-card">'+body+'</div><p class="ac-foot">Need access? Contact <a href="mailto:support@tgkmotorsport.com">support@tgkmotorsport.com</a>. Prices are confidential and for the named dealer only.</p></div>';
   s.style.display='block';
   const f=s.querySelector('[autofocus]');if(f&&document.activeElement!==f)try{f.focus();}catch(e){}
 }
