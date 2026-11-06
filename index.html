@@ -590,6 +590,11 @@ tr:hover td{background:#f6f8f8}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(42,191,170,.55)}70%{box-shadow:0 0 0 7px rgba(42,191,170,0)}100%{box-shadow:0 0 0 0 rgba(42,191,170,0)}}
 @media(prefers-reduced-motion:reduce){.live-chip.on::before{animation:none}}
 @media print{.live-chip{display:none!important}}
+
+/* ── Paid / unpaid (dealers we bill) ── */
+.po-pill.pay-paid{background:#e6f6ef;color:#0b6b46;border:1px solid #bfe6d3}
+.po-pill.pay-unpaid{background:#fff4e5;color:#9a5200;border:1px solid #f3d3a4}
+.po-chip.pay{border-style:dashed}
 /* ── Dealer shop, in the website look: dark cut-corner cards with a white photo panel, vehicle band, cart drawer, checkout ── */
 .shop-wrap{padding:24px 28px 90px;display:flex;flex-direction:column}
 .shop-wrap .po-unlock{margin:20px auto}
@@ -879,6 +884,33 @@ a.rv-t:hover{text-decoration:underline}
 .rq-keep{height:34px;padding:0 14px;font-size:12.5px}
 @media(max-width:700px){.req-card{margin-left:12px;margin-right:12px}.req-row{align-items:flex-start}.rq-grow{display:none}.rq-pay{width:100%}}
 @media print{.req-card{display:none!important}}
+
+/* ── Finder: Year, Make, Model, then Engine and Chassis (optional), like the website ── */
+.sf-row{margin-bottom:0}
+.sf-optrow{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
+.sf-field{display:block}
+.sf-field .sf-lab{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9fb0b8;margin-bottom:5px}
+.sf-lab em{font-style:normal;margin-left:6px;font-weight:600;letter-spacing:.04em;text-transform:lowercase;opacity:.75}
+.sf-field.is-off .sf-in{opacity:.55}
+.sf-field.is-next .sf-in{box-shadow:0 0 0 2px var(--teal)}
+.sf-field.is-done .sf-in{font-weight:700}
+.sf-actions{display:flex;align-items:center;gap:18px;margin-top:14px}
+.sf-go[disabled]{opacity:.4;cursor:not-allowed}
+.sf-reset{border:0;background:none;padding:6px 2px;color:#9fb0b8;font:600 13px var(--font,'Saira Semi Condensed',sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:.05em}
+.sf-reset:hover{color:#fff}
+@media(max-width:700px){.sf-actions{flex-wrap:wrap}.sf-go{flex:1 1 100%}}
+/* ── Added to your order ── */
+#shop-toast{position:fixed;left:50%;bottom:92px;z-index:350;width:min(520px,calc(100% - 24px));display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--band);color:#fff;border-left:4px solid var(--teal);border-radius:2px;transform:translate(-50%,16px);opacity:0;visibility:hidden;transition:opacity .16s,transform .16s,visibility 0s .16s}
+#shop-toast.on{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .16s,transform .16s}
+#shop-toast .st-ic{flex:none;width:26px;height:26px;border-radius:50%;background:var(--teal);color:#06201c;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+#shop-toast .st-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.35}
+#shop-toast b{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+#shop-toast .st-it{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#shop-toast .st-sub{font-size:12.5px;color:#b8c6cc}
+#shop-toast .st-view{flex:none;height:36px;padding:0 14px;border:0;border-radius:2px;background:var(--orange);color:var(--onacc);font:700 12.5px var(--font,'Saira Semi Condensed',sans-serif);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+#shop-toast .st-x{flex:none;border:0;background:none;color:#b8c6cc;font-size:22px;line-height:1;cursor:pointer;padding:2px 4px}
+@media(prefers-reduced-motion:reduce){#shop-toast,#shop-toast.on{transition:none}}
+@media print{#shop-toast{display:none!important}}
 </style>
 </head>
 <body>
@@ -900,7 +932,7 @@ a.rv-t:hover{text-decoration:underline}
 </div>
 <div class="tabs">
 <div class="tab active" id="tab-price" onclick="showTab('price')">Price List</div>
-<div class="tab" id="tab-shop" onclick="showTab('shop')" style="display:none">Shop</div>
+<div class="tab" id="tab-shop" onclick="shopTabClick()" style="display:none">Shop</div>
 <div class="tab" id="tab-fit" onclick="showTab('fit')">Fitment Guide <span class="tab-count" id="fit-count">0</span></div>
 <div class="tab" id="tab-orders" onclick="showTab('orders')" style="display:none">My Orders</div>
 <div class="tab" id="tab-team" onclick="showTab('team')" style="display:none">Team</div>
@@ -1566,7 +1598,7 @@ async function init(){ if(new URLSearchParams(location.search).get('setup')){acc
 // Order history is private. The page never reads the sales table: it asks the dealer-portal function, which checks an
 // emailed access code first and returns only this dealer's own orders.
 const PORTAL_URL=SB+'/functions/v1/dealer-portal';
-var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false,staffTok:'',staffRef:'',staffExp:0,staffWho:'',dealerName:'',year:null,from:'',to:'',rangeErr:'',pendY:0,pendR:0,truncatedY:false};
+var PO={state:'idle',session:null,err:'',info:'',hint:'',canUnlock:true,hasPrefix:true,codeSent:false,busy:false,cool:0,orders:[],days:365,q:'',status:'all',payF:'',open:{},shown:25,pending:0,amountsAvail:true,truncated:false,ranAt:null,map:null,retries:0,staff:false,built:false,staffTok:'',staffRef:'',staffExp:0,staffWho:'',dealerName:'',year:null,from:'',to:'',rangeErr:'',pendY:0,pendR:0,truncatedY:false};
 const poKey=()=>'tgk_po_'+tok().slice(0,16);
 function poCall(body){
   return fetch(PORTAL_URL,{method:'POST',headers:Object.assign({},H,{'Content-Type':'application/json'}),body:JSON.stringify(Object.assign({token:tok()},body))})
@@ -1603,11 +1635,11 @@ async function portalLoad(first,yearToo){
     const rangeIsYear=(PO.range||'365')==='365';let stale=false;
     if(first||yearToo||!PO.year||rangeIsYear){ // the last 12 months always stay loaded: they feed the account strip, the tab badge and the price list column
       const jy=await poFetchOrders({days:365});
-      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';
+      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';PO.billed=!!(jy.billing&&jy.billing.billed);
     }
     if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;}
     else{
-      const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;
+      const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;if(jr.billing)PO.billed=!!jr.billing.billed;
       if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
       else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
     }
@@ -1702,7 +1734,9 @@ function poApplyCustom(){
 }
 function poCustomLabel(){return (PO.from?poDate(PO.from):'the beginning')+' to '+(PO.to?poDate(PO.to):'today');}
 function poMatches(o){
-  const q=(PO.q||'').toLowerCase().trim();if(PO.status!=='all'&&o.status!==PO.status)return false;if(!q)return true;
+  const q=(PO.q||'').toLowerCase().trim();if(PO.status!=='all'&&o.status!==PO.status)return false;
+  if(PO.payF==='unpaid'&&!(o.bill&&!o.bill.paid&&o.status!=='Cancelled'))return false;if(PO.payF==='paid'&&!(o.bill&&o.bill.paid))return false;
+  if(!q)return true;
   const hay=[o.po,o.order_number,o.status].concat((o.tracking||[]).map(t=>t.number)).concat(o.lines.flatMap(l=>[l.sku,l.pn,l.desc])).join(' ').toLowerCase();
   return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
 }
@@ -1716,18 +1750,30 @@ function poList(){
   st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+(sm.miss&&PO.amountsAvail?' &middot; '+sm.miss+' still pricing':'')+'</div></div>'
    +'<div class="po-stat"><div class="l">Open POs</div><div class="n" style="color:var(--amber)">'+open.length+'</div><div class="s">'+(bo.length?bo.length+' with backordered items':'none backordered')+'</div></div>'
    +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
-   +'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>';
+   +(PO.billed?poBalTile(all):'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>');
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
   if(typeof liveChip==='function')liveChip();document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
-  document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
+  document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+(PO.billed?'<button class="po-chip pay'+(PO.payF==='unpaid'?' on':'')+'" data-f="unpaid" onclick="poPay(this.dataset.f)">Unpaid <span>'+poUnpaid(all).length+'</span></button><button class="po-chip pay'+(PO.payF==='paid'?' on':'')+'" data-f="paid" onclick="poPay(this.dataset.f)">Paid <span>'+all.filter(o=>o.bill&&o.bill.paid).length+'</span></button>':'')+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
   if(PO.noPrefix){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No orders are linked to your account yet. If you expected to see orders here, please contact support@tgkmotorsport.com.</div>';return;}
   if(!rows.length){card.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">'+(all.length?'No orders match your search.':'No orders in this period.')+'</div>';return;}
   const show=rows.slice(0,PO.shown);
-  card.innerHTML='<table><thead><tr><th>PO #</th><th>Ordered</th><th>Status</th><th>Items</th><th class="r">Merchandise</th><th>Tracking</th><th style="width:30px"></th></tr></thead><tbody>'+show.map(poRow).join('')+'</tbody></table>'
+  card.innerHTML='<table><thead><tr><th>PO #</th><th>Ordered</th><th>Status</th><th>Items</th><th class="r">Merchandise</th>'+(PO.billed?'<th>Payment</th>':'')+'<th>Tracking</th><th style="width:30px"></th></tr></thead><tbody>'+show.map(poRow).join('')+'</tbody></table>'
    +'<div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text3)"><span>Showing '+show.length+' of '+rows.length+' PO'+(rows.length!==1?'s':'')+(PO.truncated?' (very long history: use a shorter date range for the full list)':'')+'</span>'+(rows.length>show.length?'<button class="btn" onclick="PO.shown+=25;poList()">Show more</button>':'')+'</div>';
 }
+function poUnpaid(all){return all.filter(o=>o.status!=='Cancelled'&&o.po&&o.bill&&!o.bill.paid);}
+function poAge(o){const t=Date.parse(String(o.date).slice(0,10)+'T12:00:00');return t?Math.max(0,Math.floor((Date.now()-t)/864e5)):0;}
+function poBalTile(all){   // dealers we bill: what is still owed (merchandise on POs that are not marked paid)
+  const u=poUnpaid(all),sum=u.reduce((s,o)=>s+(o.amounts?(o.amounts.subtotal||0):0),0),miss=u.filter(o=>!o.amounts).length;
+  return '<div class="po-stat"><div class="l">Balance due</div><div class="n" style="color:'+(u.length?'var(--amber)':'#0f766e')+'">'+(PO.amountsAvail?poMoney(sum):'&mdash;')+'</div><div class="s">'+(u.length?u.length+' unpaid PO'+(u.length!==1?'s':'')+' &middot; merchandise, before shipping and tax'+(miss&&PO.amountsAvail?' &middot; '+miss+' still pricing':''):'every PO is paid')+'</div></div>';
+}
+function poPayCell(o){
+  if(!o.bill||o.status==='Cancelled')return '<td><span class="ord-none">&mdash;</span></td>';
+  return o.bill.paid?'<td><span class="po-pill pay-paid">Paid</span>'+(o.bill.paid_on?'<span class="po-ord">'+poDate(o.bill.paid_on)+'</span>':'')+'</td>':'<td><span class="po-pill pay-unpaid">Unpaid</span><span class="po-ord">'+poAge(o)+' days</span></td>';
+}
+function poPayText(o){return o.bill.paid?'Paid'+(o.bill.paid_on?' on '+poDate(o.bill.paid_on):''):'Unpaid ('+poAge(o)+' days since the order)';}
+function poPay(f){PO.payF=PO.payF===f?'':f;PO.shown=25;poList();}
 function poStatus(s){PO.status=PO.status===s?'all':s;PO.shown=25;poList();}
 function poTrackLinks(o,short){
   const t=o.tracking||[];if(!t.length)return '<span class="ord-none">&mdash;</span>';
@@ -1739,10 +1785,10 @@ function poRow(o){
   let h='<tr class="po-row'+(op?' open':'')+'" onclick="poToggle(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')"><td><span class="po-num">'+esc(o.po||'No PO')+'</span><span class="po-ord">Order '+esc(o.order_number)+'</span></td><td>'+poDate(o.date)+'</td>'
    +'<td><span class="po-pill '+poSlug(o.status)+'">'+esc(o.status)+'</span>'+(o.status_detail?'<span class="ord-bo">'+esc(o.status_detail)+'</span>':'')+'</td>'
    +'<td>'+n+' item'+(n!==1?'s':'')+' &middot; '+o.units+' unit'+(o.units!==1?'s':'')+'</td><td class="r" style="font-weight:700;color:var(--text)">'+(o.amounts?poMoney(o.amounts.subtotal):'<span class="ord-none">'+(PO.amountsAvail?'pricing&hellip;':'&mdash;')+'</span>')+'</td>'
-   +'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
+   +(PO.billed?poPayCell(o):'')+'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
   if(op){
     const A=o.amounts;
-    h+='<tr class="po-detail"><td colspan="7"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':'')+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
+    h+='<tr class="po-detail"><td colspan="'+(PO.billed?8:7)+'"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(PO.billed&&o.bill?'<span><b>Payment</b> '+poPayText(o)+'</span>':(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':''))+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
      +'<table><thead><tr><th>SKU</th><th>Description</th><th class="r">Ordered</th><th class="r">Shipped</th><th class="r">Backordered</th><th class="r">Unit price</th><th class="r">Line total</th><th>Status</th></tr></thead><tbody>'
      +o.lines.map(l=>'<tr><td style="font-family:ui-monospace,monospace;font-weight:600;color:#0f766e">'+esc(l.sku)+'</td><td>'+esc(l.desc)+'</td><td class="r">'+l.qty+'</td><td class="r">'+l.shipped+'</td><td class="r"'+(l.backordered?' style="color:var(--amber);font-weight:700"':'')+'>'+l.backordered+'</td><td class="r">'+poMoney(l.unit)+'</td><td class="r" style="font-weight:600;color:var(--text)">'+poMoney(l.total)+'</td><td><span class="po-pill '+poSlug(l.status)+'">'+esc(l.status)+'</span></td></tr>').join('')
      +(A?'<tr class="po-tot"><td colspan="6" class="r">Merchandise</td><td class="r">'+poMoney(A.subtotal)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Shipping</td><td class="r">'+poMoney(A.shipping)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Tax</td><td class="r">'+poMoney(A.tax)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r" style="color:var(--text)">Order total</td><td class="r" style="color:var(--text)">'+poMoney(A.total)+'</td><td></td></tr>':'')
@@ -1752,8 +1798,8 @@ function poRow(o){
 }
 function poToggle(k){PO.open[k]=!PO.open[k];poList();}
 function poExport(){
-  const rows=[['PO','TGK order','Ordered','Status','Tracking','SKU','Description','Qty','Shipped','Backordered','Unit price','Line total','Order merchandise','Shipping','Tax','Order total']];
-  PO.orders.filter(poMatches).forEach(o=>o.lines.forEach(l=>rows.push([o.po,o.order_number,String(o.date).slice(0,10),o.status,(o.tracking||[]).map(t=>t.number).join(' '),l.sku,l.desc,l.qty,l.shipped,l.backordered,l.unit==null?'':l.unit,l.total==null?'':l.total,o.amounts?o.amounts.subtotal:'',o.amounts?o.amounts.shipping:'',o.amounts?o.amounts.tax:'',o.amounts?o.amounts.total:''])));
+  const rows=[['PO','TGK order','Ordered','Status','Tracking','SKU','Description','Qty','Shipped','Backordered','Unit price','Line total','Order merchandise','Shipping','Tax','Order total'].concat(PO.billed?['Payment','Paid on']:[])];
+  PO.orders.filter(poMatches).forEach(o=>o.lines.forEach(l=>rows.push([o.po,o.order_number,String(o.date).slice(0,10),o.status,(o.tracking||[]).map(t=>t.number).join(' '),l.sku,l.desc,l.qty,l.shipped,l.backordered,l.unit==null?'':l.unit,l.total==null?'':l.total,o.amounts?o.amounts.subtotal:'',o.amounts?o.amounts.shipping:'',o.amounts?o.amounts.tax:'',o.amounts?o.amounts.total:''].concat(PO.billed?[o.bill?(o.bill.paid?'Paid':'Unpaid'):'',o.bill&&o.bill.paid_on||'']:[]))));
   const csv=rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
   dl('TGK-Orders.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv));
 }
@@ -1849,7 +1895,7 @@ function poStaffSignOut(){
 // so nothing the browser sends can change what a dealer pays.
 var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
   form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
-  veh:{make:'',model:'',year:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
+  veh:{year:'',make:'',model:'',engine:'',chassis:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
 const shEsc=s=>esc(s).replace(/"/g,'&quot;');
 const shR2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
@@ -1954,7 +2000,25 @@ function shopChanged(k){
   if(SH.view==='review')shopReviewRefresh(k);else{shopCardRefresh(k);shopBarRefresh();}
   if(SH.drawer)renderDrawer();
 }
-function shopAdd(k){const q=SH.pend[k]||1;SH.cart[k]=(SH.cart[k]||0)+q;delete SH.pend[k];shopChanged(k);}
+function shopAdd(k){const q=SH.pend[k]||1;SH.cart[k]=(SH.cart[k]||0)+q;delete SH.pend[k];shopChanged(k);shopAddedToast(shopFind(k),q);}
+// A confirmation each time something is added: what, how many, and where the order stands, with a way straight to it.
+var _toastT=null;
+function shopAddedToast(a,q){
+  const L=shopLines(),units=L.reduce((s,x)=>s+x.qty,0),total=L.reduce((s,x)=>s+x.total,0);
+  let el=document.getElementById('shop-toast');
+  if(!el){el=document.createElement('div');el.id='shop-toast';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el);}
+  el.innerHTML='<span class="st-ic" aria-hidden="true">&#10003;</span><span class="st-tx"><b>Added to your order</b><span class="st-it">'+esc(a?(a.description||pnOf(a)):'Item')+' &times; '+q+'</span><span class="st-sub">'+units+' item'+(units!==1?'s':'')+' in your order &middot; '+shMoney(total)+'</span></span><button type="button" class="st-view" onclick="shopOpenCart();shopToastHide()">View order</button><button type="button" class="st-x" aria-label="Dismiss" onclick="shopToastHide()">&times;</button>';
+  el.className='on';clearTimeout(_toastT);_toastT=setTimeout(shopToastHide,4200);
+}
+function shopToastHide(){clearTimeout(_toastT);const el=document.getElementById('shop-toast');if(el)el.className='';}
+// Clicking the Shop tab always lands on the main shop page (leaving checkout or a finished order). Clicking it again while already there starts over from the top:
+// every category, search and filter cleared. The vehicle in My Garage and the order being built are kept.
+function shopTabClick(){
+  const on=document.getElementById('panel-shop')&&document.getElementById('panel-shop').style.display!=='none';
+  SH.view='grid';SH.done=null;SH.formErr='';if(SH.drawer)shopDrawerClose();shopToastHide();
+  if(on){SH.catSel=[];SH.catOpen='';SH.q='';SH.flt='';}
+  SH.shown=24;showTab('shop');window.scrollTo(0,0);
+}
 function shopQty(k,d){
   if(SH.cart[k]!==undefined){const n=Math.max(SH.view==='review'?1:0,Math.min(9999,SH.cart[k]+d));if(n===0)delete SH.cart[k];else SH.cart[k]=n;}
   else SH.pend[k]=Math.max(1,Math.min(9999,(SH.pend[k]||1)+d));
@@ -2122,7 +2186,7 @@ function renderShop(){
 function shopReview(){if(!shopLines().length)return;shopDrawerClose();SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
 function shopBack(){SH.view='grid';SH.done=null;renderShop();}
 function shopF(name,val){SH.form[name]=val;if(name==='country'||name==='drop')shopReviewTotals();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.textContent=shopCode();}}
-function shopPayText(){return ({prepay:'You will get a secure payment link as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
+function shopPayText(){return ({prepay:'A secure payment window opens as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
 function shopReviewTotals(){
   const el=document.getElementById('rv-tot');if(!el)return;
   const L=shopLines(),T=shopTotals(L),sq=shopShipQuote(SH.form.country,T.merch);
@@ -2294,52 +2358,90 @@ function shopCellNote(a){
 // ---- the discount code is always the dealer's code (see shopCode above)
 // ---- the fitment finder: the Fitment Guide's own data and rules, so a part fits here exactly when it fits there
 const shGarageKey=()=>'tgk_garage_'+tok().slice(0,16);
-(function(){try{const g=JSON.parse(localStorage.getItem(shGarageKey())||'null');if(g&&(g.make||g.model||g.year))SH.veh=Object.assign({make:'',model:'',year:''},g);}catch(e){}SH.editVeh=!(SH.veh.make||SH.veh.model||parseInt(SH.veh.year,10)>1949);})();
+(function(){try{const g=JSON.parse(localStorage.getItem(shGarageKey())||'null');if(g&&(g.make||g.model||g.year))SH.veh=Object.assign({year:'',make:'',model:'',engine:'',chassis:''},g);}catch(e){}SH.editVeh=!(SH.veh.year&&SH.veh.make&&SH.veh.model);})();
 function shopSaveVeh(){try{localStorage.setItem(shGarageKey(),JSON.stringify(SH.veh));}catch(e){}}
-function shopVehicles(){
-  const n=(G.fits||[]).length;if(SH._veh&&SH._vehN===n&&SH._vehA===SH._items)return SH._veh;
-  const makes={},models={};
-  if(typeof fitRowsFor==='function')shopItems().forEach(a=>{fitRowsFor(a).forEach(f=>{if(!f.make)return;makes[f.make]=1;(models[f.make]=models[f.make]||{})[f.model||'']=1;});});
-  SH._veh={makes:Object.keys(makes).sort(),models:models};SH._vehN=n;SH._vehA=SH._items;return SH._veh;
+// ---- the finder works like the website's: Year, Make, Model, then Engine and Chassis (both optional, "Any"). Each field opens after the one before it,
+// the options in each are only what fits the choices so far, and Engine or Chassis fill themselves in when there is only one. It narrows the parts live;
+// "Find my parts" folds it into the vehicle bar.
+const SH_VF=['year','make','model','engine','chassis'],SH_VL={year:'Year',make:'Make',model:'Model',engine:'Engine',chassis:'Chassis'};
+function shopVehRows(){   // every vehicle the parts fit, one row per model year: what the finder's options are built from
+  const n=(G.fits||[]).length;if(SH._vr&&SH._vrN===n&&SH._vrA===SH._items)return SH._vr;
+  const out=[],seen={},cy=new Date().getFullYear()+1;
+  if(typeof fitRowsFor==='function')shopItems().forEach(a=>fitRowsFor(a).forEach(f=>{
+    if(!f.make||!f.model)return;
+    const y0=parseInt(f.year_from,10);if(!(y0>1949))return;let y1=parseInt(f.year_to,10);if(!(y1>=y0))y1=y0;y1=Math.min(y1,cy,y0+60);
+    const en=String(f.engine||'').trim(),ch=String(f.chassis||'').trim();
+    for(let y=y0;y<=y1;y++){const k=y+'|'+f.make+'|'+f.model+'|'+en+'|'+ch;if(!seen[k]){seen[k]=1;out.push({year:String(y),make:f.make,model:f.model,engine:en,chassis:ch});}}
+  }));
+  SH._vr=out;SH._vrN=n;SH._vrA=SH._items;return out;
+}
+function shopVehOpts(f){   // what can be chosen in a field, given the fields before it
+  const r=SH_VF.indexOf(f),a={};
+  shopVehRows().forEach(s=>{for(let o=0;o<r;o++){const h=SH_VF[o];if(SH.veh[h]&&s[h]!==SH.veh[h])return;}a[s[f]]=1;});
+  const c=Object.keys(a).filter(x=>x!=='');
+  return f==='year'?c.sort((x,y)=>y-x):c.sort((x,y)=>x.localeCompare(y,undefined,{numeric:true}));
+}
+function shopVehNormalize(){   // a choice that no longer fits is cleared; Engine or Chassis with only one option fill themselves in
+  SH_VF.forEach((f,i)=>{
+    const on=i===0||SH.veh[SH_VF[i-1]],o=on?shopVehOpts(f):[];
+    if(on&&o.length===1&&(f==='engine'||f==='chassis'))SH.veh[f]=o[0];
+    if(SH.veh[f]&&o.indexOf(SH.veh[f])<0)SH.veh[f]='';
+  });
 }
 function shopVehActive(){const v=SH.veh;return !!(v&&(v.make||v.model||parseInt(v.year,10)>1949));}
 function shopVehLabel(){const v=SH.veh;return [v.year,v.make,v.model].filter(Boolean).join(' ');}
+function shopVehMatch(rowVal,chosen){   // a part that lists no engine (or chassis) fits any; codes can be several in one cell
+  if(!chosen||!rowVal)return true;
+  const sp=x=>String(x).toLowerCase().split(/[,\/;|]+/).map(y=>y.trim()).filter(Boolean),a=sp(rowVal),b=sp(chosen);
+  return a.some(x=>b.indexOf(x)>=0);
+}
 function shopFitHits(a){
   if(typeof fitRowsFor!=='function')return [];
   const v=SH.veh,make=(v.make||'').toLowerCase(),model=(v.model||'').toLowerCase(),yr=parseInt(v.year,10)||0;
-  return fitRowsFor(a).filter(f=>(!make||String(f.make||'').toLowerCase()===make)&&(!model||String(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to)));
+  return fitRowsFor(a).filter(f=>(!make||String(f.make||'').toLowerCase()===make)&&(!model||String(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to))&&shopVehMatch(f.engine,v.engine)&&shopVehMatch(f.chassis,v.chassis));
 }
 function shopVehCount(){return shopItems().filter(a=>shopFitHits(a).length).length;}
-function shopVehSpec(){ // the chassis and engine codes of the chosen model, as small chips
-  if(!SH.veh.model)return [];const ch={},en={};
+function shopVehSpec(){   // the chassis and engine codes, as small chips: the ones chosen, else those of the chosen model
+  const v=SH.veh;if(v.chassis||v.engine)return [v.chassis,v.engine].filter(Boolean);
+  if(!v.model)return [];const ch={},en={};
   shopItems().forEach(a=>shopFitHits(a).forEach(f=>{if(f.chassis)ch[String(f.chassis).trim()]=1;if(f.engine)en[String(f.engine).trim()]=1;}));
   return Object.keys(ch).slice(0,2).concat(Object.keys(en).slice(0,2));
 }
 function shopFitTag(a){return shopVehActive()?'<span class="tagfit">&#10003; FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
 function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
+function shopFinderFields(){
+  shopVehNormalize();
+  const V=SH.veh;let nextShown=false,req='',opt='';
+  SH_VF.forEach((f,i)=>{
+    const on=i===0||V[SH_VF[i-1]],o=on?shopVehOpts(f):[],optional=(f==='engine'||f==='chassis');
+    let cls=V[f]?'is-done':(!on||!o.length)?'is-off':'is-next';
+    if(cls==='is-next'){if(optional||nextShown)cls='is-open';else nextShown=true;}   // only the next required field is lit
+    const h='<label class="sf-field '+cls+(f==='year'?' yr':'')+'" for="sf-'+f+'"><span class="sf-lab">'+SH_VL[f]+(optional?'<em>optional</em>':'')+'</span><select class="sf-in" id="sf-'+f+'" onchange="shopVehSet(\''+f+'\',this.value)"'+((!on||!o.length)?' disabled':'')+'><option value="">'+(optional?'Any':'Select '+f)+'</option>'+o.map(x=>'<option'+(x===V[f]?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
+    if(optional)opt+=h;else req+=h;
+  });
+  const ready=!!(V.year&&V.make&&V.model);
+  return '<div class="sf-row">'+req+'</div><div class="sf-row sf-optrow">'+opt+'</div><div class="sf-actions"><button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()"'+(ready?'':' disabled')+'>FIND MY PARTS</button><button type="button" class="sf-reset" onclick="shopVehClear()">Reset</button></div>';
+}
 function shopFinderHtml(){
-  const V=shopVehicles();
-  if(shopVehActive()&&!SH.editVeh){
+  if(shopVehActive()&&!SH.editVeh&&SH.veh.year&&SH.veh.make&&SH.veh.model){
     const spec=shopVehSpec();
     return '<div class="vband"><div class="vb-ic">'+SH_CAR+'</div><div style="min-width:0">'+(SH.veh.make?'<div class="vb-make">'+esc(SH.veh.make)+'</div>':'')+'<div class="vb-row"><span class="vb-title">'+esc(shopVehLabel())+'</span>'+(spec.length?'<span class="vb-spec">'+spec.map(x=>'<span>'+esc(x)+'</span>').join('')+'</span>':'')+'</div></div>'
      +'<div class="vb-side"><div class="vb-count"><b>'+shopVehCount()+'</b>PARTS FIT</div><a class="vb-fit" onclick="shopOpenFit()">Fitment Guide</a><button type="button" class="vb-change" onclick="shopVehEdit()">CHANGE VEHICLE</button><button type="button" class="vb-clear" onclick="shopVehClear()">CLEAR</button></div></div>';
   }
-  const mods=Object.keys(V.models[SH.veh.make]||{}).filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  return '<div class="shop-finder"><span class="sf-t">FIND PARTS FOR YOUR VEHICLE</span><div class="sf-row"><div class="sf-field yr"><label for="sf-year">YEAR</label><input class="sf-in" id="sf-year" type="number" inputmode="numeric" min="1950" max="2100" placeholder="Year" value="'+shEsc(SH.veh.year)+'" oninput="shopVehSet(\'year\',this.value)"></div>'
-   +'<div class="sf-field"><label for="sf-make">MAKE</label><select class="sf-in" id="sf-make" onchange="shopVehSet(\'make\',this.value)"><option value="">Make</option>'+V.makes.map(m=>'<option'+(m===SH.veh.make?' selected':'')+'>'+esc(m)+'</option>').join('')+'</select></div>'
-   +'<div class="sf-field"><label for="sf-model">MODEL</label><select class="sf-in" id="sf-model" onchange="shopVehSet(\'model\',this.value)"'+(SH.veh.make?'':' disabled')+'><option value="">Model</option>'+mods.map(m=>'<option'+(m===SH.veh.model?' selected':'')+'>'+esc(m)+'</option>').join('')+'</select></div>'
-   +'<button type="button" class="sf-go" id="sf-go" onclick="shopVehDone()" style="display:'+(shopVehActive()?'':'none')+'">SHOW PARTS</button></div><div id="sf-chip"></div></div>';
+  return '<div class="shop-finder"><span class="sf-t">FIND PARTS FOR YOUR VEHICLE</span><div id="sf-fields">'+shopFinderFields()+'</div><div id="sf-chip"></div></div>';
 }
-function shopFillModels(){const sel=document.getElementById('sf-model');if(!sel)return;const mods=Object.keys(shopVehicles().models[SH.veh.make]||{}).filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));sel.innerHTML='<option value="">Model</option>'+mods.map(m=>'<option'+(m===SH.veh.model?' selected':'')+'>'+esc(m)+'</option>').join('');sel.disabled=!SH.veh.make;}
 function shopVehChip(){
-  const go=document.getElementById('sf-go');if(go)go.style.display=shopVehActive()?'':'none';
   const el=document.getElementById('sf-chip');if(!el)return;
   el.innerHTML=shopVehActive()?'<span class="sf-garage">MY GARAGE &middot; '+esc(shopVehLabel())+' <button type="button" aria-label="Clear vehicle" onclick="shopVehClear()">&times;</button></span><a onclick="shopOpenFit()">Fitment Guide &rarr;</a>':'';
 }
-function shopVehSet(f,v){const o=SH.veh;o[f]=String(v).trim();if(f==='make'){o.model='';shopFillModels();}shopSaveVeh();shopVehChip();SH.shown=24;shopList();}
-function shopVehDone(){if(shopVehActive())SH.editVeh=false;renderShop();}
+function shopVehSet(f,v){
+  SH.veh[f]=String(v).trim();shopVehNormalize();shopSaveVeh();
+  const box=document.getElementById('sf-fields');if(box){box.innerHTML=shopFinderFields();const el=document.getElementById('sf-'+f);if(el&&!el.disabled)el.focus();}
+  shopVehChip();SH.shown=24;shopList();
+}
+function shopVehDone(){if(SH.veh.year&&SH.veh.make&&SH.veh.model)SH.editVeh=false;renderShop();}
 function shopVehEdit(){SH.editVeh=true;renderShop();}
-function shopVehClear(){SH.veh={make:'',model:'',year:''};SH.editVeh=true;shopSaveVeh();SH.shown=24;renderShop();}
+function shopVehClear(){SH.veh={year:'',make:'',model:'',engine:'',chassis:''};SH.editVeh=true;shopSaveVeh();SH.shown=24;renderShop();}
 function shopOpenFit(){
   const v=SH.veh;showTab('fit');
   const mk=document.getElementById('make-sel'),md=document.getElementById('model-sel'),yr=document.getElementById('year-sel');
