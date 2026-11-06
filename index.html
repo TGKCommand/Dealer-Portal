@@ -906,7 +906,7 @@ function isHWPack(pn){return /^TGK-P\d/i.test(pn||'');}
 // based rather than startsWith so "Bolts/Washers/Nuts" can never be mistaken for a finished good.
 function catTop(c){return String(c||'').split('/')[0].trim();}
 function catSub(c){var p=String(c||'').split('/');return p.length>1?p.slice(1).join('/').trim():'';}
-function fgSectionLabel(x){ if(x&&typeof x==='object'){ var p=(typeof shopCatPaths==='function')?shopCatPaths(x)[0]:null; if(p&&p.length)return p.slice(0,2).join(' / '); return catSub(x.category)||'Uncategorised'; } return catSub(x)||'Uncategorised'; }
+function fgSectionLabel(x){ if(x&&typeof x==='object'){ var p=(typeof shopCatPaths==='function')?shopCatPaths(x)[0]:null; if(p&&p.length)return p.slice(0,3).join(' / '); return catSub(x.category)||'Uncategorised'; } return catSub(x)||'Uncategorised'; }
 // Per-dealer visibility. null / missing / empty array all mean "no restriction", so every dealer
 // that predates this feature keeps seeing the full list with no migration needed.
 function dealerAllows(a){
@@ -1947,7 +1947,10 @@ function shCatIndex(){
 function shopCatPaths(a){
   const idx=shCatIndex();
   if(!Object.keys(idx).length){const t=String(catSub(a.category)||'Uncategorised').split('/').map(x=>x.trim()).filter(Boolean);return [t];}   // no category data in the database: the old two-level labels
-  const m=idx[fitIndex().C(a.pn)];return m&&m.length?m:[['Other']];
+  // tier 1 is the main category from the ERP (Automotive, Powersports); the website's departments hang underneath it
+  const main=String(catSub(a.category)||'Uncategorised').split('/')[0].trim()||'Uncategorised';
+  const m=idx[fitIndex().C(a.pn)];
+  return (m&&m.length?m:[['Other']]).map(p=>[main].concat(p));
 }
 function shopPathStarts(p,sel){return sel.every((s,i)=>p[i]&&String(p[i]).toLowerCase()===String(s).toLowerCase());}
 function shopCatRows(items){ // one row of chips per level that is open: the departments, then the chosen one's sub-categories, and so on
