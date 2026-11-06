@@ -547,6 +547,18 @@ tr:hover td{background:#f6f8f8}
 .po-ok{color:var(--green);font-size:14px;margin-top:10px;font-weight:600}
 @media(max-width:760px){.po-wrap{padding:14px 12px 30px}.po-stats{grid-template-columns:repeat(2,1fr)}}
 @media print{#acct-strip,.po-bar,.po-chips{display:none!important}}
+/* ── Team ── */
+.po-em{width:100%;height:44px;padding:0 12px;border:1px solid #c9ccd1;border-radius:2px;font-size:15px}
+.po-em:focus,.tm-in:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.tm-add{padding:0;overflow:visible}
+.tm-add .co-bar{border-radius:2px 2px 0 0}
+.tm-form{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.5fr) minmax(0,1fr) auto;gap:12px;align-items:end;padding:18px}
+.tm-form label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text2);margin-bottom:5px}
+.tm-in{width:100%;height:44px;padding:0 12px;border:1px solid #c9ccd1;border-radius:2px;font-size:15px;background:#fff;color:var(--onacc)}
+.tm-help{padding:14px 18px;font-size:14px;line-height:1.55;color:var(--text2)}
+.tm-role{height:38px}
+.t3{color:var(--text3)}
+@media(max-width:760px){.tm-form{grid-template-columns:1fr}.tm-form .po-btn{width:100%}}
 /* ── Dealer shop, in the website look: dark cut-corner cards with a white photo panel, vehicle band, cart drawer, checkout ── */
 .shop-wrap{padding:24px 28px 90px;display:flex;flex-direction:column}
 .shop-wrap .po-unlock{margin:20px auto}
@@ -812,6 +824,7 @@ a.rv-t:hover{text-decoration:underline}
 <div class="tab" id="tab-shop" onclick="showTab('shop')" style="display:none">Shop</div>
 <div class="tab" id="tab-fit" onclick="showTab('fit')">Fitment Guide <span class="tab-count" id="fit-count">0</span></div>
 <div class="tab" id="tab-orders" onclick="showTab('orders')" style="display:none">My Orders</div>
+<div class="tab" id="tab-team" onclick="showTab('team')" style="display:none">Team</div>
 </div>
 <!-- Price List -->
   <div id="panel-price">
@@ -881,6 +894,7 @@ a.rv-t:hover{text-decoration:underline}
   </div>
 
   <div id="panel-shop" style="display:none"></div>
+<div id="panel-team" style="display:none"></div>
 <div id="panel-orders" style="display:none"></div>
 
   <div class="footer">
@@ -1149,12 +1163,13 @@ function renderProspect(tiers){
   if(q2){document.querySelectorAll('#price-tbody tr:not(.cat-row)').forEach(function(r){var pnMatch=(r.dataset.pn||'').includes(q2);var descMatch=(r.dataset.desc||'').includes(q2);if(!pnMatch&&!descMatch)r.style.display='none';});}
 }
 function showTab(t){
-  ['price','fit','orders','shop'].forEach(x=>{
+  ['price','fit','orders','shop','team'].forEach(x=>{
     document.getElementById('panel-'+x).style.display=x===t?'':'none';
     document.getElementById('tab-'+x).classList.toggle('active',x===t);
   });
   if(t==='orders')portalShown();
   if(t==='shop')shopShown();
+  if(t==='team')teamShown();
 }
 
 // ── Price list ───────────────────────────────────────────────────────────────
@@ -1489,6 +1504,7 @@ async function portalBoot(){
   try{
     const s=await poCall({action:'status'});
     PO.hint=s.email_hint||'';PO.canUnlock=!!s.can_unlock;PO.hasPrefix=!!s.has_prefix;
+    try{const se=localStorage.getItem('tgk_po_email_'+tok().slice(0,16));if(se){PO.email=se;PO.useOther=true;}}catch(e){}   // a team member comes back to their own email
     document.getElementById('tab-orders').style.display='';  // only appears when the server function answers
     SH.available=shOn(s);if(SH.available)document.getElementById('tab-shop').style.display='';shopHdr(); // the storefront needs function v1.2 or later
     let saved=null;try{saved=JSON.parse(localStorage.getItem(poKey())||'null');}catch(e){}
@@ -1564,7 +1580,8 @@ function renderOrders(){
     p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Unlock your orders</h2>'
      +(PO.state==='error'?'<div class="po-err">'+esc(PO.err)+'</div>':'')
      +(!PO.canUnlock?'<p>We do not have an email address on file for your account, so we cannot send an access code. Please contact <a class="po-link" href="mailto:info@tgkmotorsport.com">info@tgkmotorsport.com</a>.</p>'
-      :'<p>Orders and amounts are private. We will email a 6-digit code to the address on file'+(PO.hint?': <b>'+esc(PO.hint)+'</b>':'')+'.</p>'
+      :'<p>Orders and amounts are private. '+(PO.useOther?'Enter your email and we will send a 6-digit code to it.':'We will email a 6-digit code to the address on file'+(PO.hint?': <b>'+esc(PO.hint)+'</b>':'')+'.')+'</p>'
+       +(sent?'':(PO.useOther?'<div style="margin-bottom:12px"><label for="po-email" style="display:block;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text2);margin-bottom:5px">Your email</label><input class="po-em" id="po-email" type="email" autocomplete="email" value="'+esc(PO.email||'')+'" onkeydown="if(event.key===\'Enter\')poRequest()"></div><p style="margin:0 0 14px"><a class="po-link" onclick="poUseOther(false)">Use the address on file instead</a></p>':'<p style="margin:0 0 14px"><a class="po-link" onclick="poUseOther(true)">Signing in as a team member? Use your own email</a></p>'))
        +(sent?'<div style="margin-bottom:14px"><input class="po-code" id="po-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="------" onkeydown="if(event.key===\'Enter\')poVerify()" oninput="this.value=this.value.replace(/\\D/g,\'\')"></div>':'')
        +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">'
        +(sent?'<button class="po-btn" id="po-go" onclick="poVerify()"'+(PO.busy?' disabled':'')+'>Unlock</button>'
@@ -1577,7 +1594,7 @@ function renderOrders(){
   }
   const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time'],['custom','Custom range&hellip;']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div></div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub" id="po-upd"></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button><button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +(typeof shopReqCard==='function'?shopReqCard():'')
@@ -1660,9 +1677,13 @@ function poExport(){
   const csv=rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
   dl('TGK-Orders.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv));
 }
+function poUseOther(on){PO.useOther=!!on;if(!on)PO.email='';PO.err='';renderOrders();}
 async function poRequest(){
-  if(PO.busy)return;PO.busy=true;PO.err='';PO.info='';renderOrders();
-  try{const j=await poCall({action:'request_code'});PO.codeSent=true;PO.hint=j.email_hint||PO.hint;PO.info='Code sent to '+(PO.hint||'your email')+'. It works for 10 minutes.';PO.cool=30;poCool();}
+  if(PO.busy)return;
+  const em=document.getElementById('po-email');if(em)PO.email=em.value.trim();
+  if(PO.useOther&&!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(PO.email||'')){PO.err='Enter your email address.';renderOrders();return;}
+  PO.busy=true;PO.err='';PO.info='';renderOrders();
+  try{const j=await poCall({action:'request_code',email:PO.useOther?PO.email:undefined});PO.codeSent=true;PO.hint=j.email_hint||PO.hint;PO.info='Code sent to '+(PO.hint||'your email')+'. It works for 10 minutes.';PO.cool=30;poCool();}
   catch(e){PO.err=e.message;}
   PO.busy=false;renderOrders();
 }
@@ -1672,7 +1693,7 @@ async function poVerify(){
   if(PO.busy)return;if(!/^\d{6}$/.test(code)){PO.err='Enter the 6-digit code from the email.';renderOrders();return;}
   PO.busy=true;PO.err='';PO.info='';renderOrders();
   try{
-    const j=await poCall({action:'verify_code',code});PO.session=j.session;PO.state='loading';PO.codeSent=false;
+    const j=await poCall({action:'verify_code',code,email:PO.useOther?PO.email:undefined});PO.session=j.session;PO.me=j.user||null;try{if(PO.useOther&&PO.email)localStorage.setItem('tgk_po_email_'+tok().slice(0,16),PO.email);else localStorage.removeItem('tgk_po_email_'+tok().slice(0,16));}catch(e){}PO.state='loading';PO.codeSent=false;
     try{localStorage.setItem(poKey(),JSON.stringify({s:j.session,exp:j.expires_at}));}catch(e){}
     PO.busy=false;renderOrders();PO.retries=0;await portalLoad(true);return;
   }catch(e){PO.err=e.message+(e.data&&e.data.attempts_left!=null&&e.data.attempts_left<4?' ('+e.data.attempts_left+' tries left)':'');}
@@ -1746,7 +1767,7 @@ function poStaffSignOut(){
 // so nothing the browser sends can change what a dealer pays.
 var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],flt:'',view:'grid',shown:24,
   form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
-  veh:{make:'',model:'',year:''},editVeh:true,prefix:'',available:false,drawer:false,_veh:null,_vehN:-1};
+  veh:{make:'',model:'',year:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
 const shEsc=s=>esc(s).replace(/"/g,'&quot;');
 const shR2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
@@ -1756,7 +1777,7 @@ const SH_SITE='https://tgkmotorsport.com';
 const SH_CAR='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 15v-3l2-5h14l2 5v3M3 15h18M3 15v3h3v-3M18 15v3h3v-3"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="16.5" cy="12.5" r="1"/></svg>';
 (function(){try{SH.cart=JSON.parse(localStorage.getItem(shKey())||'{}')||{};}catch(e){SH.cart={};}try{const f=JSON.parse(localStorage.getItem(shShipKey())||'null');if(f)Object.assign(SH.form,f,{po:'',notes:'',drop:false});}catch(e){}})();
 function shopSave(){try{localStorage.setItem(shKey(),JSON.stringify(SH.cart));}catch(e){}if(typeof shopHdr==='function')shopHdr();}
-function shopReset(){const wasLoaded=SH.loaded;SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';shopDrawerClose();const c=document.getElementById('pf-specials');if(c)c.style.display='none';if(wasLoaded&&typeof filterFit==='function'){try{filterFit();}catch(e){}}}
+function shopReset(){const wasLoaded=SH.loaded;SH.me=null;if(typeof TM!=='undefined'){TM.loaded=false;TM.users=[];}SH.loaded=false;SH.loading=false;SH.prices={};SH.images={};SH.reqs=[];SH.view='grid';SH.done=null;SH.err='';shopDrawerClose();const c=document.getElementById('pf-specials');if(c)c.style.display='none';if(wasLoaded&&typeof filterFit==='function'){try{filterFit();}catch(e){}}}
 function shopItems(){
   if(SH._items&&SH._keyN===G.asms.length)return SH._items;
   SH._items=(G.asms||[]).filter(isVisible);SH._keyN=G.asms.length;SH._by={};SH._items.forEach(a=>{SH._by[String(pnOf(a)).toLowerCase()]=a;});return SH._items;
@@ -1785,10 +1806,10 @@ async function shopLoad(){
   try{
     const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
     const [p,r]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth))]);
-    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
     if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
   }catch(e){SH.err=e.message||'The shop could not be loaded.';}
-  SH.loading=false;shopAfterLoad();renderPrice();
+  SH.loading=false;shopAfterLoad();renderPrice();shopHdr();
   if(document.getElementById('panel-shop').style.display!=='none')renderShop();
   if(typeof filterFit==='function'){try{filterFit();}catch(e){}}   // the Fitment Guide cards gain their photo, website link and order buttons
   if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
@@ -1916,7 +1937,7 @@ function shopCard(a){
    +'<div class="pprice"><b>'+shMoney(b.p.unit)+'</b><s>'+shMoney(b.p.msrp)+'</s></div><div class="pstd">'+b.sub+'</div><div class="ptier">'+esc(b.tier)+'</div>'
    +'<div class="pstock"><i style="background:'+dot+'"></i>'+txt+'</div>'
    +'<div class="pact"><div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="0" max="9999" value="'+q+'" aria-label="Quantity" data-k="'+shEsc(k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
-   +'<button type="button" class="padd'+(inC?' in':'')+'" data-k="'+shEsc(k)+'" onclick="shopAdd(this.dataset.k)"'+(inC?' disabled':'')+'>'+(inC?'&#10003; IN ORDER':'<span class="t-long">ADD TO ORDER</span><span class="t-short">ADD</span>')+'</button></div>'
+   +'<button type="button" class="padd'+(inC?' in':'')+'" data-k="'+shEsc(k)+'" onclick="shopAdd(this.dataset.k)"'+(inC||(!SH.canOrder&&!SH.staff)?' disabled':'')+'>'+(inC?'&#10003; IN ORDER':'<span class="t-long">ADD TO ORDER</span><span class="t-short">ADD</span>')+'</button></div>'
    +'<a class="plink" href="'+url+'" target="_blank" rel="noopener"><span class="t-long">View on tgkmotorsport.com</span><span class="t-short">On website</span> &#8599;</a></div>';
 }
 function shopBar(){
@@ -1976,7 +1997,7 @@ function renderShop(){
   const chip=(label,on,fn)=>'<button type="button" class="chip'+(on?' on':'')+'" onclick="'+fn+'">'+label+'</button>';
   p.innerHTML='<div class="shop-wrap">'
    +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
-   +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')
+   +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">'+shopNoOrderText()+'</div>':'')
    +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span></div>'
    +'<div class="shop-chips">'+chip('All parts',!SH.catSel.length,'shopCatPick(0,\'\')')+(crow[0]?crow[0].list.map(c=>chip(esc(c),String(SH.catSel[0]||'').toLowerCase()===c.toLowerCase(),'shopCatPick(0,this.dataset.c)" data-c="'+shEsc(c))).join(''):'')
    +'<span class="chip-sep"></span>'+chip('&#9733; My specials',SH.flt==='specials','shopSetFlt(\'specials\')')+chip('In stock only',SH.flt==='instock','shopSetFlt(\'instock\')')+(PO.map?chip('Ordered before',SH.flt==='ordered','shopSetFlt(\'ordered\')'):'')+'</div>'
@@ -1997,6 +2018,7 @@ function shopReviewTotals(){
    +'<div class="big"><span>TOTAL</span><span>'+shMoney(T.merch+(sq.amount||0))+'</span></div>';
 }
 const SH_COUNTRIES=[['US','United States'],['CA','Canada'],['MX','Mexico'],['GB','United Kingdom'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['CH','Switzerland'],['AT','Austria'],['AU','Australia'],['NZ','New Zealand'],['JP','Japan'],['KR','South Korea'],['SG','Singapore'],['AE','United Arab Emirates'],['ZA','South Africa'],['BR','Brazil']];
+function shopNoOrderText(){return SH.me&&SH.me.role==='viewer'?'You have <b>view-only</b> access: you can see prices and orders. Ask an admin on your team to give you ordering access.':'Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.';}
 function shopNeedsPo(){return SH.payMode!=='prepay';}
 function shopCode(){const po=String((SH.form&&SH.form.po)||'').trim();return (SH.prefix||'')+(shopNeedsPo()&&po?' '+po:'');}
 // Pays up front: the code is just the dealer's code. Billed (marked paid): the code with the PO after it, and the PO is required.
@@ -2027,7 +2049,7 @@ function shopReviewPage(p){
    +'<div class="rv-pay"><b>Payment</b><br>'+esc(shopPayText())+'</div><div class="rv-tot" id="rv-tot"></div>'
    +'<div class="po-err" id="rv-err">'+esc(SH.formErr)+'</div>'
    +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder||SH.staff?' disabled':'')+'>'+(SH.staff?'STAFF PREVIEW: CANNOT SUBMIT':SH.busy?'SUBMITTING&hellip;':'SUBMIT ORDER')+'</button>'
-   +(!SH.canOrder&&!SH.staff?'<div class="po-sub" style="margin-top:8px">Ordering is not set up for your account yet. Please contact info@tgkmotorsport.com.</div>':'')
+   +(!SH.canOrder&&!SH.staff?'<div class="po-sub" style="margin-top:8px">'+shopNoOrderText()+'</div>':'')
    +'<button type="button" class="co-back" onclick="shopBack()">&larr; Continue shopping</button></div></div></div></div>';
   shopReviewTotals();
 }
@@ -2141,9 +2163,57 @@ function shopCount(){return Object.keys(SH.cart).filter(k=>SH.cart[k]>0).length;
 function shopHdr(){
   const b=document.getElementById('hdr-cart');if(!b)return;b.style.display=SH.available?'inline-flex':'none';
   const n=shopCount(),c=document.getElementById('hdr-cart-n');if(c){c.textContent=n;c.style.display=n?'inline-flex':'none';}
+  if(typeof teamSync==='function')teamSync();
   b.setAttribute('aria-label','Open your order'+(n?', '+n+' item'+(n!==1?'s':''):''));
 }
 shopInitDrawer();
+
+// ── Team: the people an admin has approved to sign in to this dealer's portal ──
+var TM={loaded:false,loading:false,err:'',ok:'',busy:false,primary:null,users:[],max:15,form:{email:'',name:'',role:'buyer'}};
+const TM_ROLES=[['admin','Admin'],['buyer','Buyer'],['viewer','Viewer']];
+function teamVisible(){return PO.state==='ready'&&(PO.staff||(SH.me&&SH.me.role==='admin'));}
+function teamSync(){const t=document.getElementById('tab-team');if(t)t.style.display=(SH.available&&teamVisible())?'':'none';}
+async function teamAuth(){return PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};}
+function teamShown(){if(teamVisible()&&!TM.loaded&&!TM.loading)teamLoad();renderTeam();}
+async function teamLoad(){
+  TM.loading=true;TM.err='';
+  try{const j=await poCall(Object.assign({action:'users_list'},await teamAuth()));TM.primary=j.primary;TM.users=j.users||[];TM.max=j.max||15;TM.loaded=true;}
+  catch(e){TM.err=e.message;if(e.status===401){poForget();PO.state='locked';renderStrip();}}
+  TM.loading=false;renderTeam();
+}
+function teamFail(e){TM.ok='';TM.err=e.message||'Something went wrong. Please try again.';if(e.status===401){poForget();PO.state='locked';renderStrip();}}
+async function teamAdd(){
+  if(TM.busy)return;const F=TM.form,em=String(F.email||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(em)){TM.err='Enter a valid email address.';TM.ok='';renderTeam();return;}
+  TM.busy=true;TM.err='';TM.ok='';renderTeam();
+  try{await poCall(Object.assign({action:'users_add',email:em,name:F.name,role:F.role},await teamAuth()));TM.ok='Added '+em+'. We emailed them an invitation with a link to sign in.';TM.form={email:'',name:'',role:'buyer'};TM.loaded=false;await teamLoad();}
+  catch(e){teamFail(e);}
+  TM.busy=false;renderTeam();
+}
+async function teamRole(email,role){
+  TM.err='';TM.ok='';
+  try{await poCall(Object.assign({action:'users_update',email,role},await teamAuth()));TM.ok='Changed '+email+' to '+role+'.';}catch(e){teamFail(e);}
+  TM.loaded=false;await teamLoad();
+}
+async function teamRemove(email){
+  if(!confirm('Remove '+email+' from your portal? They will be signed out straight away.'))return;
+  TM.err='';TM.ok='';
+  try{await poCall(Object.assign({action:'users_remove',email},await teamAuth()));TM.ok='Removed '+email+'.';}catch(e){teamFail(e);}
+  TM.loaded=false;await teamLoad();
+}
+function renderTeam(){
+  const p=document.getElementById('panel-team');if(!p)return;
+  if(!teamVisible()){p.innerHTML='<div class="po-wrap"><div class="po-unlock"><h2>Team</h2><p>Only an admin on this account can manage the team.</p></div></div>';return;}
+  const ro=!!PO.staff,F=TM.form;
+  const rows=(TM.primary?'<tr><td><b>'+esc(TM.primary.name||'Main contact')+'</b></td><td>'+esc(TM.primary.email)+'</td><td><span class="po-pill delivered">Main contact</span></td><td class="t3">&mdash;</td><td class="t3">&mdash;</td><td></td></tr>':'')
+   +TM.users.map(u=>'<tr><td><b>'+esc(u.name||'')+'</b></td><td>'+esc(u.email)+'</td><td>'+(ro?'<span class="po-pill">'+esc(u.role)+'</span>':'<select class="po-sel tm-role" aria-label="Role for '+shEsc(u.email)+'" data-e="'+shEsc(u.email)+'" onchange="teamRole(this.dataset.e,this.value)">'+TM_ROLES.map(r=>'<option value="'+r[0]+'"'+(u.role===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select>')+'</td><td class="t3">'+(u.created_at?poDate(String(u.created_at).slice(0,10)):'')+'</td><td class="t3">'+(u.last_login_at?poDate(String(u.last_login_at).slice(0,10)):'Not yet')+'</td><td class="r">'+(ro||(SH.me&&SH.me.email===u.email)?'':'<button type="button" class="btn" data-e="'+shEsc(u.email)+'" onclick="teamRemove(this.dataset.e)">Remove</button>')+'</td></tr>').join('');
+  p.innerHTML='<div class="po-wrap"><div class="po-head"><div><h2>Team</h2><div class="po-sub">People who can sign in to this account. Each person signs in with their own email and a code we send to it.</div></div></div>'
+   +(ro?'<div class="po-note"><b>Staff view</b>: you can see this team. Add or remove people in the ERP (Dealers, Storefront, Portal users).</div>':'')
+   +(TM.err?'<div class="po-err" role="alert">'+esc(TM.err)+'</div>':'')+(TM.ok?'<div class="po-ok" role="status">'+esc(TM.ok)+'</div>':'')
+   +'<div class="po-card"><table style="min-width:720px"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added</th><th>Last sign-in</th><th></th></tr></thead><tbody>'+(TM.loading&&!TM.loaded?'<tr><td colspan="6" class="t3" style="padding:18px">Loading&hellip;</td></tr>':rows)+'</tbody></table></div>'
+   +(ro?'':'<div class="po-card tm-add"><div class="co-bar" style="margin:0"><span>Add a person</span><span>'+TM.users.length+' of '+TM.max+'</span></div><div class="tm-form"><div><label for="tm-email">Email</label><input class="tm-in" id="tm-email" type="email" autocomplete="off" value="'+shEsc(F.email)+'" oninput="TM.form.email=this.value" onkeydown="if(event.key===\'Enter\')teamAdd()"></div><div><label for="tm-name">Name (optional)</label><input class="tm-in" id="tm-name" type="text" value="'+shEsc(F.name)+'" oninput="TM.form.name=this.value" onkeydown="if(event.key===\'Enter\')teamAdd()"></div><div><label for="tm-role">Role</label><select class="tm-in" id="tm-role" onchange="TM.form.role=this.value">'+TM_ROLES.map(r=>'<option value="'+r[0]+'"'+(F.role===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></div><button type="button" class="po-btn" id="tm-go" onclick="teamAdd()"'+(TM.busy?' disabled':'')+'>'+(TM.busy?'Adding&hellip;':'Add person')+'</button></div></div>')
+   +'<div class="po-card tm-help"><div><b>Admin</b> can add and remove people, change roles and place orders.</div><div><b>Buyer</b> can see prices and orders and place orders.</div><div><b>Viewer</b> can see prices and orders, but cannot place orders.</div><div class="t3" style="margin-top:6px">Everyone you add can see your prices and your order history. We email the person you add, and the main contact when someone else on the team makes a change.</div></div></div>';
+}
 
 init();
 
