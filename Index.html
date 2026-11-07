@@ -1014,6 +1014,7 @@ td{font-size:13px;padding:7px 10px}
   .chip,.po-chip{height:auto}
   .search,.po-sel,.rv-form input,.rv-form select,.sf-fields .sf-in{min-height:44px;height:44px}
   .sf-fields .sf-go,.sf-fields .sf-reset,.sf-reset{height:44px}
+  .sf-fields .sf-go{flex:1 1 calc(100% - 56px);min-width:0}
   .sf-reset{width:44px}
   .cat-h,.cat-it{padding-top:12px;padding-bottom:12px}
   .pn-link,.fit-web,.rv-t,.rv-web,.po-link{display:inline-block;padding:10px 0}
@@ -1032,10 +1033,19 @@ td{font-size:13px;padding:7px 10px}
   .cd-x{width:44px;height:44px}
   .cd-more{padding:12px 0;min-height:44px}
 }
+button.sf-t{background:none;border:0;padding:0;font-family:inherit;text-align:left;color:inherit}
+@media(min-width:701px){button.sf-t{pointer-events:none;cursor:default}}
 @media(max-width:700px){
   body{font-size:14px}
-  .tabs{gap:0;justify-content:space-between;padding:0 8px}
-  .tab{padding:15px 8px 11px;font-size:12px;letter-spacing:.02em}
+  .shop-finder.sf-compact button.sf-t{display:block;position:relative;width:100%;min-height:44px;padding:11px 34px 11px 0;color:#e8eef0;cursor:pointer}
+  .shop-finder.sf-compact button.sf-t::after{content:'';position:absolute;right:8px;top:50%;width:9px;height:9px;border-right:2px solid #9fb0b8;border-bottom:2px solid #9fb0b8;transform:translateY(-30%) rotate(-135deg);transition:transform .15s}
+  .shop-finder.sf-compact.sf-m-collapsed button.sf-t::after{transform:translateY(-70%) rotate(45deg)}
+  .sf-m-collapsed .sf-fields{display:none}
+  .shop-finder.sf-compact.sf-m-collapsed{padding:2px 12px}
+  .shop-chips{flex-wrap:wrap;overflow:visible}
+  .tabs{position:relative;top:auto;margin-top:3px;gap:0;justify-content:space-between;padding:0 4px;overflow-x:auto;scrollbar-width:none}   /* (the compact layer's top offset must not apply here: it pushed the bar down over the page) */
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;padding:15px 7px 11px;font-size:11px;letter-spacing:.03em}
   .shop-finder.sf-compact{padding:8px 10px 10px}
   .shop-finder.sf-compact .sf-t{font-size:15px}
   /* My Orders: each order is a card */
@@ -2117,6 +2127,9 @@ function mobLabel(){
 }
 var _mobT=0;new MutationObserver(function(){clearTimeout(_mobT);_mobT=setTimeout(mobLabel,20);}).observe(document.body,{childList:true,subtree:true});
 
+// On a phone the tab strip can scroll sideways: keep the chosen tab in view.
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('.tabs .tab');if(t&&t.scrollIntoView)try{t.scrollIntoView({inline:'center',block:'nearest'});}catch(_e){}});
+
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
@@ -2636,6 +2649,13 @@ function shopVehSpec(){   // the chassis and engine codes, as small chips: the o
 }
 function shopFitTag(a){return shopVehActive()?'<span class="tagfit">&#10003; FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
 function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
+// On a phone the finder is folded to its title line (five dropdowns would fill the screen); tapping the title opens or closes it.
+function shopFinderFolded(px){return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches)&&!(SH.fo&&SH.fo[px]);}
+function shopFinderToggle(px){
+  SH.fo=SH.fo||{};SH.fo[px]=!SH.fo[px];
+  const t=document.getElementById(px+'-title'),w=t&&t.closest('.shop-finder');
+  if(w)w.classList.toggle('sf-m-collapsed',!SH.fo[px]);if(t)t.setAttribute('aria-expanded',SH.fo[px]?'true':'false');
+}
 function shopFinderTitle(){   // "Find parts for your vehicle." and, once a make is chosen, "Find parts for your Audi."
   const mk=SH.veh&&SH.veh.make;return 'Find <b class="hl">parts</b> for your '+(mk?'<b class="hl">'+esc(mk)+'</b>':'<b>vehicle</b>')+'.';
 }
@@ -2658,7 +2678,7 @@ function shopFinderHtml(){
     return '<div class="vband"><div class="vb-ic">'+SH_CAR+'</div><div style="min-width:0">'+(SH.veh.make?'<div class="vb-make">'+esc(SH.veh.make)+'</div>':'')+'<div class="vb-row"><span class="vb-title">'+esc(shopVehLabel())+'</span>'+(spec.length?'<span class="vb-spec">'+spec.map(x=>'<span>'+esc(x)+'</span>').join('')+'</span>':'')+'</div></div>'
      +'<div class="vb-side"><div class="vb-count"><b>'+shopVehCount()+'</b>PARTS FIT</div><a class="vb-fit" onclick="shopOpenFit()">Fitment Guide</a><button type="button" class="vb-change" onclick="shopVehEdit()">CHANGE VEHICLE</button><button type="button" class="vb-clear" onclick="shopVehClear()">CLEAR</button></div></div>';
   }
-  return '<div class="shop-finder sf-compact"><div class="sf-line"><span class="sf-t" id="sf-title">'+shopFinderTitle()+'</span><div id="sf-fields" class="sf-fields">'+shopFinderFields()+'</div></div><div id="sf-chip"></div></div>';
+  return '<div class="shop-finder sf-compact'+(shopFinderFolded('sf')?' sf-m-collapsed':'')+'"><div class="sf-line"><button type="button" class="sf-t" id="sf-title" aria-expanded="'+(shopFinderFolded('sf')?'false':'true')+'" onclick="shopFinderToggle(\'sf\')">'+shopFinderTitle()+'</button><div id="sf-fields" class="sf-fields">'+shopFinderFields()+'</div></div><div id="sf-chip"></div></div>';
 }
 function shopVehChip(){
   const el=document.getElementById('sf-chip');if(!el)return;
@@ -2680,7 +2700,7 @@ function shopVehClear(){SH.veh={year:'',make:'',model:'',engine:'',chassis:''};S
 // The Fitment Guide's bar: the same finder, always open (it filters the guide as you choose), sharing the vehicle with the shop.
 function ffRender(){
   const w=document.getElementById('ff-wrap');if(!w)return;
-  w.innerHTML='<div class="shop-finder sf-compact ff"><div class="sf-line"><span class="sf-t" id="ff-title">'+shopFinderTitle()+'</span><div id="ff-fields" class="sf-fields">'+shopFinderFields('ff')+'</div></div></div>';
+  w.innerHTML='<div class="shop-finder sf-compact ff'+(shopFinderFolded('ff')?' sf-m-collapsed':'')+'"><div class="sf-line"><button type="button" class="sf-t" id="ff-title" aria-expanded="'+(shopFinderFolded('ff')?'false':'true')+'" onclick="shopFinderToggle(\'ff\')">'+shopFinderTitle()+'</button><div id="ff-fields" class="sf-fields">'+shopFinderFields('ff')+'</div></div></div>';
 }
 function shopOpenFit(){showTab('fit');}   // the Fitment Guide opens already set to the same vehicle (one shared vehicle)
 // ---- the Fitment Guide cards: photo, link to the website, and the same order controls as the shop
