@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TGK Motorsport – Dealer Price List</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -999,6 +999,133 @@ td{font-size:13px;padding:7px 10px}
 #panel-fit>.toolbar .btn{background:#fff;color:var(--text2);border-color:#c9ccd1}
 #panel-fit>.toolbar .btn:hover{border-color:#111}
 @media(max-width:700px){#ff-wrap{margin:10px 12px 0}#panel-fit>.toolbar{margin:8px 12px 10px}}
+/* Price List categories: the shop's tabs and panel */
+#cat-filter-bar{padding:12px 28px 0}
+#cat-filter-bar .cat-wrap{margin:0}
+#cat-filter-bar .cat-panel{z-index:60}
+@media(max-width:700px){#cat-filter-bar{padding:10px 12px 0}}
+/* ── Phones: stacked cards instead of wide tables, thumb-sized controls, no zoom-on-focus ── */
+.hdr{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+.shop-bar{padding-bottom:max(11px,env(safe-area-inset-bottom))}
+@media(pointer:coarse),(max-width:700px){
+  input,select,textarea{font-size:16px!important}          /* under 16px, iPhones zoom the page in when a field is tapped */
+  .hdr-cart,.btn-print{height:42px;min-width:42px}
+  .btn,.chip,.po-chip,.cat-tab,.cat-clear,.rq-pay,.vb-change{min-height:42px}
+  .chip,.po-chip{height:auto}
+  .search,.po-sel,.rv-form input,.rv-form select,.sf-fields .sf-in{min-height:44px;height:44px}
+  .sf-fields .sf-go,.sf-fields .sf-reset,.sf-reset{height:44px}
+  .sf-fields .sf-go{flex:1 1 calc(100% - 56px);min-width:0}
+  .sf-reset{width:44px}
+  .cat-h,.cat-it{padding-top:12px;padding-bottom:12px}
+  .pn-link,.fit-web,.rv-t,.rv-web,.po-link{display:inline-block;padding:10px 0}
+  .padd{height:42px}
+  .po-link,.rv-web{display:inline-block;padding:11px 0}
+  .po-sel,select{min-height:44px}
+  .qty{height:44px;width:124px;min-width:124px}.qty button{flex:none}.qty button{height:40px;width:42px;font-size:20px}.qty input{width:38px;height:38px}
+  .pcard .pact{flex-direction:column;gap:8px}
+  .pcard .qty{width:100%;flex:none}.pcard .padd{width:100%;height:44px;min-height:44px;flex:none}
+  .rv-line .qty button,.cd-line .qty button,.fitctl .qty button{width:42px;height:40px}
+  .pcard a,.fit-card a,.rv-line a{display:inline-block;padding:9px 0}
+  .plink{display:block;padding:11px 0}
+  #shop-toast button{min-width:40px;min-height:40px}
+  .co-back{padding:12px 0;min-height:44px}
+  .filt-btn{min-height:42px}
+  .cd-x{width:44px;height:44px}
+  .cd-more{padding:12px 0;min-height:44px}
+}
+button.sf-t{background:none;border:0;padding:0;font-family:inherit;text-align:left;color:inherit}
+.build-stamp{margin-top:8px;font-size:11px;letter-spacing:.04em;color:var(--text3);opacity:.85}
+@media(min-width:701px){button.sf-t{pointer-events:none;cursor:default}}
+@media(max-width:700px){
+  body{font-size:14px}
+  .shop-finder.sf-compact button.sf-t{display:block;position:relative;width:100%;min-height:44px;padding:11px 34px 11px 0;color:#e8eef0;cursor:pointer}
+  .shop-finder.sf-compact button.sf-t::after{content:'';position:absolute;right:8px;top:50%;width:9px;height:9px;border-right:2px solid #9fb0b8;border-bottom:2px solid #9fb0b8;transform:translateY(-30%) rotate(-135deg);transition:transform .15s}
+  .shop-finder.sf-compact.sf-m-collapsed button.sf-t::after{transform:translateY(-70%) rotate(45deg)}
+  .sf-m-collapsed .sf-fields{display:none}
+  .shop-finder.sf-compact.sf-m-collapsed{padding:2px 12px}
+  .shop-chips{flex-wrap:wrap;overflow:visible}
+  .tabs{position:relative;top:auto;margin-top:3px;gap:0;justify-content:space-between;padding:0 4px;overflow-x:auto;scrollbar-width:none}   /* (the compact layer's top offset must not apply here: it pushed the bar down over the page) */
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;padding:15px 7px 11px;font-size:11px;letter-spacing:.03em}
+  .shop-finder.sf-compact{padding:8px 10px 10px}
+  .shop-finder.sf-compact .sf-t{font-size:15px}
+  /* My Orders: each order is a card */
+  #po-card{border:0;background:transparent;overflow:visible;box-shadow:none}
+  #po-card table{display:block;min-width:0!important;width:100%}
+  #po-card thead{display:none}
+  #po-card tbody{display:block}
+  #po-card tr.po-row{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:0 0 10px;padding:12px 14px 10px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal)}
+  #po-card tr.po-row.open{margin-bottom:0;border-bottom:0}
+  #po-card tr.po-row>td{display:block;padding:0;border:0;min-width:0}
+  #po-card tr.po-row>td[data-l="PO #"]{grid-column:1;grid-row:1}
+  #po-card tr.po-row>td[data-l="Status"]{grid-column:2;grid-row:1;text-align:right}
+  #po-card tr.po-row>td[data-l]:not([data-l="PO #"]):not([data-l="Status"]){grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;text-align:right}
+  #po-card tr.po-row>td[data-l]:not([data-l="PO #"]):not([data-l="Status"])::before{content:attr(data-l);flex:none;color:var(--text3);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+  #po-card tr.po-row>td:last-child,#po-card tr.po-row>td[data-l=""]{display:none!important}
+  #po-card tr.po-row>td[data-l="Payment"] .po-ord{display:block}
+  #po-card tr.po-row::after{content:'Details \25B8';grid-column:1/-1;text-align:center;color:#0b7f77;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding-top:8px;margin-top:3px;border-top:1px solid var(--line)}
+  #po-card tr.po-row.open::after{content:'Hide details \25BE'}
+  #po-card tr.po-detail{display:block;margin:0 0 10px;border:1px solid var(--line);border-top:0;background:#f7f9f9}
+  #po-card tr.po-detail>td{display:block;padding:0!important}
+  .po-inner{padding:10px 14px}
+  .po-meta{display:flex;flex-direction:column;gap:5px}
+  .po-inner table,.po-inner tbody{display:block;min-width:0!important;width:100%}
+  .po-inner thead{display:none}
+  .po-inner tbody tr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 8px;padding:10px 0;border-top:1px solid var(--line)}
+  .po-inner tbody tr>td{display:block;padding:0!important;border:0!important;text-align:left!important;min-width:0}
+  .po-inner td[data-l="SKU"]{grid-column:1/3}
+  .po-inner td[data-l="Status"]{grid-column:3;text-align:right!important}
+  .po-inner td[data-l="Description"]{grid-column:1/-1}
+  .po-inner td[data-l="Ordered"]::before,.po-inner td[data-l="Shipped"]::before,.po-inner td[data-l="Backordered"]::before{content:attr(data-l);display:block;color:var(--text3);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+  .po-inner td[data-l="Unit price"]{grid-column:1/3}
+  .po-inner td[data-l="Unit price"]::before{content:'Each ';color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase}
+  .po-inner td[data-l="Line total"]{grid-column:3;text-align:right!important}
+  .po-inner tr.po-tot{display:flex;justify-content:space-between;padding:4px 0;border-top:0}
+  .po-inner tr.po-tot>td{display:block;padding:0!important}
+  .po-inner tr.po-tot>td:empty{display:none}
+  /* Team: each member is a card */
+  .po-card:not(#po-card) table{display:block;min-width:0!important;width:100%}
+  .po-card:not(#po-card) thead{display:none}
+  .po-card:not(#po-card) tbody{display:block}
+  .po-card:not(#po-card) tbody tr{display:flex;flex-wrap:wrap;gap:5px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .po-card:not(#po-card) tbody tr>td{display:flex;flex:1 1 100%;justify-content:space-between;align-items:baseline;gap:12px;padding:0!important;border:0!important;font-size:13px;text-align:right;min-width:0;overflow-wrap:anywhere}
+  .po-card:not(#po-card) tbody tr>td[data-l]::before{content:attr(data-l);flex:none;color:var(--text3);font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+  .po-card:not(#po-card) tbody tr>td:first-child{font-size:15px;font-weight:700;text-align:left}
+  .po-card:not(#po-card) tbody tr>td:first-child::before{display:none}
+  .po-card:not(#po-card) tbody tr>td:empty{display:none}
+  .req-row{flex-wrap:wrap;gap:8px}
+  /* Price List controls: search, then Clear / CSV / Excel on one row, then the stock filter on one row */
+  .acct-bar{padding:8px 12px;gap:4px 12px}
+  .acct-bar a{margin-left:auto}
+  #panel-price .toolbar{display:grid!important;grid-template-columns:auto 1fr 1fr;gap:8px;padding:10px 12px;align-items:stretch}
+  #panel-price .toolbar .search-wrap{grid-column:1/-1;width:100%;min-width:0}
+  #panel-price .toolbar .btn{padding:0 10px;font-size:11px;letter-spacing:.04em;white-space:nowrap;justify-content:center;gap:6px}
+  #panel-price .toolbar .filt-grp{grid-column:1/-1;display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px;margin:0}
+  #panel-price .toolbar .filt-btn{padding:0 6px;font-size:12px;white-space:nowrap}
+  #panel-fit>.toolbar{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center}
+  #panel-fit>.toolbar .search-wrap{grid-column:1/-1;width:100%;min-width:0}
+  #panel-fit>.toolbar .btn{padding:0 8px;font-size:11px;letter-spacing:.04em;white-space:nowrap;justify-content:center}
+  /* Price List: each product is a card, keeping the price, stock and shipping */
+  #panel-price .tbl-wrap{margin:8px 12px 20px;overflow:visible;border:0;box-shadow:none;background:transparent}
+  #panel-price table:not(.pl-prospect){display:block;width:100%!important;min-width:0!important}
+  #panel-price table:not(.pl-prospect) thead{display:none}
+  #panel-price table:not(.pl-prospect) tbody{display:block}
+  #panel-price table:not(.pl-prospect) tr.cat-row{display:block;margin:14px 0 6px}
+  #panel-price table:not(.pl-prospect) tr.cat-row td{display:block;padding:8px 12px;font-size:12px}
+  #panel-price table:not(.pl-prospect) tbody tr[data-pn]{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;margin:0 0 8px;padding:11px 14px;background:#fff;border:1px solid var(--line)}
+  #panel-price table:not(.pl-prospect) tbody tr[data-pn]>td{display:block;padding:0!important;border:0!important;width:auto!important;min-width:0}
+  #panel-price table:not(.pl-prospect) td:nth-child(1){order:1;flex:1 1 40%;font-weight:700}
+  #panel-price table:not(.pl-prospect) td:nth-child(4){order:2;margin-left:auto;text-align:right;font-size:17px;font-weight:800}
+  #panel-price table:not(.pl-prospect) td:nth-child(2){order:3;flex:0 0 100%}
+  #panel-price table:not(.pl-prospect) td:nth-child(9){order:4;display:block!important}
+  #panel-price table:not(.pl-prospect) td:nth-child(3){order:5;display:block!important;font-size:12.5px}
+  #panel-price table:not(.pl-prospect) td:nth-child(6){order:6;display:block!important;font-size:12.5px}
+  #panel-price table:not(.pl-prospect) td:nth-child(6)::before{content:'Ships ';color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase}
+  #panel-price table:not(.pl-prospect) td:nth-child(10){order:7;display:block!important;font-size:12px}
+  #panel-price table:not(.pl-prospect) td:nth-child(11){order:8;flex:0 0 100%;display:block!important;max-width:none!important}
+  #panel-price table:not(.pl-prospect) td:nth-child(5),#panel-price table:not(.pl-prospect) td:nth-child(7),#panel-price table:not(.pl-prospect) td:nth-child(8){display:none!important}
+  #panel-price table:not(.pl-prospect) td:empty{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -1100,6 +1227,7 @@ td{font-size:13px;padding:7px 10px}
   <div class="footer">
     <div class="footer-note">Prices are exclusive of applicable taxes and shipping. This document is confidential and intended solely for the named dealer. Pricing subject to change without notice.</div>
     <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; support@tgkmotorsport.com</div>
+    <div class="build-stamp" id="build-stamp">Page build 7 Nov 2026 · build 16</div>
   </div>
 </div>
 
@@ -1999,6 +2127,22 @@ function poStaffSignOut(){
   renderStrip();renderTabBadge();renderPrice();renderOrders();
 }
 
+// Phones show each table row as a card, labelled from the column headings (the CSS turns the labels into captions).
+function mobLabel(){
+  [].forEach.call(document.querySelectorAll('#po-card table,.po-card table,.po-inner table'),function(t){
+    var hs=[].map.call(t.querySelectorAll(':scope>thead th'),function(h){return h.textContent.trim();});
+    if(!hs.length)return;
+    [].forEach.call(t.querySelectorAll(':scope>tbody>tr'),function(r){
+      if(r.classList.contains('po-detail')||r.classList.contains('po-tot'))return;
+      [].forEach.call(r.children,function(c,i){if(!c.hasAttribute('data-l'))c.setAttribute('data-l',hs[i]||'');});
+    });
+  });
+}
+var _mobT=0;new MutationObserver(function(){clearTimeout(_mobT);_mobT=setTimeout(mobLabel,20);}).observe(document.body,{childList:true,subtree:true});
+
+// On a phone the tab strip can scroll sideways: keep the chosen tab in view.
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('.tabs .tab');if(t&&t.scrollIntoView)try{t.scrollIntoView({inline:'center',block:'nearest'});}catch(_e){}});
+
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
@@ -2518,6 +2662,13 @@ function shopVehSpec(){   // the chassis and engine codes, as small chips: the o
 }
 function shopFitTag(a){return shopVehActive()?'<span class="tagfit">&#10003; FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
 function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
+// On a phone the finder is folded to its title line (five dropdowns would fill the screen); tapping the title opens or closes it.
+function shopFinderFolded(px){return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches)&&!(SH.fo&&SH.fo[px]);}
+function shopFinderToggle(px){
+  SH.fo=SH.fo||{};SH.fo[px]=!SH.fo[px];
+  const t=document.getElementById(px+'-title'),w=t&&t.closest('.shop-finder');
+  if(w)w.classList.toggle('sf-m-collapsed',!SH.fo[px]);if(t)t.setAttribute('aria-expanded',SH.fo[px]?'true':'false');
+}
 function shopFinderTitle(){   // "Find parts for your vehicle." and, once a make is chosen, "Find parts for your Audi."
   const mk=SH.veh&&SH.veh.make;return 'Find <b class="hl">parts</b> for your '+(mk?'<b class="hl">'+esc(mk)+'</b>':'<b>vehicle</b>')+'.';
 }
@@ -2540,7 +2691,7 @@ function shopFinderHtml(){
     return '<div class="vband"><div class="vb-ic">'+SH_CAR+'</div><div style="min-width:0">'+(SH.veh.make?'<div class="vb-make">'+esc(SH.veh.make)+'</div>':'')+'<div class="vb-row"><span class="vb-title">'+esc(shopVehLabel())+'</span>'+(spec.length?'<span class="vb-spec">'+spec.map(x=>'<span>'+esc(x)+'</span>').join('')+'</span>':'')+'</div></div>'
      +'<div class="vb-side"><div class="vb-count"><b>'+shopVehCount()+'</b>PARTS FIT</div><a class="vb-fit" onclick="shopOpenFit()">Fitment Guide</a><button type="button" class="vb-change" onclick="shopVehEdit()">CHANGE VEHICLE</button><button type="button" class="vb-clear" onclick="shopVehClear()">CLEAR</button></div></div>';
   }
-  return '<div class="shop-finder sf-compact"><div class="sf-line"><span class="sf-t" id="sf-title">'+shopFinderTitle()+'</span><div id="sf-fields" class="sf-fields">'+shopFinderFields()+'</div></div><div id="sf-chip"></div></div>';
+  return '<div class="shop-finder sf-compact'+(shopFinderFolded('sf')?' sf-m-collapsed':'')+'"><div class="sf-line"><button type="button" class="sf-t" id="sf-title" aria-expanded="'+(shopFinderFolded('sf')?'false':'true')+'" onclick="shopFinderToggle(\'sf\')">'+shopFinderTitle()+'</button><div id="sf-fields" class="sf-fields">'+shopFinderFields()+'</div></div><div id="sf-chip"></div></div>';
 }
 function shopVehChip(){
   const el=document.getElementById('sf-chip');if(!el)return;
@@ -2562,7 +2713,7 @@ function shopVehClear(){SH.veh={year:'',make:'',model:'',engine:'',chassis:''};S
 // The Fitment Guide's bar: the same finder, always open (it filters the guide as you choose), sharing the vehicle with the shop.
 function ffRender(){
   const w=document.getElementById('ff-wrap');if(!w)return;
-  w.innerHTML='<div class="shop-finder sf-compact ff"><div class="sf-line"><span class="sf-t" id="ff-title">'+shopFinderTitle()+'</span><div id="ff-fields" class="sf-fields">'+shopFinderFields('ff')+'</div></div></div>';
+  w.innerHTML='<div class="shop-finder sf-compact ff'+(shopFinderFolded('ff')?' sf-m-collapsed':'')+'"><div class="sf-line"><button type="button" class="sf-t" id="ff-title" aria-expanded="'+(shopFinderFolded('ff')?'false':'true')+'" onclick="shopFinderToggle(\'ff\')">'+shopFinderTitle()+'</button><div id="ff-fields" class="sf-fields">'+shopFinderFields('ff')+'</div></div></div>';
 }
 function shopOpenFit(){showTab('fit');}   // the Fitment Guide opens already set to the same vehicle (one shared vehicle)
 // ---- the Fitment Guide cards: photo, link to the website, and the same order controls as the shop
@@ -2586,6 +2737,55 @@ function shopHdr(){
   b.setAttribute('aria-label','Open your order'+(n?', '+n+' item'+(n!==1?'s':''):''));
 }
 shopInitDrawer();
+
+// ---------------------------------------------------------------- Price List categories: the shop's tabs and dropdown panel
+// The Price List keeps its own category choice (a path: main category, department, sub-category); the Shop keeps its own. These replace the
+// old row of chips, and are declared after them, so they are the ones the page uses.
+var PL={sel:[],open:''};
+function _catKeyP(){return _catKey()+'_p';}
+function availableCats(){var m={};G.asms.filter(isVisible).forEach(function(a){var c=fgSectionLabel(a);m[c]=(m[c]||0)+1;});return Object.keys(m).sort().map(function(k){return{name:k,count:m[k]};});}
+function catAllows(a){return !PL.sel.length||shopCatPaths(a).some(function(p){return shopPathStarts(p,PL.sel);});}
+function plCatBarHtml(){
+  const items=G.asms.filter(isVisible),mm={};
+  items.forEach(a=>shopCatPaths(a).forEach(p=>{if(p[0])mm[String(p[0]).toLowerCase()]=p[0];}));
+  const mains=Object.keys(mm).map(k=>mm[k]).sort((x,y)=>x.localeCompare(y)),sel0=String(PL.sel[0]||'').toLowerCase();
+  const caret=on=>'<svg class="cat-caret'+(on?' up':'')+'" width="10" height="7" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  let h='<div class="cat-wrap"><div class="cat-tabs" role="group" aria-label="Browse by category"><button type="button" class="cat-tab'+(!PL.sel.length?' on':'')+'" onclick="plCatTab(\'\')">All</button>'
+   +mains.map(c=>{const on=sel0===c.toLowerCase(),open=PL.open===c;return '<button type="button" class="cat-tab'+(on?' on':'')+'" aria-haspopup="true" aria-expanded="'+(open?'true':'false')+'" data-c="'+shEsc(c)+'" onclick="plCatTab(this.dataset.c)">'+esc(c)+caret(open)+'</button>';}).join('')+'</div>';
+  if(PL.open){
+    const main=PL.open,tree=shopCatTree(items,main),n=items.filter(a=>shopCatPaths(a).some(p=>String(p[0]).toLowerCase()===main.toLowerCase())).length;
+    const here=(l1,l2)=>sel0===main.toLowerCase()&&String(PL.sel[1]||'').toLowerCase()===String(l1||'').toLowerCase()&&String(PL.sel[2]||'').toLowerCase()===String(l2||'').toLowerCase();
+    h+='<div class="cat-panel" role="group" aria-label="'+shEsc(main)+' categories"><div class="cat-col"><div class="cat-h static">All '+esc(main)+'</div><button type="button" class="cat-it'+(PL.sel.length===1?' on':'')+'" data-a="'+shEsc(main)+'" onclick="plCatSet(this)">Show all '+n+' part'+(n===1?'':'s')+'</button></div>'
+     +tree.map(c=>'<div class="cat-col"><button type="button" class="cat-h'+(here(c.name,'')?' on':'')+'" data-a="'+shEsc(main)+'" data-b="'+shEsc(c.name)+'" onclick="plCatSet(this)">'+esc(c.name)+'</button>'+c.kids.map(k=>'<button type="button" class="cat-it'+(here(c.name,k)?' on':'')+'" data-a="'+shEsc(main)+'" data-b="'+shEsc(c.name)+'" data-c="'+shEsc(k)+'" onclick="plCatSet(this)">'+esc(k)+'</button>').join('')+'</div>').join('')+'</div>';
+  }
+  h+='</div>';
+  if(PL.sel.length)h+='<div class="cat-crumb" role="status"><b class="k">Showing</b>'+PL.sel.map((x,i)=>i===PL.sel.length-1?'<b>'+esc(x)+'</b>':esc(x)+' <span class="sep">/</span>').join(' ')+'<button type="button" class="cat-clear" onclick="plCatClear()">Clear &times;</button></div>';
+  return h;
+}
+function renderCatBar(){
+  var bar=document.getElementById('cat-filter-bar');if(!bar)return;
+  if(availableCats().length<2){bar.style.display='none';return;}   // one category: nothing to choose between
+  bar.innerHTML=plCatBarHtml();bar.style.display='block';
+}
+function plCatApply(){try{PL.sel.length?localStorage.setItem(_catKeyP(),JSON.stringify(PL.sel)):localStorage.removeItem(_catKeyP());}catch(e){}renderCatBar();filterPrice();}
+function plCatTab(main){
+  if(!main){PL.sel=[];PL.open='';}
+  else if(String(PL.sel[0]||'').toLowerCase()===main.toLowerCase()){PL.open=(PL.open===main?'':main);renderCatBar();return;}   // already narrowed to it: just open or close its panel
+  else{PL.sel=[main];PL.open=main;}
+  plCatApply();
+}
+function plCatSet(el){PL.sel=[el.dataset.a,el.dataset.b,el.dataset.c].filter(Boolean);PL.open='';plCatApply();}
+function plCatClear(){PL.sel=[];PL.open='';plCatApply();}
+function setCatFilter(v){if(!v||!v.length)PL.sel=[];plCatApply();}
+function toggleCat(){}
+function restoreCatFilter(){   // a remembered choice that no longer exists (or is no longer allowed) is dropped, so it can never leave an empty price list
+  try{var raw=localStorage.getItem(_catKeyP()),s=raw?JSON.parse(raw):[];
+    if(!Array.isArray(s)||!s.length){PL.sel=[];return;}
+    PL.sel=G.asms.filter(isVisible).some(function(a){return shopCatPaths(a).some(function(p){return shopPathStarts(p,s);});})?s:[];
+  }catch(e){PL.sel=[];}
+}
+document.addEventListener('click',function(e){if(PL.open&&!(e.target.closest&&e.target.closest('.cat-wrap'))){PL.open='';renderCatBar();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&PL.open){PL.open='';renderCatBar();}});
 
 // ── Team: the people an admin has approved to sign in to this dealer's portal ──
 var TM={loaded:false,loading:false,err:'',ok:'',busy:false,primary:null,users:[],max:15,form:{email:'',name:'',role:'buyer'}};
