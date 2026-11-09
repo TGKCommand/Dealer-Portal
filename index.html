@@ -923,6 +923,31 @@ a.rv-t:hover{text-decoration:underline}
 #shop-toast .st-x{flex:none;border:0;background:none;color:#b8c6cc;font-size:22px;line-height:1;cursor:pointer;padding:2px 4px}
 @media(prefers-reduced-motion:reduce){#shop-toast,#shop-toast.on{transition:none}}
 @media print{#shop-toast{display:none!important}}
+
+/* offers: the banner under the tabs and the stocking order box at checkout */
+.offer-bar{display:none;flex-wrap:wrap;gap:6px 22px;align-items:center;margin:0;padding:9px 28px;background:#fff4e5;border-bottom:1px solid #f1d3a4;border-left:4px solid var(--orange);color:#4a3112;font-size:13px}
+.offer-bar .ob-item b{color:#b45309;letter-spacing:.03em;text-transform:uppercase}
+.chk.stk{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;background:#fff8ec;border:1px solid #f3d9a8;border-left:3px solid var(--orange);padding:10px 12px;margin:12px 0 6px}
+.chk.stk .stk-sub{color:var(--text3);font-size:12.5px;flex-basis:100%;padding-left:24px}
+.stk-warn{background:#fff4e5;border-left:3px solid var(--amber);padding:8px 12px;margin:0 0 8px;font-size:13px;color:#6b3f06}
+.stk-ok{background:#ecfdf3;border-left:3px solid var(--green);padding:8px 12px;margin:0 0 8px;font-size:13px;color:#0f5132}
+@media(max-width:700px){.offer-bar{padding:9px 12px}}
+
+/* Quick order, Order again and saved addresses */
+.qo-btn{margin-left:auto;white-space:nowrap}
+.qo-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.qo-box{background:#fff;width:min(720px,100%);max-height:92vh;display:flex;flex-direction:column;border-top:4px solid var(--orange);box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.qo-head{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);font-size:16px}
+.qo-body{padding:14px 18px;overflow:auto}.qo-help{margin:0 0 10px;color:var(--text2);font-size:13.5px}.qo-help code{background:#f1f3f5;padding:1px 5px}
+#qo-text{width:100%;box-sizing:border-box;font-family:ui-monospace,monospace;font-size:13.5px;padding:10px;border:1px solid var(--line)}
+.qo-file{margin:8px 0}.qo-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}.qo-tbl th,.qo-tbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}.qo-tbl .r{text-align:right}.qo-tbl .mono{font-family:ui-monospace,monospace;font-weight:600}.qo-tbl tr.bad td{color:#a1260d;background:#fdf3f2}
+.qo-sum{margin-top:8px;font-weight:600}.qo-bad{color:#a1260d}.qo-foot{display:flex;justify-content:flex-end;gap:10px;padding:12px 18px;border-top:1px solid var(--line)}.btn-go{background:var(--orange);color:#14171a;border-color:var(--orange);font-weight:700}.btn-go[disabled]{opacity:.45;cursor:not-allowed}
+.addr-book{margin:12px 0 6px;padding:10px 12px;background:#f7f9fa;border:1px solid var(--line)}.addr-book select{width:100%}.addr-save{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.addr-save input{flex:1;min-width:180px}.addr-msg{min-height:16px;margin-top:6px;font-size:12.5px;color:#0b7f77}.addr-msg.bad{color:#a1260d}
+.po-again{margin-left:6px}
+@media(max-width:700px){.qo-btn{margin-left:0;width:100%;min-height:44px}.qo-ov{padding:0;align-items:flex-end}.qo-box{max-height:96vh;width:100%}.addr-save .btn{min-height:44px}}
+
+/* back-in-stock dates */
+.bo-date{font-size:11px;color:#8a5a00;font-weight:600;margin-top:2px}
 /* ── Compact density: smaller type and shorter boxes everywhere ── */
 body{font-size:13.5px;line-height:1.4}
 .hdr{height:46px;padding:0 20px;gap:12px}
@@ -1147,6 +1172,7 @@ body.sample .filt-grp,body.sample .summary .sum-item:nth-child(n+2){display:none
 <a class="hdr-site" href="https://tgkmotorsport.com" target="_blank" rel="noopener">tgkmotorsport.com &#8599;</a>
 <button type="button" class="hdr-cart" id="hdr-cart" style="display:none" onclick="shopOpenCart()" aria-label="Open your order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg><span class="hdr-cart-t">Order</span><span class="hdr-cart-n" id="hdr-cart-n" style="display:none">0</span></button>
 <button class="btn-print" onclick="window.print()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Print / PDF</span></button>
+    <button class="btn-print hdr-out" id="hdr-out" type="button" style="display:none" onclick="poSignOut()" title="Sign out" aria-label="Sign out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sign out</span></button>
 </div>
 </div>
 <div class="tabs">
@@ -1231,7 +1257,7 @@ body.sample .filt-grp,body.sample .summary .sum-item:nth-child(n+2){display:none
   <div class="footer">
     <div class="footer-note">Prices are exclusive of applicable taxes and shipping. This document is confidential and intended solely for the named dealer. Pricing subject to change without notice.</div>
     <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; support@tgkmotorsport.com</div>
-    <div class="build-stamp" id="build-stamp">Page build 7 Nov 2026 · build 18</div>
+    <div class="build-stamp" id="build-stamp">Page build 7 Nov 2026 · build 22</div>
   </div>
 </div>
 
@@ -1602,7 +1628,7 @@ function renderPrice(){
     const vis=visMap[i];
     const _cat=fgSectionLabel(a);
     if(_cat!==lastCat&&catHasVisible[_cat]){lastCat=_cat;html+='<tr class="cat-row"><td colspan="11">'+esc(_cat)+'</td></tr>';}
-    const msrp=a.msrp||0,_sp=(typeof shopSpecial==='function')?shopSpecial(a,1):null,np=_sp?_sp.price:netP(msrp,d,a.sales_price),sv=msrp-np;
+    const msrp=a.msrp||0,_sp=(typeof shopSpecial==='function')?shopSpecial(a,1):null,np0=_sp?_sp.price:netP(msrp,d,a.sales_price),np=(typeof shopPromoUnit==='function')?shopPromoUnit(a,np0):np0,sv=msrp-np;
     const usS=shipTxt(a.ship_us,'FREE');
     const caS=shipTxt(a.ship_ca,'$25.00');
     const intS=shipTxt(a.ship_intl,'--');
@@ -1620,7 +1646,7 @@ function renderPrice(){
       +'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'
       +'<td class="money money-ship">'+esc(caS)+'</td>'
       +'<td class="money money-ship">'+esc(intS)+'</td>'
-      +'<td><span class="stock-badge '+cls+'">'+txt+'</span></td>'
+      +'<td><span class="stock-badge '+cls+'">'+txt+'</span>'+(typeof shopBoDate==='function'?shopBoDate(a,st):'')+'</td>'
       +'<td class="ord-col">'+ordCell(ordInfo(a))+'</td>'
       +'<td style="font-size:11px;color:var(--text3);max-width:130px;line-height:1.4;font-weight:700">'+esc(a.pl_notes||'')+'</td>'
       +'</tr>';
@@ -1917,7 +1943,7 @@ function renderOrders(){
   }
   const rangeOpt=[['90','Last 90 days'],['365','Last 12 months'],['ytd','This year'],['0','All time'],['custom','Custom range&hellip;']].map(r=>'<option value="'+r[0]+'"'+((PO.range||'365')===r[0]?' selected':'')+'>'+r[1]+'</option>').join('');
   p.innerHTML='<div class="po-wrap">'
-   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub"><span id="po-upd"></span><span id="live-chip" class="live-chip off" role="status">Auto-refresh</span></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px"><button class="btn" onclick="portalLoad(false,true)">Refresh</button>'+(acctActive()?'<button class="btn" onclick="acctPwOpen()">Password</button>':'')+'<button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff||acctActive()?'Sign out':'Lock')+'</button></div></div>'
+   +'<div class="po-head"><div><h2>My Orders</h2><div class="po-sub"><span id="po-upd"></span><span id="live-chip" class="live-chip off" role="status">Auto-refresh</span></div>'+(SH.me?'<div class="po-sub" id="po-me">Signed in as <b style="color:#fff">'+esc(SH.me.name||SH.me.email)+'</b> &middot; '+esc(SH.me.email)+' &middot; '+({admin:'Admin',buyer:'Buyer',viewer:'Viewer (view only)'})[SH.me.role]+'</div>':'')+'</div><div style="display:flex;gap:8px">'+(PO.billed&&!PO.staff?'<button class="btn" onclick="poStatementOpen()">Statement</button>':'')+'<button class="btn" onclick="portalLoad(false,true)">Refresh</button>'+(acctActive()?'<button class="btn" onclick="acctPwOpen()">Password</button>':'')+'<button class="btn" onclick="'+(PO.staff?'poStaffSignOut()':'poSignOut()')+'">'+(PO.staff||acctActive()?'Sign out':'Lock')+'</button></div></div>'
    +(PO.staff?'<div class="po-note"><b>Staff view</b>'+(PO.dealerName?' of <b>'+esc(PO.dealerName)+'</b>':'')+', signed in as <b>'+esc(PO.staffWho||'ERP user')+'</b>. The dealer was not emailed a code, and this view is recorded.</div>':'')
    +(PO.err?'<div class="po-note">'+esc(PO.err)+'</div>':'')
    +(typeof shopReqCard==='function'?shopReqCard():'')
@@ -2017,14 +2043,14 @@ function poTrackLinks(o,short){
 function poRow(o){
   const op=!!PO.open[o.order_number],n=o.lines.filter(l=>l.status!=='Cancelled').length;
   let h='<tr class="po-row'+(op?' open':'')+'" onclick="poToggle(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')"><td><span class="po-num">'+esc(o.po||'No PO')+'</span><span class="po-ord">Order '+esc(o.order_number)+'</span></td><td>'+poDate(o.date)+'</td>'
-   +'<td><span class="po-pill '+poSlug(o.status)+'">'+esc(o.status)+'</span>'+(o.status_detail?'<span class="ord-bo">'+esc(o.status_detail)+'</span>':'')+'</td>'
+   +'<td><span class="po-pill '+poSlug(o.status)+'">'+esc(o.status)+'</span>'+(o.status_detail?'<span class="ord-bo">'+esc(o.status_detail)+'</span>':'')+(o.expected?'<span class="ord-bo">expected '+poDate(o.expected)+'</span>':'')+'</td>'
    +'<td>'+n+' item'+(n!==1?'s':'')+' &middot; '+o.units+' unit'+(o.units!==1?'s':'')+'</td><td class="r" style="font-weight:700;color:var(--text)">'+(o.amounts?poMoney(o.amounts.subtotal):'<span class="ord-none">'+(PO.amountsAvail?'pricing&hellip;':'&mdash;')+'</span>')+'</td>'
    +(PO.billed?poPayCell(o):'')+'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
   if(op){
     const A=o.amounts;
-    h+='<tr class="po-detail"><td colspan="'+(PO.billed?8:7)+'"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(PO.billed&&o.bill&&o.status!=='Cancelled'?'<span><b>Payment</b> '+poPayText(o)+'</span>':(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':''))+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
+    h+='<tr class="po-detail"><td colspan="'+(PO.billed?8:7)+'"><div class="po-inner"><div class="po-meta"><span><b>TGK order</b> '+esc(o.order_number)+'</span>'+(PO.billed&&o.bill&&o.status!=='Cancelled'?'<span><b>Payment</b> '+poPayText(o)+'</span>':(o.payment?'<span><b>Payment</b> '+esc(o.payment.replace(/_/g,' '))+'</span>':''))+(o.ship_to?'<span><b>Ship to</b> '+esc(o.ship_to)+'</span>':'')+'<span><b>Ordered</b> '+poDate(o.date)+'</span>'+(!PO.staff&&o.lines&&o.lines.length&&typeof shopOrderAgain==='function'?'<span><button type="button" class="btn btn-sm po-again" onclick="event.stopPropagation();poOrderAgain(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')">Order again</button></span>':'')+((o.tracking||[]).length?'<span><b>Tracking</b> '+poTrackLinks(o,false)+'</span>':'')+'</div>'
      +'<table><thead><tr><th>SKU</th><th>Description</th><th class="r">Ordered</th><th class="r">Shipped</th><th class="r">Backordered</th><th class="r">Unit price</th><th class="r">Line total</th><th>Status</th></tr></thead><tbody>'
-     +o.lines.map(l=>'<tr><td style="font-family:ui-monospace,monospace;font-weight:600;color:#0f766e">'+esc(l.sku)+'</td><td>'+esc(l.desc)+'</td><td class="r">'+l.qty+'</td><td class="r">'+l.shipped+'</td><td class="r"'+(l.backordered?' style="color:var(--amber);font-weight:700"':'')+'>'+l.backordered+'</td><td class="r">'+poMoney(l.unit)+'</td><td class="r" style="font-weight:600;color:var(--text)">'+poMoney(l.total)+'</td><td><span class="po-pill '+poSlug(l.status)+'">'+esc(l.status)+'</span></td></tr>').join('')
+     +o.lines.map(l=>'<tr><td style="font-family:ui-monospace,monospace;font-weight:600;color:#0f766e">'+esc(l.sku)+'</td><td>'+esc(l.desc)+'</td><td class="r">'+l.qty+'</td><td class="r">'+l.shipped+'</td><td class="r"'+(l.backordered?' style="color:var(--amber);font-weight:700"':'')+'>'+l.backordered+'</td><td class="r">'+poMoney(l.unit)+'</td><td class="r" style="font-weight:600;color:var(--text)">'+poMoney(l.total)+'</td><td><span class="po-pill '+poSlug(l.status)+'">'+esc(l.status)+'</span>'+(l.expected?'<div class="bo-date">expected '+poDate(l.expected)+'</div>':'')+'</td></tr>').join('')
      +(A?'<tr class="po-tot"><td colspan="6" class="r">Merchandise</td><td class="r">'+poMoney(A.subtotal)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Shipping</td><td class="r">'+poMoney(A.shipping)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r">Tax</td><td class="r">'+poMoney(A.tax)+'</td><td></td></tr><tr class="po-tot"><td colspan="6" class="r" style="color:var(--text)">Order total</td><td class="r" style="color:var(--text)">'+poMoney(A.total)+'</td><td></td></tr>':'')
      +'</tbody></table></div></td></tr>';
   }
@@ -2155,6 +2181,7 @@ async function catalogLoad(){
   }
   try{
     const j=await poCall(body);
+    try{hdrOutShow();}catch(e0){}
     if(!isStaffPreview()){   // using the portal keeps the sign-in going: the server extends it, so extend what this device remembers
       try{const e=new Date(Date.now()+29*864e5).toISOString(),x=JSON.parse(localStorage.getItem(poKey())||'null'),a=JSON.parse(localStorage.getItem('tgk_acct')||'null');
         if(x){x.exp=e;localStorage.setItem(poKey(),JSON.stringify(x));}if(a){a.exp=e;localStorage.setItem('tgk_acct',JSON.stringify(a));}}catch(e2){}
@@ -2172,10 +2199,59 @@ async function sampleLoad(){
   catch(e){showError('Sample price list unavailable','Please try again in a moment, or contact <a href="mailto:support@tgkmotorsport.com" style="color:var(--teal)">support@tgkmotorsport.com</a>.');return null;}
 }
 
+// the header's Sign out button: only for a dealer signed in with their own account (not the sample list, not an ERP staff preview)
+function hdrOutShow(){const b=document.getElementById('hdr-out');if(!b)return;b.style.display=(!isProspect()&&!isStaffPreview()&&typeof acctActive==='function'&&acctActive())?'':'none';}
+
+// Order again: this order's items (and quantities) go into the cart at TODAY's prices; anything no longer sold is named, not guessed at.
+function poOrderAgain(orderNumber){
+  const o=(PO.orders||[]).find(x=>String(x.order_number)===String(orderNumber));if(!o)return;
+  shopOrderAgain((o.lines||[]).map(l=>({sku:l.sku,qty:l.qty})),(o.po?'PO '+o.po:'order '+o.order_number));
+}
+
+// ---- STATEMENT OF ACCOUNT (dealers we bill): what is owing, what is overdue and by how long, what has not been billed yet, and what was paid lately.
+// Worked out from the orders the page already has; a PO that spans several orders is one line. Print it or save it as a PDF.
+function poStatementData(orders,asOf){
+  orders=orders||PO.orders||[];const asOfD=asOf?new Date(asOf):new Date(),byPo={};
+  orders.forEach(o=>{if(!o.bill||o.status==='Cancelled')return;const k=o.po||('order '+o.order_number);
+    const e=byPo[k]||(byPo[k]={po:k,orders:[],bill:o.bill,amount:0,pending:false,date:o.date});e.orders.push(o.order_number);
+    if(o.amounts&&o.amounts.subtotal!=null)e.amount+=Number(o.amounts.subtotal)||0;else e.pending=true;});
+  const all=Object.keys(byPo).map(k=>byPo[k]),r2=x=>Math.round(x*100)/100,sum=l=>r2(l.reduce((s,x)=>s+x.amount,0));
+  const owing=all.filter(x=>['due','overdue','unpaid'].includes(x.bill.state));
+  const overdue=owing.filter(x=>x.bill.state==='overdue').sort((a,b)=>b.bill.days_over-a.bill.days_over);
+  const open=owing.filter(x=>x.bill.state!=='overdue').sort((a,b)=>String(a.bill.due_on||'9999').localeCompare(String(b.bill.due_on||'9999')));
+  const notBilled=all.filter(x=>x.bill.state==='unbilled');
+  const cutoff=new Date(asOfD.getTime()-90*864e5).toISOString().slice(0,10);
+  const paid=all.filter(x=>x.bill.state==='paid'&&x.bill.paid_on&&String(x.bill.paid_on)>=cutoff).sort((a,b)=>String(b.bill.paid_on).localeCompare(String(a.bill.paid_on)));
+  const bucket=(lo,hi)=>sum(overdue.filter(x=>x.bill.days_over>=lo&&x.bill.days_over<=hi));
+  return {asOf:asOfD.toISOString().slice(0,10),terms:PO.termsLabel||'',overdue,open,notBilled,paid,balance:sum(owing),overdueTotal:sum(overdue),notBilledTotal:sum(notBilled),pending:owing.some(x=>x.pending),aging:{d30:bucket(1,30),d60:bucket(31,60),d90:bucket(61,90),over:bucket(91,100000)}};
+}
+function poStatementHtml(D,dealerName){
+  const m=v=>poMoney(v),amt=x=>x.pending&&!x.amount?'pricing&hellip;':m(x.amount);
+  const row=(x,extra)=>'<tr><td><b>'+esc(x.po)+'</b></td><td>'+(x.bill.billed_on?poDate(x.bill.billed_on):'&mdash;')+'</td><td>'+(x.bill.due_on?poDate(x.bill.due_on):(x.bill.state==='unpaid'?'no terms set':'&mdash;'))+'</td><td>'+(extra||'')+'</td><td class="r">'+amt(x)+'</td></tr>';
+  const head='<thead><tr><th>PO</th><th>Billed</th><th>Due</th><th>Status</th><th class="r">Amount</th></tr></thead>';
+  const sec=(title,list,fn)=>list.length?'<h3>'+title+'</h3><table>'+head+'<tbody>'+list.map(fn).join('')+'</tbody></table>':'';
+  return '<!doctype html><html><head><meta charset="utf-8"><title>Statement of account</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:32px;max-width:860px}h1{margin:0;font-size:22px}h3{margin:22px 0 6px;font-size:15px}.sub{color:#555;margin:4px 0 18px}table{border-collapse:collapse;width:100%;font-size:13.5px}th,td{padding:6px 8px;border-bottom:1px solid #ddd;text-align:left}th{background:#f3f4f6;font-size:12px;text-transform:uppercase;letter-spacing:.04em}.r{text-align:right}.tot{display:flex;gap:28px;margin:14px 0;font-size:16px}.bad{color:#b42318;font-weight:700}.age{font-size:13px;color:#444;margin:4px 0 0}.note{font-size:12px;color:#666;margin-top:26px}.btns{margin-bottom:18px}@media print{.btns{display:none}body{margin:12px}}</style></head><body>'
+   +'<div class="btns"><button onclick="window.print()">Print / save as PDF</button></div><h1>Statement of account</h1><div class="sub">'+esc(dealerName||'')+' &middot; as of '+esc(poDate(D.asOf))+(D.terms?' &middot; terms: '+esc(D.terms):'')+'</div>'
+   +'<div class="tot"><div>Balance due: <b>'+m(D.balance)+'</b></div>'+(D.overdueTotal>0?'<div class="bad">Overdue: '+m(D.overdueTotal)+'</div>':'')+'</div>'
+   +(D.overdueTotal>0?'<div class="age">Overdue by: 1-30 days '+m(D.aging.d30)+' &middot; 31-60 days '+m(D.aging.d60)+' &middot; 61-90 days '+m(D.aging.d90)+' &middot; over 90 days '+m(D.aging.over)+'</div>':'')
+   +(D.pending?'<div class="note">Some order amounts are still loading, so this balance may be incomplete. Refresh My Orders and open the statement again.</div>':'')
+   +sec('Overdue',D.overdue,x=>row(x,'<span class="bad">Overdue '+x.bill.days_over+' day'+(x.bill.days_over===1?'':'s')+'</span>'))
+   +sec('Open (not yet due)',D.open,x=>row(x,x.bill.state==='unpaid'?'Open':(x.bill.days_to_due===0?'Due today':'Due in '+x.bill.days_to_due+' day'+(x.bill.days_to_due===1?'':'s'))))
+   +(!D.overdue.length&&!D.open.length?'<h3>Nothing is owing</h3><p>There are no billed, unpaid POs.</p>':'')
+   +(D.notBilled.length?'<h3>Not billed yet</h3><table><thead><tr><th>PO</th><th>Status</th><th class="r">Amount</th></tr></thead><tbody>'+D.notBilled.map(x=>'<tr><td><b>'+esc(x.po)+'</b></td><td>Still shipping: billed the day the last item ships</td><td class="r">'+amt(x)+'</td></tr>').join('')+'</tbody></table>':'')
+   +(D.paid.length?'<h3>Paid in the last 90 days</h3><table><thead><tr><th>PO</th><th>Paid on</th><th class="r">Amount</th></tr></thead><tbody>'+D.paid.map(x=>'<tr><td><b>'+esc(x.po)+'</b></td><td>'+poDate(x.bill.paid_on)+'</td><td class="r">'+amt(x)+'</td></tr>').join('')+'</tbody></table>':'')
+   +'<div class="note">Amounts are the merchandise total on your invoice, before shipping and tax. Questions: support@tgkmotorsport.com</div></body></html>';
+}
+function poStatementOpen(){
+  const D=poStatementData(),name=(PO.dealerName||(document.getElementById('hdr-sub')||{}).textContent||'').split('\u2022')[0].trim(),w=window.open('','_blank');
+  if(!w){alert('Your browser blocked the statement window. Allow pop-ups for this page and try again.');return;}
+  w.document.open();w.document.write(poStatementHtml(D,name));w.document.close();
+}
+
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
-var SH={loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
+var SH={restock:{},addrs:[],addrSel:'',offers:{promos:[],stocking:null},loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
   form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
   veh:{year:'',make:'',model:'',engine:'',chassis:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
@@ -2203,8 +2279,20 @@ function shopPrice(a,qty){
   const k=String(pnOf(a)).toLowerCase(),msrp=a.msrp||0,std=shR2(netP(msrp,safeDealer(),a.sales_price)),rows=SH.prices[k]||[];
   let best=null;rows.forEach(r=>{if(r.min_qty<=qty&&(!best||r.min_qty>best.min_qty))best=r;});
   const next=rows.filter(r=>r.min_qty>qty).sort((x,y)=>x.min_qty-y.min_qty)[0]||null;
-  return {unit:best?shR2(best.price):std,std,msrp,special:!!best,breakQty:best?best.min_qty:1,next,tiers:rows.filter(r=>r.min_qty>1)};
+  let unit=best?shR2(best.price):std;const normal=unit,pr=shPromoNow(),po=pr?shR2(msrp*(1-pr.pct/100)):0;
+  let offer=null;if(po>0&&po<unit){unit=po;offer=pr;}   // a promotion with no minimum order is simply the price (it only ever lowers it)
+  return {unit,normal,offer,std,msrp,special:!!best&&!offer,breakQty:best?best.min_qty:1,next,tiers:rows.filter(r=>r.min_qty>1)};
 }
+// ---- offers: dealer promotions and stocking orders. Each is a TOTAL percentage off MSRP, never above what the dealer already pays, and only the best one applies.
+function shPromoNow(){let b=null;((SH.offers&&SH.offers.promos)||[]).forEach(p=>{if(!(p.min_order>0)&&(!b||p.pct>b.pct))b=p;});return b;}   // the best promotion with no minimum
+function shOfferPick(normSub,stocking){
+  let best=null;const O=SH.offers||{};
+  (O.promos||[]).forEach(p=>{if(normSub+0.0001>=(p.min_order||0)&&(!best||p.pct>best.pct))best={kind:'promo',name:p.name,pct:p.pct};});
+  const s=O.stocking;if(s&&stocking&&normSub+0.0001>=(s.min_order||0)&&(!best||s.pct>best.pct))best={kind:'stocking',name:'Stocking order',pct:s.pct};
+  return best;
+}
+function shopPromoUnit(a,np){const pr=shPromoNow();if(!pr)return np;const o=shR2((a.msrp||0)*(1-pr.pct/100));return (o>0&&o<np)?o:np;}   // the price list's "Your Price"
+function shopNormalSub(L){return shR2(L.reduce((s,l)=>s+(l.p.normal!=null?l.p.normal:l.p.unit)*l.qty,0));}
 function shopHasSpecial(a){return !!(SH.prices[String(pnOf(a)).toLowerCase()]||[]).length;}
 function shopSpecial(a,qty){const r=shopPrice(a,qty||1);return r.special?{price:r.unit}:null;}
 function shopTierNote(a){const t=(SH.prices[String(pnOf(a)).toLowerCase()]||[]).filter(r=>r.min_qty>1);return t.length?t.map(r=>r.min_qty+'+ '+shMoney(r.price)).join(' · '):'';}
@@ -2217,11 +2305,12 @@ async function shopLoad(){
   SH.loading=true;SH.err='';
   try{
     const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
-    const [p,r]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth))]);
-    SH.prices=p.prices||{};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    const [p,r,ad]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth)),poCall(Object.assign({action:'addresses'},auth)).catch(()=>({addresses:[]}))]);
+    SH.addrs=(ad&&ad.addresses)||[];
+    SH.prices=p.prices||{};SH.restock=p.restock||{};SH.offers=p.offers||{promos:[],stocking:null};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
     if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
   }catch(e){SH.err=e.message||'The shop could not be loaded.';}
-  SH.loading=false;shopAfterLoad();renderPrice();shopHdr();
+  SH.loading=false;shopAfterLoad();shopOfferBar();renderPrice();shopHdr();
   if(document.getElementById('panel-shop').style.display!=='none')renderShop();
   if(typeof filterFit==='function'){try{filterFit();}catch(e){}}   // the Fitment Guide cards gain their photo, website link and order buttons
   if(document.getElementById('panel-orders').style.display!=='none')renderOrders();
@@ -2229,8 +2318,14 @@ async function shopLoad(){
 async function shopRefreshReqs(){try{const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};const r=await poCall(Object.assign({action:'requests'},auth));SH.reqs=r.requests||[];}catch(e){}}
 function shopShown(){if(PO.state==='ready'&&!SH.loaded&&!SH.loading)shopLoad();renderShop();}
 // ---- the cart
-function shopLines(){const out=[];Object.keys(SH.cart).forEach(k=>{const a=shopFind(k),q=SH.cart[k];if(a&&q>0){const p=shopPrice(a,q);out.push({k,a,qty:q,p,total:shR2(p.unit*q)});}});return out;}
-function shopTotals(lines){lines=lines||shopLines();const merch=shR2(lines.reduce((s,l)=>s+l.total,0)),msrp=shR2(lines.reduce((s,l)=>s+l.p.msrp*l.qty,0));return {merch,msrp,save:shR2(msrp-merch),units:lines.reduce((s,l)=>s+l.qty,0),items:lines.length};}
+function shopLines(){
+  const out=[];Object.keys(SH.cart).forEach(k=>{const a=shopFind(k),q=SH.cart[k];if(a&&q>0){const p=shopPrice(a,q);out.push({k,a,qty:q,p,total:shR2(p.unit*q)});}});
+  // what the cart comes to at the dealer's NORMAL prices decides which offer it earns (a promotion with a minimum, or a stocking order)
+  const pick=shOfferPick(shopNormalSub(out),!!(SH.form&&SH.form.stocking));
+  if(pick)out.forEach(l=>{const o=shR2(l.p.msrp*(1-pick.pct/100));if(o>0&&o<l.p.unit){l.p=Object.assign({},l.p,{unit:o,offer:pick,special:false});l.total=shR2(o*l.qty);}});
+  return out;
+}
+function shopTotals(lines){lines=lines||shopLines();const merch=shR2(lines.reduce((s,l)=>s+l.total,0)),msrp=shR2(lines.reduce((s,l)=>s+l.p.msrp*l.qty,0)),normal=shopNormalSub(lines),used=lines.find(l=>l.p.offer);return {merch,msrp,save:shR2(msrp-merch),units:lines.reduce((s,l)=>s+l.qty,0),items:lines.length,normal,offer:used?used.p.offer:null,offerSave:shR2(normal-merch)};}
 function shopShipQuote(country,merch){
   const e=SH.ship||{},c=String(country||'US').toUpperCase(),zone=(c==='US')?'us':(c==='CA')?'ca':'intl',rate=e[zone];
   if(rate===null||rate===undefined)return {amount:null,free:false,zone};
@@ -2240,7 +2335,7 @@ function shopShipQuote(country,merch){
 // the pieces of a card that change with the quantity (the quantity box and the button are never replaced, so a click is never lost)
 function shopPriceBits(a,q){
   const p=shopPrice(a,q),pct=p.msrp>0?Math.round((p.msrp-p.std)/p.msrp*100):0;
-  const sub=p.special?'<span class="tagsp">SPECIAL PRICE</span> &middot; STANDARD '+shMoney(p.std):'YOUR DEALER PRICE'+(pct>0?' &middot; '+pct+'% OFF':'');
+  const sub=p.offer?'<span class="tagsp">'+esc(String(p.offer.name).toUpperCase())+'</span> &middot; '+Math.round((p.msrp-p.unit)/p.msrp*100)+'% OFF MSRP':(p.special?'<span class="tagsp">SPECIAL PRICE</span> &middot; STANDARD '+shMoney(p.std):'YOUR DEALER PRICE'+(pct>0?' &middot; '+pct+'% OFF':''));
   const tier=p.next?p.next.min_qty+'+ UNITS '+shMoney(p.next.price)+' EACH':(p.special&&p.breakQty>1?p.breakQty+'+ UNITS '+shMoney(p.unit)+' EACH':'');
   return {p,sub,tier};
 }
@@ -2271,11 +2366,14 @@ function shopBarRefresh(force){
   const sv=document.getElementById('sb-sv');sv.textContent='You save '+shMoney(T.save)+' vs MSRP';sv.style.display=T.save>0?'':'none';
 }
 function shopReviewRefresh(k){
-  const a=shopFind(k),q=SH.cart[k],el=[].slice.call(document.querySelectorAll('.rv-line')).find(x=>x.dataset.k===k);
-  if(a&&q&&el){const p=shopPrice(a,q);el.querySelector('.rl-unit').textContent=shMoney(p.unit);const sd=el.querySelector('.rl-std');sd.textContent='standard '+shMoney(p.std);sd.style.display=p.special?'':'none';
-    el.querySelector('.rl-total').textContent=shMoney(shR2(p.unit*q));const sp=el.querySelector('.sp-badge');if(sp)sp.style.display=p.special?'':'none';
-    el.querySelector('.rv-hint').textContent=p.next?('Add '+(p.next.min_qty-q)+' more to get '+shMoney(p.next.price)+' each'):'';const inp=el.querySelector('input');if(document.activeElement!==inp)inp.value=q;}
-  const T=shopTotals(),c=document.getElementById('rv-count');if(c)c.textContent=T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' units';shopReviewTotals();
+  const L=shopLines();
+  L.forEach(ln=>{
+    const el=[].slice.call(document.querySelectorAll('.rv-line')).find(x=>x.dataset.k===ln.k);if(!el)return;const p=ln.p,q=ln.qty;
+    el.querySelector('.rl-unit').textContent=shMoney(p.unit);const sd=el.querySelector('.rl-std');sd.textContent='standard '+shMoney(p.std);sd.style.display=p.special?'':'none';
+    el.querySelector('.rl-total').textContent=shMoney(ln.total);const sp=el.querySelector('.sp-badge');if(sp)sp.style.display=p.special?'':'none';
+    el.querySelector('.rv-hint').textContent=p.next?('Add '+(p.next.min_qty-q)+' more to get '+shMoney(p.next.price)+' each'):'';const inp=el.querySelector('input');if(document.activeElement!==inp)inp.value=q;
+  });
+  const T=shopTotals(L),c=document.getElementById('rv-count');if(c)c.textContent=T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' units';shopStockingRefresh();shopReviewTotals();
 }
 function shopChanged(k){
   shopSave();shopFitRefresh(k);
@@ -2360,7 +2458,7 @@ function shopMatches(a){
 }
 function shopCard(a){
   const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,b=shopPriceBits(a,q),st=stockOf(a),img=shopImg(k),url=shEsc(shopWebUrl(a));
-  const dot=(st.st==='backorder')?'#f0a030':'#3fbf7f',txt=(st.st==='backorder')?'Backordered &middot; ships when available':'In stock';
+  const dot=(st.st==='backorder')?'#f0a030':'#3fbf7f',txt=(st.st==='backorder')?'Backordered &middot; '+shopShipNote(a):'In stock';
   return '<div class="pcard" data-k="'+shEsc(k)+'"><div class="pimg'+(img?'':' none')+'">'+(img?'<img src="'+shEsc(img)+'" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'none\');this.parentNode.textContent=\'NO PHOTO YET\'">':'NO PHOTO YET')+'</div>'
    +'<div class="psku">'+esc(pnOf(a))+'</div><a class="pname" title="'+shEsc(a.description||'')+'" href="'+url+'" target="_blank" rel="noopener">'+esc(a.description||'')+'</a>'
    +(shopVehActive()?'<div class="pfitline">'+shopFitTag(a)+shopFitHint(a)+'</div>':'')
@@ -2459,7 +2557,7 @@ function renderShop(){
   p.innerHTML='<div class="shop-wrap">'
    +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
    +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">'+shopNoOrderText()+'</div>':'')
-   +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span></div>'
+   +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span>'+(SH.canOrder&&!SH.staff?'<button type="button" class="btn qo-btn" onclick="shopQuickOpen()">Quick order</button>':'')+'</div>'
    +shopCatUi(items,crow,chip)
    +'<div id="shop-list"></div></div><div id="shop-bar"></div>';
   shopList();shopVehChip();
@@ -2467,12 +2565,12 @@ function renderShop(){
 // ---- checkout
 function shopReview(){if(!shopLines().length)return;shopDrawerClose();SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
 function shopBack(){SH.view='grid';SH.done=null;renderShop();}
-function shopF(name,val){SH.form[name]=val;if(name==='country'||name==='drop')shopReviewTotals();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.textContent=shopCode();}}
+function shopF(name,val){SH.form[name]=val;if(name==='stocking'){renderShop();return;}if(name==='country'||name==='drop')shopReviewTotals();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.textContent=shopCode();}}
 function shopPayText(){return ({prepay:'A secure payment window opens as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
 function shopReviewTotals(){
   const el=document.getElementById('rv-tot');if(!el)return;
   const L=shopLines(),T=shopTotals(L),sq=shopShipQuote(SH.form.country,T.merch);
-  el.innerHTML='<div><span>Merchandise (your prices)</span><b>'+shMoney(T.merch)+'</b></div>'+(T.save>0?'<div class="sv"><span>You save vs MSRP</span><b>&minus;'+shMoney(T.save)+'</b></div>':'')
+  el.innerHTML='<div><span>Merchandise (your prices)</span><b>'+shMoney(T.merch)+'</b></div>'+(T.offer&&T.offerSave>0?'<div class="sv"><span>'+esc(T.offer.kind==='stocking'?'Stocking order':T.offer.name)+' ('+T.offer.pct+'% off MSRP) already included</span><b>&minus;'+shMoney(T.offerSave)+'</b></div>':'')+(T.save>0?'<div class="sv"><span>You save vs MSRP</span><b>&minus;'+shMoney(T.save)+'</b></div>':'')
    +'<div><span>Shipping <span style="color:var(--text3);font-size:13px">flat rate'+(sq.free?' &middot; free on this order':'')+'</span></span><b>'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</b></div><div><span>Tax</span><span style="color:var(--text3)">on your invoice, if it applies</span></div>'
    +'<div class="big"><span>TOTAL</span><span>'+shMoney(T.merch+(sq.amount||0))+'</span></div>';
 }
@@ -2488,19 +2586,28 @@ function shopCodeHtml(){
   if(!shopNeedsPo())return box;
   return box+'<label for="rv-po">PO number <span class="req">&middot; required</span></label><input type="text" id="rv-po" value="'+shEsc(F.po)+'" maxlength="39" placeholder="Your PO number" oninput="shopF(\'po\',this.value)">';
 }
+function shopStockingInner(){   // "This is a stocking order": the larger discount, with what it needs
+  const s=SH.offers&&SH.offers.stocking;if(!s||SH.staff)return '';
+  const L=shopLines(),norm=shopNormalSub(L),on=!!SH.form.stocking,need=Math.max(0,shR2((s.min_order||0)-norm));
+  return '<label class="chk stk"><input type="checkbox" id="rv-stk" '+(on?'checked ':'')+'onchange="shopF(\'stocking\',this.checked)"><b>This is a stocking order</b><span class="stk-sub">'+s.pct+'% off MSRP'+(s.min_order>0?' on orders of '+shMoney(s.min_order)+' or more (at your usual prices)':'')+'</span></label>'
+    +(on&&need>0?'<div class="stk-warn" id="rv-stk-msg">Add '+shMoney(need)+' more to qualify. Your order is '+shMoney(norm)+' at your usual prices. Or uncheck the box to place a regular order.</div>':'')
+    +(on&&need===0?'<div class="stk-ok" id="rv-stk-msg">Stocking discount applied: '+s.pct+'% off MSRP'+((shopTotals(L).offer&&shopTotals(L).offer.kind!=='stocking')?' (the '+esc(shopTotals(L).offer.name)+' promotion is better, so that applies instead)':'')+'.</div>':'');
+}
+function shopStockingHtml(){return '<div id="rv-stk-wrap">'+shopStockingInner()+'</div>';}
+function shopStockingRefresh(){const w=document.getElementById('rv-stk-wrap');if(w)w.innerHTML=shopStockingInner();}
 function shopReviewPage(p){
   const L=shopLines(),T=shopTotals(L),F=SH.form;
   const inp=(label,name,extra)=>'<label>'+label+'</label><input type="text" value="'+shEsc(F[name])+'" '+(extra||'')+' oninput="shopF(\''+name+'\',this.value)">';
   const lines=L.map(l=>{const img=shopImg(l.k),a=l.a;return '<div class="rv-line" data-k="'+shEsc(l.k)+'"><div class="rv-th"><div>'+(img?'<img src="'+shEsc(img)+'" alt="" onerror="this.remove()">':'')+'</div></div>'
     +'<div style="min-width:0"><div class="rv-sku">'+esc(pnOf(a))+' <span class="sp-badge" style="margin:0 0 0 6px;display:'+(l.p.special?'':'none')+'">SPECIAL PRICE</span></div><a class="rv-t" href="'+shEsc(shopWebUrl(a))+'" target="_blank" rel="noopener">'+esc(a.description||'')+'</a>'
-    +'<div class="rv-stock" style="color:'+(stockOf(a).st==='backorder'?'var(--amber)':'var(--green)')+'">'+(stockOf(a).st==='backorder'?'Backordered: ships when available':'In stock')+'</div><div class="rv-hint">'+(l.p.next?'Add '+(l.p.next.min_qty-l.qty)+' more to get '+shMoney(l.p.next.price)+' each':'')+'</div>'
+    +'<div class="rv-stock" style="color:'+(stockOf(a).st==='backorder'?'var(--amber)':'var(--green)')+'">'+(stockOf(a).st==='backorder'?'Backordered: '+shopShipNote(a):'In stock')+'</div><div class="rv-hint">'+(l.p.next?'Add '+(l.p.next.min_qty-l.qty)+' more to get '+shMoney(l.p.next.price)+' each':'')+'</div>'
     +'<a class="rv-web" href="'+shEsc(shopWebUrl(a))+'" target="_blank" rel="noopener">View on tgkmotorsport.com &#8599;</a></div>'
     +'<div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="1" max="9999" value="'+l.qty+'" aria-label="Quantity" data-k="'+shEsc(l.k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
     +'<div><div class="rl-unit">'+shMoney(l.p.unit)+'</div><div class="rl-std" style="display:'+(l.p.special?'':'none')+'">standard '+shMoney(l.p.std)+'</div></div><div class="rl-total">'+shMoney(l.total)+'</div><button type="button" class="rv-x" aria-label="Remove" data-k="'+shEsc(l.k)+'" onclick="shopRemove(this.dataset.k)">&times;</button></div>';}).join('');
   p.innerHTML='<div class="shop-wrap"><h1 class="co-h1">Checkout</h1>'
    +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff preview.</b> This is exactly what the dealer sees at checkout. Only the dealer can submit an order.</div>':'')
    +'<div class="co-grid rv"><div><div class="co-bar"><span>Your order</span><span id="rv-count">'+T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' units</span></div><div class="co-card">'+lines+'<div class="co-note">Backordered items ship when they arrive. Prices are checked again when you submit.</div></div></div>'
-   +'<div><div class="co-bar"><span>Checkout</span></div><div class="co-card rv-form">'+shopCodeHtml()
+   +'<div><div class="co-bar"><span>Checkout</span></div><div class="co-card rv-form">'+shopCodeHtml()+shopStockingHtml()+shopAddrHtml()
    +'<label class="chk"><input type="checkbox" '+(F.drop?'checked ':'')+'onchange="shopF(\'drop\',this.checked);document.getElementById(\'rv-nm\').textContent=this.checked?\'Customer name\':\'Name / company\'">Ship to my customer instead (drop-ship)</label>'
    +'<label id="rv-nm">'+(F.drop?'Customer name':'Name / company')+'</label><input type="text" value="'+shEsc(F.name)+'" oninput="shopF(\'name\',this.value)">'
    +inp('Street address','address1')+inp('Apartment, suite (optional)','address2')+'<div class="row2"><div>'+inp('City','city')+'</div><div>'+inp('State / province','province')+'</div></div><div class="row2"><div>'+inp('ZIP / postal code','zip')+'</div><div><label>Country</label><select onchange="shopF(\'country\',this.value)">'+SH_COUNTRIES.map(c=>'<option value="'+c[0]+'"'+(F.country===c[0]?' selected':'')+'>'+c[1]+'</option>').join('')+'</select></div></div>'+inp('Phone (optional)','phone')
@@ -2517,11 +2624,12 @@ async function shopSubmit(){
   const fail=m=>{SH.formErr=m;const e=document.getElementById('rv-err');if(e)e.textContent=m;};
   if(!L.length)return fail('Your order is empty.');
   if(shopNeedsPo()){if(!F.po.trim())return fail('Please enter your PO number. Orders billed to your account need one.');if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('That PO number has an unusual character. Use letters, numbers, spaces, dashes or dots.');}
+  if(F.stocking&&SH.offers&&SH.offers.stocking){const need=shR2((SH.offers.stocking.min_order||0)-shopNormalSub(L));if(need>0)return fail('A stocking order needs at least '+shMoney(SH.offers.stocking.min_order)+' at your usual prices: add '+shMoney(need)+' more, or uncheck "This is a stocking order".');}
   if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
   let pop=null;if(SH.payMode==='prepay')pop=payOpenBlank();   // opened right now, inside the click, so the browser allows it
   SH.busy=true;SH.formErr='';renderShop();
   try{
-    const j=await poCall({action:'submit_order',session:PO.session,po:shopNeedsPo()?F.po.trim():'',lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
+    const j=await poCall({action:'submit_order',session:PO.session,po:shopNeedsPo()?F.po.trim():'',stocking:!!(F.stocking&&SH.offers&&SH.offers.stocking),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
     try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
     SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.done=j;SH.view='done';SH.busy=false;
     if(j.status==='awaiting_payment'&&payOk(j.invoice_url))payGo(pop,j.id,j.invoice_url);else if(pop){try{pop.close();}catch(e2){}}
@@ -2815,6 +2923,120 @@ function restoreCatFilter(){   // a remembered choice that no longer exists (or 
 }
 document.addEventListener('click',function(e){if(PL.open&&!(e.target.closest&&e.target.closest('.cat-wrap'))){PL.open='';renderCatBar();}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&PL.open){PL.open='';renderCatBar();}});
+
+// ---- the offer banner: what is on for this dealer right now (shown under the tabs, on every tab)
+function shopOfferBar(){
+  let el=document.getElementById('offer-bar');
+  if(!el){const pp=document.getElementById('panel-price');if(!pp||!pp.parentNode)return;el=document.createElement('div');el.id='offer-bar';el.className='offer-bar';pp.parentNode.insertBefore(el,pp);}
+  const O=SH.offers||{},bits=[];
+  (O.promos||[]).forEach(p=>{bits.push('<span class="ob-item"><b>'+esc(p.name)+'</b>: '+p.pct+'% off MSRP'+(p.min_order>0?' on orders of '+shMoney(p.min_order)+'+':'')+(p.ends_on?' &middot; ends '+esc(poDate(p.ends_on)):'')+(p.note?' &middot; '+esc(p.note):'')+'</span>');});
+  if(O.stocking)bits.push('<span class="ob-item"><b>Stocking orders</b>: '+O.stocking.pct+'% off MSRP'+(O.stocking.min_order>0?' on orders of '+shMoney(O.stocking.min_order)+'+':'')+' &middot; tick &ldquo;This is a stocking order&rdquo; at checkout'+(O.stocking.note?' &middot; '+esc(O.stocking.note):'')+'</span>');
+  el.innerHTML=bits.join('');el.style.display=bits.length&&!SH.staff?'flex':'none';
+}
+
+// ---------------------------------------------------------------- adding many lines at once: Order again, Quick order
+function shopFlash(title,sub,ms){
+  let el=document.getElementById('shop-toast');
+  if(!el){el=document.createElement('div');el.id='shop-toast';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el);}
+  el.innerHTML='<span class="st-ic" aria-hidden="true">&#10003;</span><span class="st-tx"><b>'+title+'</b><span class="st-sub">'+(sub||'')+'</span></span><button type="button" class="st-view" onclick="shopOpenCart();shopToastHide()">View order</button><button type="button" class="st-x" aria-label="Dismiss" onclick="shopToastHide()">&times;</button>';
+  el.className='on';clearTimeout(_toastT);_toastT=setTimeout(shopToastHide,ms||6500);
+}
+function shopFindAny(sku){   // the SKU as the dealer knows it: current or old, any capitalisation
+  const k=String(sku||'').trim().toLowerCase();if(!k)return null;
+  const a=shopFind(k);if(a)return a;
+  return shopItems().find(x=>String(x.pn).toLowerCase()===k||String(x.new_sku||'').toLowerCase()===k)||null;
+}
+function shopAddLines(lines){   // lines: [{sku,qty}]; unknown SKUs are reported, not guessed at
+  const added=[],missing=[];
+  (lines||[]).forEach(l=>{const a=shopFindAny(l.sku),q=parseInt(l.qty,10);if(!a||!(q>=1)){missing.push(String(l.sku||'?'));return;}const k=String(pnOf(a)).toLowerCase();SH.cart[k]=Math.min(9999,(SH.cart[k]||0)+q);added.push({k,a,qty:q});});
+  added.forEach(x=>shopChanged(x.k));
+  return {added,missing};
+}
+async function shopOrderAgain(lines,label){
+  if(!SH.loaded&&!SH.loading)await shopLoad();
+  if(!SH.canOrder){shopFlash('Ordering is not available for this sign-in','Ask an admin on your team for ordering access.');return;}
+  const r=shopAddLines(lines);
+  if(!r.added.length){shopFlash('Nothing could be added','None of the items on '+esc(label||'that order')+' are available to order any more.');return;}
+  shopFlash('Added '+r.added.length+' item'+(r.added.length!==1?'s':'')+' from '+esc(label||'that order'),(r.missing.length?r.missing.length+' no longer available: '+esc(r.missing.join(', '))+'. ':'')+'Check the quantities, then check out.');
+  showTab('shop');shopOpenCart();
+}
+// Quick order: paste or upload "SKU, quantity" lines
+function shopQuickParse(text){
+  const raw=String(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,300),rows=[],seen={};
+  raw.forEach((line,i)=>{
+    const clean=line.replace(/["']/g,'');let sku='',qs='';
+    if(/[,\t;]/.test(clean)){const p=clean.split(/[,\t;]/).map(s=>s.trim());sku=p[0];qs=p[1]||'';}
+    else{const m=clean.match(/^(\S+)\s*[x\u00d7]\s*(\d+)$/i);if(m){sku=m[1];qs=m[2];}else{const p=clean.split(/\s+/);sku=p[0];qs=p[1]||'';}}
+    if(i===0&&/^(sku|part|part ?#|part number|item)$/i.test(sku))return;   // a header row
+    const n=qs===''?1:Number(qs),ok=Number.isInteger(n)&&n>=1&&n<=9999;
+    const a=sku?shopFindAny(sku):null,key=a?String(pnOf(a)).toLowerCase():'';
+    if(a&&ok&&seen[key]!==undefined){rows[seen[key]].qty=Math.min(9999,rows[seen[key]].qty+n);return;}   // the same product twice: one line, quantities added
+    if(a&&ok)seen[key]=rows.length;
+    rows.push({sku,qty:ok?n:0,a,status:!sku?'unknown':!a?'unknown':!ok?'badqty':'ok',raw:line});
+  });
+  return rows;
+}
+function shopQuickOpen(){
+  let ov=document.getElementById('qo-ov');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='qo-ov';ov.className='qo-ov';
+  ov.innerHTML='<div class="qo-box" role="dialog" aria-label="Quick order"><div class="qo-head"><b>Quick order</b><button type="button" class="st-x" aria-label="Close" onclick="shopQuickClose()">&times;</button></div>'
+   +'<div class="qo-body"><p class="qo-help">Paste your list, one product per line: the SKU, then the quantity (<code>TGK-0309-01, 4</code> or <code>TGK-0309-01 x 4</code>). Or upload a CSV file.</p>'
+   +'<textarea id="qo-text" rows="7" placeholder="TGK-0309-01, 4&#10;TGK-1200-A x 2" oninput="shopQuickCheck()"></textarea>'
+   +'<div class="qo-file"><label class="btn">Upload CSV or text file<input type="file" id="qo-file" accept=".csv,.txt,text/csv,text/plain" onchange="shopQuickFile(this)" hidden></label></div><div id="qo-prev"></div></div>'
+   +'<div class="qo-foot"><button type="button" class="btn" onclick="shopQuickClose()">Cancel</button><button type="button" class="btn btn-go" id="qo-go" onclick="shopQuickAdd()" disabled>Add to order</button></div></div>';
+  document.body.appendChild(ov);setTimeout(()=>{const t=document.getElementById('qo-text');if(t)t.focus();},30);
+}
+function shopQuickClose(){const ov=document.getElementById('qo-ov');if(ov)ov.remove();}
+function shopQuickFile(inp){const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const t=document.getElementById('qo-text');if(t){t.value=String(r.result||'');shopQuickCheck();}};r.readAsText(f);}
+function shopQuickCheck(){
+  const t=document.getElementById('qo-text'),prev=document.getElementById('qo-prev'),go=document.getElementById('qo-go');if(!t||!prev)return;
+  const rows=shopQuickParse(t.value),ok=rows.filter(r=>r.status==='ok');
+  const why={unknown:'Not found',badqty:'Check the quantity'};
+  prev.innerHTML=rows.length?'<table class="qo-tbl"><thead><tr><th>SKU</th><th>Description</th><th class="r">Qty</th><th class="r">Your price</th><th></th></tr></thead><tbody>'+rows.map(r=>r.status==='ok'?'<tr><td class="mono">'+esc(pnOf(r.a))+'</td><td>'+esc(r.a.description||'')+'</td><td class="r">'+r.qty+'</td><td class="r">'+shMoney(shopPrice(r.a,r.qty).unit)+'</td><td></td></tr>':'<tr class="bad"><td class="mono">'+esc(r.sku||r.raw)+'</td><td colspan="3">'+esc(r.raw)+'</td><td>'+why[r.status]+'</td></tr>').join('')+'</tbody></table><div class="qo-sum">'+ok.length+' product'+(ok.length!==1?'s':'')+' ready'+(rows.length>ok.length?', <span class="qo-bad">'+(rows.length-ok.length)+' line'+(rows.length-ok.length!==1?'s':'')+' need attention (they will be left out)</span>':'')+'</div>':'';
+  if(go)go.disabled=!ok.length;
+}
+function shopQuickAdd(){
+  const t=document.getElementById('qo-text');if(!t)return;
+  const rows=shopQuickParse(t.value),ok=rows.filter(r=>r.status==='ok');if(!ok.length)return;
+  const r=shopAddLines(ok.map(x=>({sku:x.sku,qty:x.qty}))),left=rows.length-ok.length;shopQuickClose();
+  shopFlash('Added '+r.added.length+' item'+(r.added.length!==1?'s':'')+' to your order',(left?left+' line'+(left!==1?'s were':' was')+' left out. ':'')+'Check the quantities, then check out.');
+}
+// ---------------------------------------------------------------- saved ship-to addresses, at checkout
+function shopAddrHtml(){
+  if(SH.staff||!SH.canOrder)return '';
+  const sel=SH.addrSel,cur=(SH.addrs||[]).find(a=>a.id===sel);
+  return '<div class="addr-book" id="addr-book"><label for="addr-pick">Saved addresses</label><select id="addr-pick" onchange="shopAddrPick(this.value)"><option value="">'+(SH.addrs&&SH.addrs.length?'Choose a saved address&hellip;':'None saved yet')+'</option>'+(SH.addrs||[]).map(a=>'<option value="'+shEsc(a.id)+'"'+(a.id===sel?' selected':'')+'>'+esc(a.label)+' &middot; '+esc(a.city)+', '+esc(a.province)+'</option>').join('')+'</select>'
+    +'<div class="addr-save"><input type="text" id="addr-label" maxlength="40" placeholder="Name this address (for example Austin shop)" value="'+shEsc(cur?cur.label:'')+'"><button type="button" class="btn" onclick="shopAddrSave()">'+(cur?'Update':'Save')+'</button>'+(cur?'<button type="button" class="btn" onclick="shopAddrDelete()">Delete</button>':'')+'</div><div class="addr-msg" id="addr-msg" role="status"></div></div>';
+}
+function shopAddrMsg(m,bad){const e=document.getElementById('addr-msg');if(e){e.textContent=m;e.className='addr-msg'+(bad?' bad':'');}}
+function shopAddrPick(id){
+  SH.addrSel=id||'';const a=(SH.addrs||[]).find(x=>x.id===id);
+  if(a){Object.assign(SH.form,{name:a.name,address1:a.address1,address2:a.address2||'',city:a.city,province:a.province,zip:a.zip,country:a.country||'US',phone:a.phone||''});}
+  renderShop();
+}
+async function shopAddrSave(){
+  const F=SH.form,lab=String((document.getElementById('addr-label')||{}).value||'').trim();
+  if(!lab)return shopAddrMsg('Give the address a short name first.',true);
+  if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return shopAddrMsg('Fill in the address below first (name, street, city, state and ZIP).',true);
+  const cur=(SH.addrs||[]).find(a=>a.id===SH.addrSel);
+  try{
+    const j=await poCall({action:'address_save',session:PO.session,address:{id:cur&&cur.label===lab?cur.id:'',label:lab,name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
+    SH.addrs=j.addresses||[];const mine=SH.addrs.find(a=>a.label===lab);SH.addrSel=mine?mine.id:'';
+    const b=document.getElementById('addr-book');if(b){const t=document.createElement('div');t.innerHTML=shopAddrHtml();b.replaceWith(t.firstChild);}shopAddrMsg('Saved "'+lab+'".');
+  }catch(e){shopAddrMsg(e.message||'Could not save the address.',true);}
+}
+async function shopAddrDelete(){
+  const cur=(SH.addrs||[]).find(a=>a.id===SH.addrSel);if(!cur)return;
+  if(!confirm('Delete the saved address "'+cur.label+'"?'))return;
+  try{const j=await poCall({action:'address_delete',session:PO.session,id:cur.id});SH.addrs=j.addresses||[];SH.addrSel='';const b=document.getElementById('addr-book');if(b){const t=document.createElement('div');t.innerHTML=shopAddrHtml();b.replaceWith(t.firstChild);}shopAddrMsg('Deleted.');}
+  catch(e){shopAddrMsg(e.message||'Could not delete the address.',true);}
+}
+
+// ---- back-in-stock dates: kept by staff, sent by the server only while they are still ahead
+function shopDateShort(d){const x=new Date(String(d).slice(0,10)+'T12:00:00');if(isNaN(x))return esc(d);return x.toLocaleDateString('en-US',x.getFullYear()===new Date().getFullYear()?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'});}
+function shopRestock(a){return (SH.restock||{})[String(pnOf(a)).toLowerCase()]||'';}
+function shopShipNote(a){const d=shopRestock(a);return d?'ships about '+shopDateShort(d):'ships when available';}
+function shopBoDate(a,st){const d=(st==='backorder')?shopRestock(a):'';return d?'<div class="bo-date">ships about '+shopDateShort(d)+'</div>':'';}   // under the price list's stock badge
 
 // ── Team: the people an admin has approved to sign in to this dealer's portal ──
 var TM={loaded:false,loading:false,err:'',ok:'',busy:false,primary:null,users:[],max:15,form:{email:'',name:'',role:'buyer'}};
