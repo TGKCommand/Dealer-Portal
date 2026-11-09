@@ -1257,7 +1257,7 @@ body.sample .filt-grp,body.sample .summary .sum-item:nth-child(n+2){display:none
   <div class="footer">
     <div class="footer-note">Prices are exclusive of applicable taxes and shipping. This document is confidential and intended solely for the named dealer. Pricing subject to change without notice.</div>
     <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; support@tgkmotorsport.com</div>
-    <div class="build-stamp" id="build-stamp">Page build 7 Nov 2026 · build 22</div>
+    <div class="build-stamp" id="build-stamp">Page build 7 Nov 2026 · build 23</div>
   </div>
 </div>
 
@@ -2018,15 +2018,19 @@ function poPayCell(o){
   if(!o.bill||o.status==='Cancelled')return '<td><span class="ord-none">&mdash;</span></td>';
   const b=o.bill,sub=t=>'<span class="po-ord">'+t+'</span>',dd=x=>poDate(x).replace(/, \d{4}$/,'');
   if(b.state==='paid')return '<td><span class="po-pill pay-paid">Paid</span>'+(b.paid_on?sub(poDate(b.paid_on)):'')+'</td>';
+  if(b.state==='cancelled')return '<td><span class="po-pill pay-wait">Cancelled</span>'+sub('nothing to pay')+'</td>';
+  if(b.state==='closed')return '<td><span class="po-pill pay-wait">Closed</span>'+sub('nothing to pay')+'</td>';
   if(b.state==='unbilled')return '<td><span class="po-pill pay-wait">Not billed yet</span>'+sub('starts when the last item ships')+'</td>';
   if(b.state==='overdue')return '<td><span class="po-pill pay-over">Overdue</span>'+sub(b.days_over+' day'+(b.days_over!==1?'s':'')+' &middot; was due '+dd(b.due_on))+'</td>';
   if(b.state==='due')return '<td><span class="po-pill pay-unpaid">Due '+dd(b.due_on)+'</span>'+sub(b.days_to_due===0?'today':'in '+b.days_to_due+' day'+(b.days_to_due!==1?'s':''))+'</td>';
   return '<td><span class="po-pill pay-unpaid">Unpaid</span>'+(b.billed_on?sub('billed '+dd(b.billed_on)):'')+'</td>';
 }
-function poPayLabel(o){const b=o.bill;if(!b)return '';return ({paid:'Paid',unbilled:'Not billed yet',due:'Due',overdue:'Overdue',unpaid:'Unpaid'})[b.state]||'';}
+function poPayLabel(o){const b=o.bill;if(!b)return '';return ({paid:'Paid',cancelled:'Cancelled',closed:'Closed',unbilled:'Not billed yet',due:'Due',overdue:'Overdue',unpaid:'Unpaid'})[b.state]||'';}
 function poPayText(o){
   const b=o.bill,t=PO.termsLabel?PO.termsLabel+' ':'';
   if(b.state==='paid')return 'Paid'+(b.paid_on?' on '+poDate(b.paid_on):'');
+  if(b.state==='cancelled')return 'Cancelled. Nothing to pay';
+  if(b.state==='closed')return 'Closed. Nothing to pay';
   if(b.state==='unbilled')return 'Not billed yet. '+(PO.termsLabel?'Your '+PO.termsLabel+' terms':'The clock')+' start the day the last item on this PO ships';
   const head='Billed '+poDate(b.billed_on)+(PO.termsLabel?' &middot; '+esc(PO.termsLabel):'');
   if(b.state==='overdue')return head+' &middot; due '+poDate(b.due_on)+' &middot; <b style="color:#b42318">overdue by '+b.days_over+' day'+(b.days_over!==1?'s':'')+'</b>';
