@@ -1353,7 +1353,7 @@ async function apiAllRaw(p){
 // that). A SKU sold under two product pages (e.g. a C7 page and a D4 page) is listed once per vehicle.
 async function loadFits(){
   var cols='pn,year_from,year_to,make,model,submodel',ord='&order=pn,make,model,year_from',rows;
-  G.fprods=await apiAll('fit_products?select=handle,sku,fit_type,category').catch(function(){return apiAll('fit_products?select=handle,sku,fit_type');}).catch(function(){return [];});
+  G.fprods=await apiAll('fit_products?select=handle,sku,fit_type,category,title').catch(function(){return apiAll('fit_products?select=handle,sku,fit_type,category');}).catch(function(){return apiAll('fit_products?select=handle,sku,fit_type');}).catch(function(){return [];});
   try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes,transmission,drivetrain,engine_code'+ord);}
   catch(e0){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes'+ord);}
   catch(e){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle'+ord);}
@@ -1381,21 +1381,22 @@ function fitIndex(){
   var canon={};G.asms.forEach(function(a){if(a.pn){canon[_U(a.pn)]=_U(a.pn);if(a.new_sku)canon[_U(a.new_sku)]=_U(a.pn);}});
   var C=function(x){var k=_U(x);return canon[k]||k;};
   var fp={},known=(G.fprods||[]).length>0;(G.fprods||[]).forEach(function(p){fp[p.handle]=p;});
-  var by={},uni={};
+  var by={},uni={},hs={};
   G.fits.forEach(function(f){
     var p=f.handle?fp[f.handle]:null;
     if(f.handle&&known&&(!p||p.fit_type!=='vehicle'))return; // non-vehicle / universal leftovers / deleted pages
     var ks={};ks[C(f.pn)]=1;if(p&&p.sku)ks[C(p.sku)]=1;
-    Object.keys(ks).forEach(function(k){(by[k]=by[k]||[]).push(f);});
+    Object.keys(ks).forEach(function(k){(by[k]=by[k]||[]).push(f);if(f.handle&&p)(hs[k]=hs[k]||{})[f.handle]=1;});
   });
   (G.fprods||[]).forEach(function(p){if(p.fit_type==='universal'&&p.sku)uni[C(p.sku)]=1;});
   var asmBy={};G.asms.forEach(function(a){if(a.pn)asmBy[_U(a.pn)]=a;});
-  G._fi={by:by,uni:uni,C:C,asmBy:asmBy};G._fiN=G.fits.length;G._fiA=G.asms.length;return G._fi;
+  G._fi={by:by,uni:uni,C:C,asmBy:asmBy,fp:fp,hs:hs};G._fiN=G.fits.length;G._fiA=G.asms.length;return G._fi;
 }
 // The vehicles listed on a SKU's card (deduped per vehicle + option), each with the SKU to order
-function fitRowsFor(a){
+function fitRowsFor(a,handle){
   var fi=fitIndex(),key=fi.C(a.pn),seen={},out=[];
   (fi.by[key]||[]).forEach(function(f){
+    if(handle&&f.handle&&f.handle!==handle)return;   // one website page: its own rows, plus old ERP rows that name no page
     var ord=f.variant_sku?fi.C(f.variant_sku):key;
     var k=[f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',ord,condOf(f)].join('|').toLowerCase();if(seen[k])return;seen[k]=1;
     var oa=ord!==key?fi.asmBy[ord]:null;
@@ -1410,11 +1411,19 @@ function fitRowsFor(a){
       &&(+o.year_from||0)<=(+r.year_from||0)&&(+o.year_to||9999)>=(+r.year_to||0);});
   });
 }
+// [Pages v1] A SKU that is sold on two or more website pages (for example one bushing kit sold as a Motor Mount kit and as a Transmission Mount kit)
+// shows once PER PAGE: each page keeps its own vehicles and its own link, and price, stock and ordering stay on the one SKU.
+function pageTitleOf(p,h){var t=p&&String(p.title||'').trim();if(t)return t;return String(h||'').replace(/[-_]+/g,' ').replace(/\b[a-z]/g,function(c){return c.toUpperCase();});}
+function fitPagesFor(a){
+  var fi=fitIndex(),key=fi.C(a.pn),m=fi.hs&&fi.hs[key];if(!m)return [];
+  var hs=Object.keys(m);if(hs.length<2)return [];
+  return hs.map(function(h){return {handle:h,title:pageTitleOf(fi.fp[h],h),url:SH_SITE+'/products/'+encodeURIComponent(h)};}).sort(function(x,y){return x.title.localeCompare(y.title,undefined,{numeric:true});});
+}
 function fitTotal(){return G.asms.filter(isVisible).reduce(function(n,a){return n+fitRowsFor(a).length;},0);}
 function dedupeFits(rows){
   var seen={};
   return (rows||[]).filter(function(f){
-    var k=[f.pn,f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',(f.engine||f.chassis)?'':(f.submodel||''),f.variant_sku||'',f.transmission||'',f.drivetrain||''].join('|').toLowerCase(); // a DSG row and a Manual row are different fitment
+    var k=[f.pn,f.handle||'',f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',(f.engine||f.chassis)?'':(f.submodel||''),f.variant_sku||'',f.transmission||'',f.drivetrain||''].join('|').toLowerCase(); // a DSG row and a Manual row are different fitment
     if(seen[k])return false;seen[k]=1;return true;
   });
 }
@@ -1668,13 +1677,13 @@ function filterFit(){
   const byVeh=!!(model||(yr>1949&&yr<2101));
   const d=safeDealer(),fi=fitIndex();
   const items=G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
-  let count=0,html='',uniHtml='',uniN=0;
+  let count=0,html='',uniHtml='',uniN=0;const _cnt={};
   const pnLink=(a,pn)=>a.product_url
       ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
       :'<span class="pn-plain">'+esc(pn)+'</span>';
-  items.forEach(a=>{
+  items.forEach(a=>{ const _pgs=fitPagesFor(a); (_pgs.length>1?_pgs:[null]).forEach(pg=>{
     const pn=pnOf(a),key=fi.C(a.pn);
-    const all=fitRowsFor(a);
+    const all=fitRowsFor(a,pg?pg.handle:undefined);
     const fits=all.filter(f=>{
       const mOk=(!make||(f.make||'').toLowerCase()===make)&&(!model||(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to))&&shopVehMatch(f.engine,V_.engine)&&shopVehMatch(f.chassis,V_.chassis);
       const qOk=!q||[f.engine,f.chassis,pn,a.description,f.make,f.model,f.submodel,f._order,f.notes,f.engine_code,condOf(f),String(f.year_from||''),String(f.year_to||'')].some(x=>String(x||'').toLowerCase().includes(q))
@@ -1690,7 +1699,7 @@ function filterFit(){
       return;
     }
     if(!fits.length)return;
-    count++;
+    if(!_cnt[key]){_cnt[key]=1;count++;}
     const makes=[...new Set(fits.map(f=>f.make).filter(Boolean))];
     const hasV2=fits.some(f=>f.engine||f.chassis);
     const hasOpt=fits.some(f=>f._opt);
@@ -1720,17 +1729,18 @@ function filterFit(){
     });
     const {cls:stCls,txt:stTxt}=stockOf(a);
     html+='<div class="fit-card">'
-      +'<div class="fit-card-hdr'+shopFitHdrClass()+'">'+shopFitThumb(a)
+      +'<div class="fit-card-hdr'+shopFitHdrClass()+'">'+shopFitThumb(a,pg)
         +'<div class="fit-card-left">'
-          +'<div class="fit-card-pn">'+pnLink(a,pn)+supersededNote+'</div>'
-          +'<div class="fit-card-desc">'+shopFitTitle(a)+'</div>'
+          +'<div class="fit-card-pn">'+(pg?'<a class="pn-link" href="'+esc(pg.url)+'" target="_blank">'+esc(pn)+'</a>':pnLink(a,pn))+supersededNote+'</div>'
+          +'<div class="fit-card-desc">'+shopFitTitle(a,pg)+'</div>'
           +'<div class="fit-card-apps">'
             +'<span class="fit-app-count">'+fits.length+' application'+(fits.length!==1?'s':'')+'</span>'
             +(makes.length?'<span class="fit-makes-list">'+makes.map(m=>esc(m)).join(', ')+'</span>':'')
             +'<span class="stock-badge '+stCls+'" style="font-size:9px;padding:2px 7px">'+stTxt+'</span>'
           +'</div>'
+          +(pg?'<div class="fit-opt-note">Same part number as '+_pgs.filter(x=>x!==pg).map(x=>'<b>'+esc(x.title)+'</b>').join(', ')+': it is the same item, listed for different vehicles.</div>':'')
           +(hasOpt?'<div class="fit-opt-note">Most vehicles use <b>'+esc(pn)+'</b>. A vehicle with an SKU in the <b>Order SKU</b> column needs that SKU instead.</div>':'')
-        +shopFitWeb(a)+'</div>'
+        +shopFitWeb(a,pg)+'</div>'
         +'<div class="fit-card-right"><div><div class="fit-price-net">'+fc(np)+'</div><div class="fit-price-msrp">'+fc(msrp)+'</div></div>'+shopFitCtl(a)+'</div>'
       +'</div>'
       +'<div class="fit-card-body">'
@@ -1738,7 +1748,7 @@ function filterFit(){
       +'<tbody>'+fitRows+'</tbody></table>'
       +'</div>'
       +'</div>';
-  });
+  });});
   if(uniN)html+='<div class="fit-card fit-uni"><div class="fit-card-hdr"><div class="fit-card-left"><div class="fit-card-desc">Universal fit</div><div class="fit-card-apps">'+uniN+' part'+(uniN!==1?'s':'')+' that work with any vehicle</div></div></div><div class="fit-card-body">'+uniHtml+'</div></div>';
   document.getElementById('fit-list').innerHTML=html||'<div style="text-align:center;padding:60px;color:var(--text3)">No fitments found.</div>';
   document.getElementById('fit-part-count').textContent=(count+uniN)+' part'+((count+uniN)!==1?'s':'');
@@ -1756,15 +1766,15 @@ function doExport(tab,fmt){
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
   }else{
-    rows=[['SKU','Description','Make','Model','Submodel','Engine','Engine Code','Chassis','Transmission','Drive','Year From','Year To','Order SKU','Notes','Your Price','MSRP']];
+    rows=[['SKU','Description','Make','Model','Submodel','Engine','Engine Code','Chassis','Transmission','Drive','Year From','Year To','Order SKU','Notes','Your Price','MSRP','Website page']];
     const fi=fitIndex();
     G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b))).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
-      const _all=fitRowsFor(a);
-      if(!_all.length&&fi.uni[fi.C(a.pn)]){rows.push([pnOf(a),a.description||'','Universal fit','All vehicles','','','','','','','','',pnOf(a),'',np.toFixed(2),msrp.toFixed(2)]);return;}
-      _all.forEach(f=>{const oa=f._orderAsm,op=oa?netP(oa.msrp||0,d,oa.sales_price):np;rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.engine_code||'',f.chassis||'',f.transmission||'',f.drivetrain||'',f.year_from||'',f.year_to||'',f._opt?f._order:pnOf(a),f.notes||'',op.toFixed(2),(oa?(oa.msrp||0):msrp).toFixed(2)]);});
+      const _pg=fitPagesFor(a);(_pg.length>1?_pg:[null]).forEach(pg=>{const _all=fitRowsFor(a,pg?pg.handle:undefined);
+      if(!_all.length&&fi.uni[fi.C(a.pn)]){rows.push([pnOf(a),a.description||'','Universal fit','All vehicles','','','','','','','','',pnOf(a),'',np.toFixed(2),msrp.toFixed(2),'']);return;}
+      _all.forEach(f=>{const oa=f._orderAsm,op=oa?netP(oa.msrp||0,d,oa.sales_price):np;rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.engine_code||'',f.chassis||'',f.transmission||'',f.drivetrain||'',f.year_from||'',f.year_to||'',f._opt?f._order:pnOf(a),f.notes||'',op.toFixed(2),(oa?(oa.msrp||0):msrp).toFixed(2),pg?pg.title:'']);});
       return;
-    });name='TGK-FitmentGuide';
+    });});name='TGK-FitmentGuide';
   }
   if(fmt==='csv'){
     const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -2279,7 +2289,7 @@ function shopItems(){
 }
 function shopFind(k){shopItems();return SH._by[String(k).toLowerCase()]||null;}
 // the product's page on the website (every product links back to it)
-function shopWebUrl(a){const u=String((a&&a.product_url)||'').trim();if(/^https?:\/\//i.test(u))return u;if(u&&u.charAt(0)==='/')return SH_SITE+u;return SH_SITE+'/search?q='+encodeURIComponent(a?pnOf(a):'');}
+function shopWebUrl(a,pg){if(pg&&pg.url)return pg.url;const u=String((a&&a.product_url)||'').trim();if(/^https?:\/\//i.test(u))return u;if(u&&u.charAt(0)==='/')return SH_SITE+u;return SH_SITE+'/search?q='+encodeURIComponent(a?pnOf(a):'');}
 function shopImg(k){return SH.images[String(k).toLowerCase()]||'';}
 // price for a quantity: this dealer's special price from that quantity up, otherwise the standard dealer price
 function shopPrice(a,qty){
@@ -2347,7 +2357,8 @@ function shopPriceBits(a,q){
   return {p,sub,tier};
 }
 function shopCardRefresh(k){
-  const a=shopFind(k),el=[].slice.call(document.querySelectorAll('.pcard')).find(x=>x.dataset.k===k);if(!a||!el)return;
+  const a=shopFind(k);if(!a)return;
+  [].slice.call(document.querySelectorAll('.pcard')).filter(x=>x.dataset.k===k).forEach(el=>{   // a SKU sold on two website pages has two tiles: both follow the one order line
   const inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,b=shopPriceBits(a,q);
   el.querySelector('.pprice b').textContent=shMoney(b.p.unit);
   el.querySelector('.pstd').innerHTML=b.sub;
@@ -2355,6 +2366,7 @@ function shopCardRefresh(k){
   const inp=el.querySelector('.qty input');if(document.activeElement!==inp)inp.value=q;
   const btn=el.querySelector('.padd');
   if(btn.classList.contains('in')!==!!inC){btn.className='padd'+(inC?' in':'');btn.disabled=!!inC;btn.innerHTML=inC?'&#10003; IN ORDER':'<span class="t-long">ADD TO ORDER</span><span class="t-short">ADD</span>';}   // only when the state changes: rewriting it on every quantity change would swallow a click that is in progress
+  });
 }
 function shopFitRefresh(k){ // the order controls on Fitment Guide cards
   [].slice.call(document.querySelectorAll('.fitctl')).forEach(el=>{
@@ -2453,22 +2465,25 @@ function shopInitDrawer(){
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SH.drawer)shopDrawerClose();});
 }
 // ---- the shop
-function shopMatches(a){
-  if(shopVehActive()&&!shopFitHits(a).length)return false; // a chosen vehicle: only parts that fit it, by the Fitment Guide's own rules
+function shopTiles(items){   // [Pages v1] one tile per website page when a SKU is sold on two or more pages
+  const out=[];items.forEach(a=>{const pgs=fitPagesFor(a);if(pgs.length>1)pgs.forEach(pg=>out.push({a:a,pg:pg}));else out.push({a:a,pg:null});});return out;
+}
+function shopMatches(a,pg){
+  if(shopVehActive()&&!shopFitHits(a,pg?pg.handle:undefined).length)return false; // a chosen vehicle: only parts that fit it, by the Fitment Guide's own rules
   const k=String(pnOf(a)).toLowerCase();
   if(SH.catSel.length&&!shopCatPaths(a).some(p=>shopPathStarts(p,SH.catSel)))return false;
   if(SH.flt==='specials'&&!shopHasSpecial(a))return false;
   if(SH.flt==='instock'){const s=stockOf(a).st;if(s!=='instock'&&s!=='build')return false;}
   if(SH.flt==='ordered'&&!ordInfo(a))return false;
   const q=(SH.q||'').toLowerCase().trim();if(!q)return true;
-  const hay=(k+' '+String(a.pn||'')+' '+String(a.description||'')).toLowerCase();return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
+  const hay=(k+' '+String(a.pn||'')+' '+String(a.description||'')+' '+(pg?pg.title:'')).toLowerCase();return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
 }
-function shopCard(a){
-  const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,b=shopPriceBits(a,q),st=stockOf(a),img=shopImg(k),url=shEsc(shopWebUrl(a));
+function shopCard(a,pg){
+  const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1,b=shopPriceBits(a,q),st=stockOf(a),img=shopImg(k),url=shEsc(shopWebUrl(a,pg)),nm=pg?pg.title:(a.description||'');
   const dot=(st.st==='backorder')?'#f0a030':'#3fbf7f',txt=(st.st==='backorder')?'Backordered &middot; '+shopShipNote(a):'In stock';
   return '<div class="pcard" data-k="'+shEsc(k)+'"><div class="pimg'+(img?'':' none')+'">'+(img?'<img src="'+shEsc(img)+'" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'none\');this.parentNode.textContent=\'NO PHOTO YET\'">':'NO PHOTO YET')+'</div>'
-   +'<div class="psku">'+esc(pnOf(a))+'</div><a class="pname" title="'+shEsc(a.description||'')+'" href="'+url+'" target="_blank" rel="noopener">'+esc(a.description||'')+'</a>'
-   +(shopVehActive()?'<div class="pfitline">'+shopFitTag(a)+shopFitHint(a)+'</div>':'')
+   +'<div class="psku">'+esc(pnOf(a))+'</div><a class="pname" title="'+shEsc(nm)+'" href="'+url+'" target="_blank" rel="noopener">'+esc(nm)+'</a>'
+   +(shopVehActive()?'<div class="pfitline">'+shopFitTag(a)+shopFitHint(a,pg)+'</div>':'')
    +'<div class="pprice"><b>'+shMoney(b.p.unit)+'</b><s>'+shMoney(b.p.msrp)+'</s></div><div class="pstd">'+b.sub+'</div><div class="ptier">'+esc(b.tier)+'</div>'
    +'<div class="pstock"><i style="background:'+dot+'"></i>'+txt+'</div>'
    +'<div class="pact"><div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="0" max="9999" value="'+q+'" aria-label="Quantity" data-k="'+shEsc(k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
@@ -2483,9 +2498,9 @@ function shopBar(){
 }
 function shopList(){
   const el=document.getElementById('shop-list');if(!el)return;
-  const all=shopItems(),rows=all.filter(shopMatches),show=rows.slice(0,SH.shown);
+  const all=shopTiles(shopItems()),rows=all.filter(t=>shopMatches(t.a,t.pg)),show=rows.slice(0,SH.shown);
   document.getElementById('shop-count').textContent=rows.length+' product'+(rows.length!==1?'s':'')+(shopVehActive()?' fit your '+shopVehLabel():'');
-  el.innerHTML=show.length?'<div class="shop-grid">'+show.map(shopCard).join('')+'</div>'+(rows.length>show.length?'<div style="text-align:center;margin-top:16px"><button class="btn" onclick="SH.shown+=24;shopList()">Show more</button></div>':''):'<div class="po-card" style="padding:40px;text-align:center;color:var(--text3)">No products match.</div>';
+  el.innerHTML=show.length?'<div class="shop-grid">'+show.map(t=>shopCard(t.a,t.pg)).join('')+'</div>'+(rows.length>show.length?'<div style="text-align:center;margin-top:16px"><button class="btn" onclick="SH.shown+=24;shopList()">Show more</button></div>':''):'<div class="po-card" style="padding:40px;text-align:center;color:var(--text3)">No products match.</div>';
   shopBarRefresh(true);
 }
 // ---- categories: the same departments as the website. They come from fit_products.category: "Engine > Intake, Fuel > Pumps"
@@ -2792,10 +2807,10 @@ function shopVehMatch(rowVal,chosen){   // a part that lists no engine (or chass
   const sp=x=>String(x).toLowerCase().split(/[,\/;|]+/).map(y=>y.trim()).filter(Boolean),a=sp(rowVal),b=sp(chosen);
   return a.some(x=>b.indexOf(x)>=0);
 }
-function shopFitHits(a){
+function shopFitHits(a,handle){
   if(typeof fitRowsFor!=='function')return [];
   const v=SH.veh,make=(v.make||'').toLowerCase(),model=(v.model||'').toLowerCase(),yr=parseInt(v.year,10)||0;
-  return fitRowsFor(a).filter(f=>(!make||String(f.make||'').toLowerCase()===make)&&(!model||String(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to))&&shopVehMatch(f.engine,v.engine)&&shopVehMatch(f.chassis,v.chassis));
+  return fitRowsFor(a,handle).filter(f=>(!make||String(f.make||'').toLowerCase()===make)&&(!model||String(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to))&&shopVehMatch(f.engine,v.engine)&&shopVehMatch(f.chassis,v.chassis));
 }
 function shopVehCount(){return shopItems().filter(a=>shopFitHits(a).length).length;}
 function shopVehSpec(){   // the chassis and engine codes, as small chips: the ones chosen, else those of the chosen model
@@ -2805,7 +2820,7 @@ function shopVehSpec(){   // the chassis and engine codes, as small chips: the o
   return Object.keys(ch).slice(0,2).concat(Object.keys(en).slice(0,2));
 }
 function shopFitTag(a){return shopVehActive()?'<span class="tagfit">&#10003; FITS '+esc(shopVehLabel().toUpperCase())+'</span>':'';}
-function shopFitHint(a){if(!shopVehActive())return '';const o=shopFitHits(a).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
+function shopFitHint(a,pg){if(!shopVehActive())return '';const o=shopFitHits(a,pg?pg.handle:undefined).find(x=>x._opt);return o?'<div class="pfit">This vehicle needs the right option. <a onclick="shopOpenFit()">See the Fitment Guide</a></div>':'';}
 // On a phone the finder is folded to its title line (five dropdowns would fill the screen); tapping the title opens or closes it.
 function shopFinderFolded(px){return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches)&&!(SH.fo&&SH.fo[px]);}
 function shopFinderToggle(px){
@@ -2863,9 +2878,9 @@ function shopOpenFit(){showTab('fit');}   // the Fitment Guide opens already set
 // ---- the Fitment Guide cards: photo, link to the website, and the same order controls as the shop
 function shopFitReady(){return !!(SH.available&&SH.loaded);}
 function shopFitHdrClass(){return shopFitReady()?'':' fit-nothumb';}
-function shopFitThumb(a){if(!shopFitReady())return '';const k=String(pnOf(a)).toLowerCase(),img=shopImg(k);return '<a class="fit-thumb" href="'+shEsc(shopWebUrl(a))+'" target="_blank" rel="noopener" aria-label="View on tgkmotorsport.com"><span>'+(img?'<img src="'+shEsc(img)+'" alt="" onerror="this.remove()">':'NO PHOTO YET')+'</span></a>';}
-function shopFitTitle(a){return shopFitReady()?'<a href="'+shEsc(shopWebUrl(a))+'" target="_blank" rel="noopener">'+esc(a.description||'')+'</a>':esc(a.description||'');}
-function shopFitWeb(a){return shopFitReady()?'<a class="fit-web" href="'+shEsc(shopWebUrl(a))+'" target="_blank" rel="noopener">View on tgkmotorsport.com &#8599;</a>':'';}
+function shopFitThumb(a,pg){if(!shopFitReady())return '';const k=String(pnOf(a)).toLowerCase(),img=shopImg(k);return '<a class="fit-thumb" href="'+shEsc(shopWebUrl(a,pg))+'" target="_blank" rel="noopener" aria-label="View on tgkmotorsport.com"><span>'+(img?'<img src="'+shEsc(img)+'" alt="" onerror="this.remove()">':'NO PHOTO YET')+'</span></a>';}
+function shopFitTitle(a,pg){return shopFitReady()?'<a href="'+shEsc(shopWebUrl(a,pg))+'" target="_blank" rel="noopener">'+esc(pg?pg.title:(a.description||''))+'</a>':esc(pg?pg.title:(a.description||''));}
+function shopFitWeb(a,pg){return shopFitReady()?'<a class="fit-web" href="'+shEsc(shopWebUrl(a,pg))+'" target="_blank" rel="noopener">View on tgkmotorsport.com &#8599;</a>':'';}
 function shopFitCtl(a){
   if(!shopFitReady()||!SH.canOrder)return '';
   const k=String(pnOf(a)).toLowerCase(),inC=SH.cart[k]||0,q=inC||SH.pend[k]||1;
