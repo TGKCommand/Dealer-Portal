@@ -2145,11 +2145,13 @@ async function poStaffToken(){ // a valid token, refreshing our own sign-in when
     if(r.ok&&j.access_token){PO.staffTok=j.access_token;PO.staffRef=j.refresh_token||PO.staffRef;PO.staffExp=Date.now()+(j.expires_in||3600)*1000;poStaffSave();return PO.staffTok;}}catch(e){}}
   poStaffClear();return null;
 }
+// the ERP's "Place an order" button opens the staff view with &tab=shop: land on the shop once the dealer's data has loaded
+function staffOpenTab(){try{if(new URLSearchParams(location.search).get('tab')==='shop'&&SH.available&&!PO.tabOpened){PO.tabOpened=true;showTab('shop');}}catch(e){}}
 async function staffBoot(){
   PO.staff=true;poStaffPickup();
   const show=(r)=>{document.getElementById('tab-orders').style.display='';SH.available=shOn(r);if(SH.available||PO.staff)document.getElementById('tab-shop').style.display='';shopHdr();}; // staff always see the Shop tab, with an explanation when the server is too old
   if(PO.staffTok&&await poStaffToken()){
-    try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show(c);PO.state='loading';renderStrip();await portalLoad(true);return;}
+    try{const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();show(c);PO.state='loading';renderStrip();await portalLoad(true);staffOpenTab();return;}
     catch(e){if(e.status===401)poStaffClear();else if(!(e.data&&e.data.error))return;}
   }
   let sres=null;try{sres=await poCall({action:'status'});}catch(e){if(!(e.status===404&&e.data&&e.data.error))return;} // the function has to be deployed
@@ -2173,7 +2175,7 @@ async function poStaffSignIn(){
     if(!r.ok||!j.access_token)throw new Error(/invalid/i.test((j.error_description||j.msg||'')+'')?'That email or password is not right.':((j.error_description||j.msg||'Sign-in failed.')+''));
     PO.staffTok=j.access_token;PO.staffRef=j.refresh_token||'';PO.staffExp=Date.now()+(j.expires_in||3600)*1000;
     const c=await poCall({action:'staff_check',staff_token:PO.staffTok});PO.staffWho=c.who;PO.dealerName=(c.dealer&&c.dealer.name)||'';poStaffSave();
-    PO.state='loading';PO.busy=false;PO.retries=0;renderStrip();renderOrders();await portalLoad(true);return;
+    PO.state='loading';PO.busy=false;PO.retries=0;renderStrip();renderOrders();await portalLoad(true);staffOpenTab();return;
   }catch(err){PO.err=err.status===401?'That login is not an ERP account.':err.message;poStaffClear(true);}
   PO.busy=false;renderStrip();renderOrders();
 }
@@ -2510,7 +2512,7 @@ function shopBar(){
   const L=shopLines(),T=shopTotals(L);
   if(!L.length)return '<div class="po-sub" style="padding:0 28px 4px">Your order is empty. Add items to start an order.</div>';
   return '<div class="shop-bar"><b style="letter-spacing:.1em">YOUR ORDER</b><span id="sb-items" style="color:#c9d1d6">'+T.items+' item'+(T.items!==1?'s':'')+' &middot; '+T.units+' unit'+(T.units!==1?'s':'')+'</span><span class="tot" id="sb-tot">'+shMoney(T.merch)+'</span><span class="sv" id="sb-sv" style="display:'+(T.save>0?'':'none')+'">You save '+shMoney(T.save)+' vs MSRP</span><span style="flex:1"></span>'
-   +(SH.staff?'<span style="color:#f0a559;font-size:13px">Staff view: ordering is turned off</span><button type="button" class="go" onclick="shopReview()">PREVIEW CHECKOUT</button>':'<button type="button" class="go" onclick="shopReview()">CHECKOUT</button>')+'</div>';
+   +(SH.staff&&!SH.canOrder?'<span style="color:#f0a559;font-size:13px">Staff view: ordering is not available for this dealer</span><button type="button" class="go" onclick="shopReview()">PREVIEW CHECKOUT</button>':'<button type="button" class="go" onclick="shopReview()">CHECKOUT</button>')+'</div>';
 }
 function shopList(){
   const el=document.getElementById('shop-list');if(!el)return;
@@ -2593,7 +2595,7 @@ function renderShop(){
   const items=shopItems(),crow=shopCatRows(items);
   const chip=(label,on,fn)=>'<button type="button" class="chip'+(on?' on':'')+'" onclick="'+fn+'">'+label+'</button>';
   p.innerHTML='<div class="shop-wrap">'
-   +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. Only the dealer can place an order.</div>':'')
+   +(SH.staff?(SH.canOrder?'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you are placing an order for <b>'+esc(PO.dealerName||'this dealer')+'</b>. It is priced, checked and sent exactly like the dealer\'s own order, marked as placed by you, and the dealer is emailed a confirmation.</div>':'<div class="po-note" style="margin-bottom:16px"><b>Staff view</b>: you can browse exactly what this dealer sees. '+shopStaffNoOrderText()+'</div>'):'')
    +(!SH.canOrder&&!SH.staff?'<div class="po-note" style="margin-bottom:16px">'+shopNoOrderText()+'</div>':'')
    +shopFinderHtml()+'<div class="shop-top"><div class="search-wrap"><svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" type="text" id="shop-q" aria-label="Search SKU or part name" placeholder="Search SKU or part name&hellip;" value="'+shEsc(SH.q)+'" oninput="SH.q=this.value;SH.shown=24;shopList()"></div><span class="shop-count" id="shop-count"></span>'+(SH.canOrder&&!SH.staff?'<button type="button" class="btn qo-btn" onclick="shopQuickOpen()">Quick order</button>':'')+'</div>'
    +shopCatUi(items,crow,chip)
@@ -2614,6 +2616,8 @@ function shopReviewTotals(){
 }
 const SH_COUNTRIES=[['US','United States'],['CA','Canada'],['MX','Mexico'],['GB','United Kingdom'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['CH','Switzerland'],['AT','Austria'],['AU','Australia'],['NZ','New Zealand'],['JP','Japan'],['KR','South Korea'],['SG','Singapore'],['AE','United Arab Emirates'],['ZA','South Africa'],['BR','Brazil']];
 function shopNoOrderText(){return SH.me&&SH.me.role==='viewer'?'You have <b>view-only</b> access: you can see prices and orders. Ask an admin on your team to give you ordering access.':'Ordering is not set up for your account yet. Please contact support@tgkmotorsport.com.';}
+// [staff ordering, server v1.27+] why staff cannot order for this dealer
+function shopStaffNoOrderText(){return !SH.prefix?'This dealer has no order code yet, so an order cannot be placed for them: set one in the ERP (Dealers, Order codes).':'Placing an order for a dealer needs dealer-portal v1.27 or later on the server.';}
 function shopNeedsPo(){return SH.payMode!=='prepay';}
 function shopCode(){const po=String((SH.form&&SH.form.po)||'').trim();return (SH.prefix||'')+(shopNeedsPo()&&po?' '+po:'');}
 // Pays up front: the code is just the dealer's code. Billed (marked paid): the code with the PO after it, and the PO is required.
@@ -2625,7 +2629,7 @@ function shopCodeHtml(){
   return box+'<label for="rv-po">PO number <span class="req">&middot; required</span></label><input type="text" id="rv-po" value="'+shEsc(F.po)+'" maxlength="39" placeholder="Your PO number" oninput="shopF(\'po\',this.value)">';
 }
 function shopStockingInner(){   // "This is a stocking order": the larger discount, with what it needs
-  const s=SH.offers&&SH.offers.stocking;if(!s||SH.staff)return '';
+  const s=SH.offers&&SH.offers.stocking;if(!s||(SH.staff&&!SH.canOrder))return '';
   const L=shopLines(),norm=shopNormalSub(L),on=!!SH.form.stocking,need=Math.max(0,shR2((s.min_order||0)-norm));
   return '<label class="chk stk"><input type="checkbox" id="rv-stk" '+(on?'checked ':'')+'onchange="shopF(\'stocking\',this.checked)"><b>This is a stocking order</b><span class="stk-sub">'+s.pct+'% off MSRP'+(s.min_order>0?' on orders of '+shMoney(s.min_order)+' or more (at your usual prices)':'')+'</span></label>'
     +(on&&need>0?'<div class="stk-warn" id="rv-stk-msg">Add '+shMoney(need)+' more to qualify. Your order is '+shMoney(norm)+' at your usual prices. Or uncheck the box to place a regular order.</div>':'')
@@ -2643,7 +2647,7 @@ function shopReviewPage(p){
     +'<div class="qty"><button type="button" aria-label="Less" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,-1)">&minus;</button><input type="number" min="1" max="9999" value="'+l.qty+'" aria-label="Quantity" data-k="'+shEsc(l.k)+'" onchange="shopQtySet(this.dataset.k,this.value)"><button type="button" aria-label="More" data-k="'+shEsc(l.k)+'" onclick="shopQty(this.dataset.k,1)">+</button></div>'
     +'<div><div class="rl-unit">'+shMoney(l.p.unit)+'</div><div class="rl-std" style="display:'+(l.p.special?'':'none')+'">standard '+shMoney(l.p.std)+'</div></div><div class="rl-total">'+shMoney(l.total)+'</div><button type="button" class="rv-x" aria-label="Remove" data-k="'+shEsc(l.k)+'" onclick="shopRemove(this.dataset.k)">&times;</button></div>';}).join('');
   p.innerHTML='<div class="shop-wrap"><h1 class="co-h1">Checkout</h1>'
-   +(SH.staff?'<div class="po-note" style="margin-bottom:16px"><b>Staff preview.</b> This is exactly what the dealer sees at checkout. Only the dealer can submit an order.</div>':'')
+   +(SH.staff?(SH.canOrder?'<div class="po-note" style="margin-bottom:16px"><b>Placing an order for '+esc(PO.dealerName||'the dealer')+' as '+esc(PO.staffWho||'staff')+'.</b> Check the items, the PO and the ship-to. The dealer is emailed a confirmation'+(SH.payMode==='prepay'?' with a link to pay':'')+'.</div>':'<div class="po-note" style="margin-bottom:16px"><b>Staff preview.</b> This is exactly what the dealer sees at checkout. '+shopStaffNoOrderText()+'</div>'):'')
    +'<div class="co-grid rv"><div><div class="co-bar"><span>Your order</span><span id="rv-count">'+T.items+' item'+(T.items!==1?'s':'')+' · '+T.units+' units</span></div><div class="co-card">'+lines+'<div class="co-note">Backordered items ship when they arrive. Prices are checked again when you submit.</div></div></div>'
    +'<div><div class="co-bar"><span>Checkout</span></div><div class="co-card rv-form">'+shopCodeHtml()+shopStockingHtml()+shopAddrHtml()
    +'<label class="chk"><input type="checkbox" '+(F.drop?'checked ':'')+'onchange="shopF(\'drop\',this.checked);document.getElementById(\'rv-nm\').textContent=this.checked?\'Customer name\':\'Name / company\'">Ship to my customer instead (drop-ship)</label>'
@@ -2652,30 +2656,30 @@ function shopReviewPage(p){
    +'<label>Notes for TGK (optional)</label><textarea rows="2" maxlength="400" oninput="shopF(\'notes\',this.value)">'+esc(F.notes)+'</textarea>'
    +'<div class="rv-pay"><b>Payment</b><br>'+esc(shopPayText())+'</div><div class="rv-tot" id="rv-tot"></div>'
    +'<div class="po-err" id="rv-err">'+esc(SH.formErr)+'</div>'
-   +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder||SH.staff?' disabled':'')+'>'+(SH.staff?'STAFF PREVIEW: CANNOT SUBMIT':SH.busy?'SUBMITTING&hellip;':'SUBMIT ORDER')+'</button>'
-   +(!SH.canOrder&&!SH.staff?'<div class="po-sub" style="margin-top:8px">'+shopNoOrderText()+'</div>':'')
+   +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder?' disabled':'')+'>'+(SH.busy?'SUBMITTING&hellip;':SH.staff?(SH.canOrder?'PLACE ORDER FOR '+esc(String(PO.dealerName||'DEALER').toUpperCase()):'STAFF PREVIEW: CANNOT SUBMIT'):'SUBMIT ORDER')+'</button>'
+   +(!SH.canOrder?'<div class="po-sub" style="margin-top:8px">'+(SH.staff?shopStaffNoOrderText():shopNoOrderText())+'</div>':'')
    +'<button type="button" class="co-back" onclick="shopBack()">&larr; Continue shopping</button></div></div></div></div>';
   shopReviewTotals();
 }
 async function shopSubmit(){
-  if(SH.busy||SH.staff)return;const F=SH.form,L=shopLines();
+  if(SH.busy||(SH.staff&&!SH.canOrder))return;const F=SH.form,L=shopLines();
   const fail=m=>{SH.formErr=m;const e=document.getElementById('rv-err');if(e)e.textContent=m;};
   if(!L.length)return fail('Your order is empty.');
   if(shopNeedsPo()){if(!F.po.trim())return fail('Please enter your PO number. Orders billed to your account need one.');if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('That PO number has an unusual character. Use letters, numbers, spaces, dashes or dots.');}
   if(F.stocking&&SH.offers&&SH.offers.stocking){const need=shR2((SH.offers.stocking.min_order||0)-shopNormalSub(L));if(need>0)return fail('A stocking order needs at least '+shMoney(SH.offers.stocking.min_order)+' at your usual prices: add '+shMoney(need)+' more, or uncheck "This is a stocking order".');}
   if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
-  let pop=null;if(SH.payMode==='prepay')pop=payOpenBlank();   // opened right now, inside the click, so the browser allows it
+  let pop=null;if(SH.payMode==='prepay'&&!SH.staff)pop=payOpenBlank();   // staff do not get a payment window opened for them   // opened right now, inside the click, so the browser allows it
   SH.busy=true;SH.formErr='';renderShop();
   try{
-    const j=await poCall({action:'submit_order',session:PO.session,po:shopNeedsPo()?F.po.trim():'',stocking:!!(F.stocking&&SH.offers&&SH.offers.stocking),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
-    try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
+    const j=await poCall({action:'submit_order',...(PO.staff?{staff_token:await poStaffToken()}:{session:PO.session}),po:shopNeedsPo()?F.po.trim():'',stocking:!!(F.stocking&&SH.offers&&SH.offers.stocking),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
+    if(!PO.staff)try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
     SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.done=j;SH.view='done';SH.busy=false;
-    if(j.status==='awaiting_payment'&&payOk(j.invoice_url))payGo(pop,j.id,j.invoice_url);else if(pop){try{pop.close();}catch(e2){}}
+    if(j.status==='awaiting_payment'&&payOk(j.invoice_url)&&!PO.staff)payGo(pop,j.id,j.invoice_url);else if(pop){try{pop.close();}catch(e2){}}
     await shopRefreshReqs();renderShop();window.scrollTo(0,0);renderOrders();
     portalLoad(false,true);
   }catch(e){
     SH.busy=false;if(pop){try{pop.close();}catch(e2){}}
-    if(e.status===401){poForget();PO.state='locked';SH.formErr='';renderStrip();renderShop();return;}
+    if(e.status===401){if(PO.staff)poStaffClear();else poForget();PO.state='locked';SH.formErr='';renderStrip();renderShop();return;}
     SH.formErr=e.message||'We could not submit your order. Please try again.';renderShop();
   }
 }
@@ -2683,7 +2687,11 @@ function shopDone(p){
   const d=SH.done,ref=d.po?' (PO '+esc(d.po)+')':'',waiting=d.status==='awaiting_payment'&&d.invoice_url&&payOk(d.invoice_url);
   const ps=(waiting&&String(PAY.id)===String(d.id))?PAY.state:(d.status==='sent'&&String(PAY.id)===String(d.id)&&PAY.state==='paid'?'paid':'');
   let head,msg,btn='';
-  if(ps==='paid'){head='Payment received: your order is in';msg='Order '+esc(d.order_name||'')+' was created'+ref+'. We ship it right away. It will show in My Orders in a moment.';}
+  if(PO.staff){const who=esc(PO.dealerName||'the dealer');   // staff placed it for the dealer
+    if(d.status==='sent'){head='Order placed for '+who;msg='Order '+esc(d.order_name||'')+' was created in Shopify'+ref+'. The dealer was emailed a confirmation.';}
+    else if(d.status==='awaiting_payment'){head='Order saved: waiting for payment';msg='The order'+ref+' is saved and a payment link was emailed to the dealer. To take payment now (for example by phone), use the payment page.';if(payOk(d.invoice_url))btn='<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">OPEN THE PAYMENT PAGE &rarr;</a> <button type="button" class="btn" data-u="'+shEsc(d.invoice_url)+'" onclick="try{navigator.clipboard.writeText(this.dataset.u);this.textContent=\'Copied\';}catch(e){}">Copy the payment link</button>';}
+    else{head='Order saved for '+who;msg='The order'+ref+' is saved and waiting in the ERP (Dealer orders). The dealer was emailed a confirmation.';}
+  }else if(ps==='paid'){head='Payment received: your order is in';msg='Order '+esc(d.order_name||'')+' was created'+ref+'. We ship it right away. It will show in My Orders in a moment.';}
   else if(ps==='waiting'){head='Complete your payment';msg='A secure Shopify payment window is open. Finish paying there and this page updates by itself. Your order'+ref+' is saved.';btn='<button type="button" class="btn" onclick="shopPayReopen()">Reopen the payment window</button>';}
   else if(ps==='closed'){head='Payment not finished';msg='The payment window was closed before the payment went through. Your order'+ref+' is saved and waiting for payment.';btn='<button type="button" class="big-btn" style="border:0;cursor:pointer" onclick="shopPayReopen()">PAY NOW &rarr;</button>';}
   else if(waiting){head='One more step: pay for your order';msg='Your order'+ref+' is saved. Pay now and we ship it right away. We also emailed you the link.';btn='<a class="big-btn" href="'+shEsc(d.invoice_url)+'" target="_blank" rel="noopener">PAY NOW &rarr;</a>';}
@@ -2692,7 +2700,7 @@ function shopDone(p){
   p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div class="ok">'+(ps==='waiting'||ps==='closed'||(waiting&&!ps)?'&#9679;':'&#10003;')+'</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55" role="status">'+msg+'</div>'
    +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' unit'+(d.totals.units!==1?'s':'')+'<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span><br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
    +(btn?'<div style="margin-bottom:6px">'+btn+'</div>':'')
-   +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">View my orders</button></div></div></div>';
+   +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">'+(PO.staff?'View their orders':'View my orders')+'</button></div></div></div>';
 }
 // ---- paying: Shopify's secure payment page opens in a popup window; the portal notices the payment and closes it
 var PAY={id:null,url:'',win:null,state:'',timer:null,since:0,busy:false};
@@ -2969,7 +2977,7 @@ function shopOfferBar(){
   const O=SH.offers||{},bits=[];
   (O.promos||[]).forEach(p=>{bits.push('<span class="ob-item"><b>'+esc(p.name)+'</b>: '+p.pct+'% off MSRP'+(p.min_order>0?' on orders of '+shMoney(p.min_order)+'+':'')+(p.ends_on?' &middot; ends '+esc(poDate(p.ends_on)):'')+(p.note?' &middot; '+esc(p.note):'')+'</span>');});
   if(O.stocking)bits.push('<span class="ob-item"><b>Stocking orders</b>: '+O.stocking.pct+'% off MSRP'+(O.stocking.min_order>0?' on orders of '+shMoney(O.stocking.min_order)+'+':'')+' &middot; tick &ldquo;This is a stocking order&rdquo; at checkout'+(O.stocking.note?' &middot; '+esc(O.stocking.note):'')+'</span>');
-  el.innerHTML=bits.join('');el.style.display=bits.length&&!SH.staff?'flex':'none';
+  el.innerHTML=bits.join('');el.style.display=bits.length&&!(SH.staff&&!SH.canOrder)?'flex':'none';
 }
 
 // ---------------------------------------------------------------- adding many lines at once: Order again, Quick order
@@ -3041,7 +3049,8 @@ function shopQuickAdd(){
 }
 // ---------------------------------------------------------------- saved ship-to addresses, at checkout
 function shopAddrHtml(){
-  if(SH.staff||!SH.canOrder)return '';
+  if(!SH.canOrder)return '';
+  if(SH.staff)return '<div class="addr-book" id="addr-book"><label for="addr-pick">The dealer\'s saved addresses</label><select id="addr-pick" onchange="shopAddrPick(this.value)"><option value="">'+(SH.addrs&&SH.addrs.length?'Choose a saved address&hellip;':'None saved')+'</option>'+(SH.addrs||[]).map(a=>'<option value="'+shEsc(a.id)+'"'+(a.id===SH.addrSel?' selected':'')+'>'+esc(a.label)+' &middot; '+esc(a.city)+', '+esc(a.province)+'</option>').join('')+'</select></div>';
   const sel=SH.addrSel,cur=(SH.addrs||[]).find(a=>a.id===sel);
   return '<div class="addr-book" id="addr-book"><label for="addr-pick">Saved addresses</label><select id="addr-pick" onchange="shopAddrPick(this.value)"><option value="">'+(SH.addrs&&SH.addrs.length?'Choose a saved address&hellip;':'None saved yet')+'</option>'+(SH.addrs||[]).map(a=>'<option value="'+shEsc(a.id)+'"'+(a.id===sel?' selected':'')+'>'+esc(a.label)+' &middot; '+esc(a.city)+', '+esc(a.province)+'</option>').join('')+'</select>'
     +'<div class="addr-save"><input type="text" id="addr-label" maxlength="40" placeholder="Name this address (for example Austin shop)" value="'+shEsc(cur?cur.label:'')+'"><button type="button" class="btn" onclick="shopAddrSave()">'+(cur?'Update':'Save')+'</button>'+(cur?'<button type="button" class="btn" onclick="shopAddrDelete()">Delete</button>':'')+'</div><div class="addr-msg" id="addr-msg" role="status"></div></div>';
