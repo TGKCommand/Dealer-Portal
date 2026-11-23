@@ -1990,6 +1990,21 @@ function poMatches(o){
   const hay=[o.po,o.order_number,o.status].concat((o.tracking||[]).map(t=>t.number)).concat(o.lines.flatMap(l=>[l.sku,l.pn,l.desc])).join(' ').toLowerCase();
   return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
 }
+// [dealer page] STAFF VIEW ONLY: what the server actually sent for this range, so "why does it stop in July?" can be answered at a glance.
+function poDiag(all){
+  const ds=all.map(o=>String(o.date).slice(0,10)).filter(Boolean).sort();
+  if(!ds.length)return ' \u00b7 0 orders returned';
+  const vc={};all.forEach(o=>{const v=o.via||'code';vc[v]=(vc[v]||0)+1;});   // server v1.26+: how each order was matched
+  const how=(vc.extra||vc.customer)?' \u00b7 '+(vc.code||0)+' by code, '+(vc.extra||0)+' by linked code, '+(vc.customer||0)+' by customer':'';
+  return ' \u00b7 '+all.length+' orders returned'+how+', '+ds[0]+' to '+ds[ds.length-1]+(PO.truncated?' \u00b7 CUT OFF by the server: it sent only the newest orders':' \u00b7 not cut off');
+}
+function poGapNote(all){
+  if(!PO.staff||(PO.range||'365')!=='365')return '';
+  const ds=all.map(o=>String(o.date).slice(0,10)).filter(Boolean).sort();if(!ds.length)return '';
+  const cut=new Date(Date.now()-330*864e5).toISOString().slice(0,10);
+  if(ds[0]<=cut)return '';
+  return ' STAFF: the oldest order the server sent for the last 12 months is '+ds[0]+'. If this dealer ordered before that, the server did not send those orders: either they have no PO code in the ERP yet (Planning, Sales history, Fill in PO codes), or the dealer-portal function cut the list'+(PO.truncated?' (it says it did)':'')+'.';
+}
 function poList(){
   const all=PO.orders,rows=all.filter(poMatches),sm=poSum(all.filter(o=>o.status!=='Cancelled')),act=all.filter(o=>o.status!=='Cancelled');
   const open=all.filter(o=>PO_OPEN.indexOf(o.status)>=0),bo=open.filter(o=>o.lines.some(l=>l.backordered>0)),recent=Date.now()-14*864e5,transit=all.filter(o=>(o.status==='Shipped'||o.status==='Partially shipped')&&(o.tracking||[]).length&&Math.max.apply(null,o.tracking.map(t=>Date.parse(String(t.shipped_at||o.date).slice(0,10)+'T12:00:00')||0))>=recent); // the ERP rarely marks orders Delivered, so "shipped" alone would count every order ever sent
@@ -2003,7 +2018,8 @@ function poList(){
    +(PO.billed?poBalTile(all):'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>');
   document.getElementById('po-amtnote').textContent=PO.amountsAvail?'Amounts are the merchandise total on '+(PO.staff?'the dealer\'s':'your')+' invoice, before shipping and tax.':'Amounts are not available right now. Everything else on your orders is up to date.';
   if(PO.billed){const an=document.getElementById('po-amtnote');an.textContent=an.textContent+' '+(PO.termsLabel?'Your terms: '+PO.termsLabel+', counted from the day the last item on a PO ships.':'A PO is billed on the day its last item ships.');}
-  if(typeof liveChip==='function')liveChip();document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1'):'');
+  {const gn=poGapNote(all);if(gn){const an2=document.getElementById('po-amtnote');an2.textContent=an2.textContent+gn;}}
+  if(typeof liveChip==='function')liveChip();document.getElementById('po-upd').textContent=(PO.ranAt?'Updated '+new Date(PO.ranAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+(PO.staff?' \u00b7 server '+(PO.build||'older than v1.1')+poDiag(all):'');
   const counts={};all.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
   document.getElementById('po-chips').innerHTML='<button class="po-chip'+(PO.status==='all'?' on':'')+'" onclick="poStatus(\'all\')">All <span>'+all.length+'</span></button>'+(PO.billed?poPayChips(all):'')+PO_ORDER.filter(s=>counts[s]).map(s=>'<button class="po-chip'+(PO.status===s?' on':'')+'" onclick="poStatus(\''+s+'\')">'+s+' <span>'+counts[s]+'</span></button>').join('');
   const card=document.getElementById('po-card');
