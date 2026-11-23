@@ -1885,13 +1885,13 @@ async function portalLoad(first,yearToo){
     const rangeIsYear=(PO.range||'365')==='365';let stale=false;
     if(first||yearToo||!PO.year||rangeIsYear){ // the last 12 months always stay loaded: they feed the account strip, the tab badge and the price list column
       const jy=await poFetchOrders({days:365});
-      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.build=jy.build||'';PO.billed=!!(jy.billing&&jy.billing.billed);PO.termsLabel=(jy.billing&&jy.billing.terms_label)||'';
+      PO.year=jy.orders||[];PO.pendY=jy.amounts_pending||0;PO.amountsAvail=jy.amounts_available!==false;PO.noPrefix=!!jy.no_prefix;PO.ranAt=jy.generated_at;PO.truncatedY=!!jy.truncated;PO.pricingY=jy.pricing||null;PO.build=jy.build||'';PO.billed=!!(jy.billing&&jy.billing.billed);PO.termsLabel=(jy.billing&&jy.billing.terms_label)||'';
     }
-    if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;}
+    if(rangeIsYear){PO.orders=PO.year;PO.pendR=PO.pendY;PO.truncated=PO.truncatedY;PO.pricing=PO.pricingY;}
     else{
       const jr=await poFetchOrders(poRangeParams());PO.build=jr.build||PO.build;if(jr.billing){PO.billed=!!jr.billing.billed;PO.termsLabel=jr.billing.terms_label||'';}
       if(PO.range==='custom'&&!jr.range)stale=true; // an older server ignores the dates and would send everything: do not show that as if it were this range
-      else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
+      else{PO.orders=jr.orders||[];PO.pendR=jr.amounts_pending||0;PO.truncated=!!jr.truncated;PO.pricing=jr.pricing||null;PO.ranAt=jr.generated_at;if(jr.amounts_available===false)PO.amountsAvail=false;}
     }
     try{if(typeof liveStart==='function')liveStart();}catch(e){}   // from here the page keeps itself fresh
     PO.state='ready';PO.err='';PO.rangeErr=stale?(PO.staff?'The dealer-portal function on the server is an older version that ignores dates. Redeploy the newest dealer-portal.ts (v1.1 or later). The list below is unchanged.':'Custom dates are not available right now. Please use one of the standard ranges, or email support@tgkmotorsport.com.'):'';
@@ -1920,7 +1920,7 @@ function renderTabBadge(){
   el.style.display=n?'':'none';el.textContent=n+' open';
 }
 function poYear(){const cut=Date.now()-365*864e5;return (PO.year||[]).filter(o=>o.status!=='Cancelled'&&Date.parse(String(o.date).slice(0,10)+'T12:00:00')>=cut);}
-function poSum(list){let s=0,miss=0;list.forEach(o=>{if(o.amounts&&o.amounts.subtotal!=null)s+=o.amounts.subtotal;else miss++;});return {s,miss};}
+function poSum(list){let s=0,miss=0,wait=0,na=0;list.forEach(o=>{if(o.amounts&&o.amounts.subtotal!=null)s+=o.amounts.subtotal;else{miss++;if(o.amounts_state==='unavailable')na++;else wait++;}});return {s,miss,wait,na};}   // wait = still being priced, na = no amount on file (server v1.28+)
 function renderStrip(){
   const el=document.getElementById('acct-strip'),tbl=document.querySelector('#panel-price table'),chip=document.getElementById('pf-ordered');if(!el)return;
   const on=PO.state==='ready';
@@ -1929,7 +1929,7 @@ function renderStrip(){
   if(PO.state==='idle'||PO.state==='error'&&!PO.orders.length){el.innerHTML='';return;}
   if(PO.state==='locked'||PO.state==='loading'){el.innerHTML='<div class="acct-bar"><span class="acct-title">'+(PO.staff?'Staff view':'Your orders')+'</span><span>'+(PO.state==='loading'?'Loading order history&hellip;':(PO.staff?'Sign in with your ERP login to see this dealer\'s orders.':'Order history is private.'))+'</span>'+(PO.state==='locked'?'<span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">'+(PO.staff?'Staff sign-in':'Unlock my orders')+' &rarr;</a></span>':'')+'</div>';return;}
   const y=poYear(),sm=poSum(y),open=(PO.year||[]).filter(o=>PO_OPEN.indexOf(o.status)>=0).length;
-  el.innerHTML='<div class="acct-bar on"><span class="acct-title">'+(PO.staff?'Staff view':'Your account')+'</span><span>Ordered in the last 12 months: <b>'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</b>'+(sm.miss&&PO.amountsAvail?' <span style="color:var(--text3)">(+'+sm.miss+' pricing)</span>':'')+'</span><span>'+y.length+' PO'+(y.length!==1?'s':'')+'</span><span style="color:var(--amber)"><b>'+open+'</b> open</span><span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">View my orders &rarr;</a></span></div>';
+  el.innerHTML='<div class="acct-bar on"><span class="acct-title">'+(PO.staff?'Staff view':'Your account')+'</span><span>Ordered in the last 12 months: <b>'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</b>'+((sm.wait||sm.na)&&PO.amountsAvail?' <span style="color:var(--text3)">('+(sm.wait?'+'+sm.wait+' pricing':'')+(sm.wait&&sm.na?', ':'')+(sm.na?sm.na+' without an amount on file':'')+')</span>':'')+'</span><span>'+y.length+' PO'+(y.length!==1?'s':'')+'</span><span style="color:var(--amber)"><b>'+open+'</b> open</span><span style="margin-left:auto"><a class="po-link" onclick="showTab(\'orders\')">View my orders &rarr;</a></span></div>';
 }
 function portalShown(){if(PO.built===false){PO.built=true;}renderOrders();}
 // ---- the My Orders panel
@@ -1991,12 +1991,18 @@ function poMatches(o){
   return q.split(/\s+/).every(w=>hay.indexOf(w)>=0);
 }
 // [dealer page] STAFF VIEW ONLY: what the server actually sent for this range, so "why does it stop in July?" can be answered at a glance.
+// [server v1.28+] STAFF: how the amounts were found (Shopify, or the price the ERP recorded) and why any are still waiting
+function poPricingNote(){
+  const pr=PO.pricing;if(!pr||!(pr.recorded||pr.waiting_no_id||pr.waiting_shopify))return '';
+  const w=(pr.waiting_no_id||0)+(pr.waiting_shopify||0);
+  return ' \u00b7 amounts: '+(pr.shopify||0)+' from Shopify, '+(pr.recorded||0)+' from prices the ERP recorded'+(w?', '+w+' without one ('+(pr.waiting_no_id||0)+' have no Shopify order id: Planning, Sales history, Fill in from Shopify; '+(pr.waiting_shopify||0)+' not returned by Shopify yet)':'');
+}
 function poDiag(all){
   const ds=all.map(o=>String(o.date).slice(0,10)).filter(Boolean).sort();
   if(!ds.length)return ' \u00b7 0 orders returned';
   const vc={};all.forEach(o=>{const v=o.via||'code';vc[v]=(vc[v]||0)+1;});   // server v1.26+: how each order was matched
   const how=(vc.extra||vc.customer)?' \u00b7 '+(vc.code||0)+' by code, '+(vc.extra||0)+' by linked code, '+(vc.customer||0)+' by customer':'';
-  return ' \u00b7 '+all.length+' orders returned'+how+', '+ds[0]+' to '+ds[ds.length-1]+(PO.truncated?' \u00b7 CUT OFF by the server: it sent only the newest orders':' \u00b7 not cut off');
+  return ' \u00b7 '+all.length+' orders returned'+how+', '+ds[0]+' to '+ds[ds.length-1]+(PO.truncated?' \u00b7 CUT OFF by the server: it sent only the newest orders':' \u00b7 not cut off')+poPricingNote();
 }
 function poGapNote(all){
   if(!PO.staff||(PO.range||'365')!=='365')return '';
@@ -2012,7 +2018,7 @@ function poList(){
   if((PO.range||'365')==='0'&&!PO.truncated){const dts=all.map(o=>String(o.date).slice(0,10)).filter(Boolean).sort();if(dts.length)rl='all time, since '+poDate(dts[0]);} // "all time" means since the first order on file: say when that is
   const last=all.filter(o=>o.status!=='Cancelled')[0];
   const st=document.getElementById('po-stats');if(!st)return;
-  st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+(sm.miss&&PO.amountsAvail?' &middot; '+sm.miss+' still pricing':'')+'</div></div>'
+  st.innerHTML='<div class="po-stat"><div class="l">Ordered &middot; '+rl+'</div><div class="n">'+(PO.amountsAvail?poMoney(sm.s):'&mdash;')+'</div><div class="s">across '+act.length+' PO'+(act.length!==1?'s':'')+' &middot; '+act.reduce((s,o)=>s+o.units,0)+' units'+((sm.wait||sm.na)&&PO.amountsAvail?(sm.wait?' &middot; '+sm.wait+' still pricing':'')+(sm.na?' &middot; '+sm.na+' without an amount on file':''):'')+'</div></div>'
    +'<div class="po-stat"><div class="l">Open POs</div><div class="n" style="color:var(--amber)">'+open.length+'</div><div class="s">'+(bo.length?bo.length+' with backordered items':'none backordered')+'</div></div>'
    +'<div class="po-stat"><div class="l">Shipped recently</div><div class="n" style="color:#0f766e">'+transit.length+'</div><div class="s">in the last 14 days, with tracking</div></div>'
    +(PO.billed?poBalTile(all):'<div class="po-stat"><div class="l">Last order</div><div class="n" style="font-size:22px;margin-top:8px">'+(last?poDate(last.date).replace(/, \d{4}$/,''):'&mdash;')+'</div><div class="s">'+(last?(last.po?'PO '+esc(last.po):'Order '+esc(last.order_number))+' &middot; '+esc(last.status.toLowerCase()):'')+'</div></div>');
@@ -2077,7 +2083,7 @@ function poRow(o){
   const op=!!PO.open[o.order_number],n=o.lines.filter(l=>l.status!=='Cancelled').length;
   let h='<tr class="po-row'+(op?' open':'')+'" onclick="poToggle(\''+esc(String(o.order_number).replace(/'/g,"\\'"))+'\')"><td><span class="po-num">'+esc(o.po||'No PO')+'</span><span class="po-ord">Order '+esc(o.order_number)+'</span></td><td>'+poDate(o.date)+'</td>'
    +'<td><span class="po-pill '+poSlug(o.status)+'">'+esc(o.status)+'</span>'+(o.status_detail?'<span class="ord-bo">'+esc(o.status_detail)+'</span>':'')+(o.expected?'<span class="ord-bo">expected '+poDate(o.expected)+'</span>':'')+'</td>'
-   +'<td>'+n+' item'+(n!==1?'s':'')+' &middot; '+o.units+' unit'+(o.units!==1?'s':'')+'</td><td class="r" style="font-weight:700;color:var(--text)">'+(o.amounts?poMoney(o.amounts.subtotal):'<span class="ord-none">'+(PO.amountsAvail?'pricing&hellip;':'&mdash;')+'</span>')+'</td>'
+   +'<td>'+n+' item'+(n!==1?'s':'')+' &middot; '+o.units+' unit'+(o.units!==1?'s':'')+'</td><td class="r" style="font-weight:700;color:var(--text)">'+(o.amounts?poMoney(o.amounts.subtotal):'<span class="ord-none"'+(o.amounts_state==='unavailable'?' title="No amount is on file for this order. Email support@tgkmotorsport.com and quote the PO number."':'')+'>'+(PO.amountsAvail&&o.amounts_state!=='unavailable'?'pricing&hellip;':'&mdash;')+'</span>')+'</td>'
    +(PO.billed?poPayCell(o):'')+'<td>'+poTrackLinks(o,true)+'</td><td style="color:var(--text3);text-align:center">'+(op?'&#9662;':'&#9656;')+'</td></tr>';
   if(op){
     const A=o.amounts;
