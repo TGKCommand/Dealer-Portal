@@ -780,6 +780,17 @@ a.rv-t:hover{text-decoration:underline}
 .codebox .val b{font-size:24px;font-weight:700;letter-spacing:.06em;color:#111}
 .codebox .val span{font-size:12.5px;color:var(--text3);line-height:1.35;flex:1 1 180px}
 .rv-pay{margin:16px 0;border-left:4px solid var(--orange);background:#f8f4ef;padding:11px 14px;font-size:14px;color:var(--text2);line-height:1.45}
+/* express shipping choice (server v1.30+) */
+.ship-opts{margin:16px 0 4px}
+.rv-form label.so-h{margin:0 0 7px}
+.rv-form label.so{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line,var(--border));border-radius:2px;padding:11px 13px;margin:0 0 8px;cursor:pointer;background:#fff;text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:500;color:var(--text)}
+.rv-form label.so input{margin:3px 0 0;width:17px;height:17px;flex:none}
+.rv-form label.so b{font-weight:700}
+.rv-form label.so .amt{margin-left:auto;font-weight:800;font-family:var(--mono,monospace);white-space:nowrap}
+.rv-form label.so small{display:block;font-weight:500;font-size:12.5px;color:var(--text3);margin-top:2px;line-height:1.4}
+.rv-form label.so.sel{border-color:var(--teal);background:#f0fbf9}
+.rv-form label.so.off{opacity:.65;cursor:not-allowed;background:#f7f8fa}
+.so-note{font-size:12.5px;color:var(--text3);margin:2px 0 6px;line-height:1.45}
 .rv-pay b{letter-spacing:.06em;text-transform:uppercase}
 .rv-tot{font-size:15px;color:var(--text2)}
 .rv-tot div{display:flex;justify-content:space-between;padding:5px 0}
@@ -2292,8 +2303,8 @@ function poStatementOpen(){
 // ── Dealer storefront: shop, cart drawer, checkout, flat shipping, order submission ──
 // Prices shown here are for display. The server prices every order again from its own data when it is submitted,
 // so nothing the browser sends can change what a dealer pays.
-var SH={restock:{},addrs:[],addrSel:'',offers:{promos:[],stocking:null},loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
-  form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:''},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
+var SH={restock:{},express:null,exq:null,addrs:[],addrSel:'',offers:{promos:[],stocking:null},loaded:false,loading:false,err:'',prices:{},images:{},ship:null,payMode:'prepay',canOrder:false,staff:false,cart:{},pend:{},q:'',catSel:[],catOpen:'',flt:'',view:'grid',shown:24,
+  form:{po:'',name:'',address1:'',address2:'',city:'',province:'',zip:'',country:'US',phone:'',drop:false,notes:'',ship:'standard'},busy:false,formErr:'',done:null,reqs:[],lastShip:null,_keyN:-1,_by:null,_items:null,
   veh:{year:'',make:'',model:'',engine:'',chassis:''},editVeh:true,prefix:'',me:null,available:false,drawer:false,_veh:null,_vehN:-1};
 const shKey=()=>'tgk_cart_'+tok().slice(0,16),shShipKey=()=>'tgk_ship_'+tok().slice(0,16);
 const shEsc=s=>esc(s).replace(/"/g,'&quot;');
@@ -2348,7 +2359,7 @@ async function shopLoad(){
     const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
     const [p,r,ad]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth)),poCall(Object.assign({action:'addresses'},auth)).catch(()=>({addresses:[]}))]);
     SH.addrs=(ad&&ad.addresses)||[];
-    SH.prices=p.prices||{};SH.restock=p.restock||{};SH.offers=p.offers||{promos:[],stocking:null};SH.images=p.images||{};SH.ship=p.shipping||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    SH.prices=p.prices||{};SH.restock=p.restock||{};SH.offers=p.offers||{promos:[],stocking:null};SH.images=p.images||{};SH.ship=p.shipping||null;SH.express=p.express||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
     if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
   }catch(e){SH.err=e.message||'The shop could not be loaded.';}
   SH.loading=false;shopAfterLoad();shopOfferBar();renderPrice();shopHdr();
@@ -2611,14 +2622,55 @@ function renderShop(){
 // ---- checkout
 function shopReview(){if(!shopLines().length)return;shopDrawerClose();SH.view='review';SH.formErr='';renderShop();window.scrollTo(0,0);}
 function shopBack(){SH.view='grid';SH.done=null;renderShop();}
-function shopF(name,val){SH.form[name]=val;if(name==='stocking'){renderShop();return;}if(name==='country'||name==='drop')shopReviewTotals();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.textContent=shopCode();}}
+function shopF(name,val){SH.form[name]=val;if(name==='stocking'){renderShop();return;}if(name==='country'||name==='drop')shopReviewTotals();if(['address1','address2','city','province','zip'].indexOf(name)>=0)shopExpSoon();if(name==='po'){const c=document.getElementById('rv-code');if(c)c.textContent=shopCode();}}
 function shopPayText(){return ({prepay:'A secure payment window opens as soon as you submit. We ship once it is paid.',billed_card:'Billed by TGK to the card we have on file for you. Nothing to pay now.',billed_invoice:'Billed by TGK on your invoice terms. Nothing to pay now.'})[SH.payMode]||'';}
+// ===== express shipping at checkout (server v1.30+): UPS Next Day / 2nd Day at the price ShipStation quotes for this cart and address, next to the dealer's Standard rate
+function shopExpDay(iso){const x=new Date(String(iso).slice(0,10)+'T12:00:00');return isNaN(x)?String(iso):x.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function shopExpSig(){const F=SH.form;return JSON.stringify([shopLines().map(l=>[pnOf(l.a),l.qty]),F.address1,F.address2,F.city,F.province,F.zip,F.country,!!F.drop]);}
+function shopExpReady(){const F=SH.form;return !!(SH.express&&SH.express.enabled&&String(F.country||'US')==='US'&&/^\d{5}/.test(String(F.zip||'').trim())&&String(F.address1||'').trim()&&String(F.city||'').trim()&&String(F.province||'').trim()&&shopLines().length);}
+// the chosen express option, only while its price is loaded and still offered
+function shopExpSel(){if(!SH.form.ship||SH.form.ship==='standard')return null;const q=SH.exq;if(!q||q.loading||!q.opts)return null;const o=q.opts.find(x=>x.code===SH.form.ship);return o&&o.available&&o.amount!=null?o:null;}
+let _shopExpT=null;
+function shopExpSoon(){if(!SH.express||!SH.express.enabled)return;if(SH.exq&&SH.exq.sig===shopExpSig()&&(SH.exq.opts||SH.exq.loading))return;clearTimeout(_shopExpT);_shopExpT=setTimeout(shopExpLoad,650);}
+function shopExpDraw(){const el=document.getElementById('rv-ship');if(el)el.innerHTML=shopExpHtml();}
+async function shopExpLoad(){
+  if(!SH.express||!SH.express.enabled)return;
+  if(!shopExpReady()){SH.exq=null;if(SH.form.ship!=='standard')SH.form.ship='standard';shopExpDraw();shopReviewTotals();return;}
+  const sig=shopExpSig();if(SH.exq&&SH.exq.sig===sig&&(SH.exq.opts||SH.exq.loading))return;
+  const seq=((SH.exq&&SH.exq.seq)||0)+1;SH.exq={sig,loading:true,opts:null,err:'',seq};shopExpDraw();
+  try{
+    const F=SH.form,j=await poCall({action:'shipping_quotes',...(PO.staff?{staff_token:await poStaffToken()}:{session:PO.session}),lines:shopLines().map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,ship_to:{address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country}});
+    if(!SH.exq||SH.exq.seq!==seq)return;   // an older answer: the address or cart changed meanwhile
+    SH.exq={sig,loading:false,opts:j.options||[],err:'',seq,cutoff:j.cutoff_text||'',minutes:j.minutes_left||0};
+    if(SH.form.ship!=='standard'&&!shopExpSel())SH.form.ship='standard';   // the choice is kept only while it is still offered
+  }catch(e){
+    if(!SH.exq||SH.exq.seq!==seq)return;
+    SH.exq={sig,loading:false,opts:[],err:'Express prices could not be loaded right now. Standard shipping is available.',seq};SH.form.ship='standard';
+  }
+  shopExpDraw();shopReviewTotals();
+}
+function shopShipSel(code){SH.form.ship=code;shopExpDraw();shopReviewTotals();}
+function shopExpHtml(){
+  const ex=SH.express;if(!ex||!ex.enabled)return '';
+  const F=SH.form,q=SH.exq,L=shopLines(),T=shopTotals(L),sq=shopShipQuote(F.country,T.merch);
+  const std='<label class="so'+(F.ship==='standard'?' sel':'')+'"><input type="radio" name="rv-ship" value="standard"'+(F.ship==='standard'?' checked':'')+' onchange="shopShipSel(\'standard\')"><span><b>Standard</b><small>'+(sq.free?'Free on this order':'Your dealer rate')+'</small></span><span class="amt">'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</span></label>';
+  let rows='';
+  if(!shopExpReady())rows='<div class="so-note">'+(String(F.country||'US')!=='US'?'UPS express shipping is available to US addresses.':'Enter the ship-to address to see UPS Next Day and 2nd Day prices.')+'</div>';
+  else if(!q||q.loading)rows='<div class="so-note">Getting UPS Next Day and 2nd Day prices&hellip;</div>';
+  else if(q.err)rows='<div class="so-note">'+esc(q.err)+'</div>';
+  else rows=(q.opts||[]).map(o=>{
+    if(!o.available)return '<label class="so off"><input type="radio" disabled><span><b>'+esc(o.name)+'</b><small>'+esc(o.reason||'Not available for this order')+'</small></span></label>';
+    const sel=F.ship===o.code,left=(o.code==='ups_next_day_air'&&q.minutes>0&&q.minutes<=240)?' ('+Math.floor(q.minutes/60)+'h '+(q.minutes%60)+'m left)':'';
+    return '<label class="so'+(sel?' sel':'')+'"><input type="radio" name="rv-ship" value="'+shEsc(o.code)+'"'+(sel?' checked':'')+' onchange="shopShipSel(this.value)"><span><b>'+esc(o.name)+'</b><small>Price calculated by UPS for this cart and address</small><small>Ships '+esc(shopExpDay(o.ships))+' &middot; arrives '+esc(shopExpDay(o.arrives))+(o.code==='ups_next_day_air'&&q.cutoff?' &middot; order by '+esc(q.cutoff)+left:'')+'</small></span><span class="amt">'+shMoney(o.amount)+'</span></label>';}).join('');
+  return '<div class="ship-opts"><label class="so-h">Shipping</label>'+std+rows+'</div>';
+}
 function shopReviewTotals(){
   const el=document.getElementById('rv-tot');if(!el)return;
-  const L=shopLines(),T=shopTotals(L),sq=shopShipQuote(SH.form.country,T.merch);
+  const L=shopLines(),T=shopTotals(L),sq=shopShipQuote(SH.form.country,T.merch),ex=shopExpSel();
   el.innerHTML='<div><span>Merchandise (your prices)</span><b>'+shMoney(T.merch)+'</b></div>'+(T.offer&&T.offerSave>0?'<div class="sv"><span>'+esc(T.offer.kind==='stocking'?'Stocking order':T.offer.name)+' ('+T.offer.pct+'% off MSRP) already included</span><b>&minus;'+shMoney(T.offerSave)+'</b></div>':'')+(T.save>0?'<div class="sv"><span>You save vs MSRP</span><b>&minus;'+shMoney(T.save)+'</b></div>':'')
-   +'<div><span>Shipping <span style="color:var(--text3);font-size:13px">flat rate'+(sq.free?' &middot; free on this order':'')+'</span></span><b>'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</b></div><div><span>Tax</span><span style="color:var(--text3)">on your invoice, if it applies</span></div>'
-   +'<div class="big"><span>TOTAL</span><span>'+shMoney(T.merch+(sq.amount||0))+'</span></div>';
+   +(ex?'<div><span>Shipping <span style="color:var(--text3);font-size:13px">'+esc(ex.name)+' &middot; calculated by UPS</span></span><b>'+shMoney(ex.amount)+'</b></div>':'<div><span>Shipping <span style="color:var(--text3);font-size:13px">flat rate'+(sq.free?' &middot; free on this order':'')+'</span></span><b>'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</b></div>')+'<div><span>Tax</span><span style="color:var(--text3)">on your invoice, if it applies</span></div>'
+   +'<div class="big"><span>TOTAL</span><span>'+shMoney(T.merch+(ex?ex.amount:(sq.amount||0)))+'</span></div>';
+  shopExpSoon();
 }
 const SH_COUNTRIES=[['US','United States'],['CA','Canada'],['MX','Mexico'],['GB','United Kingdom'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['CH','Switzerland'],['AT','Austria'],['AU','Australia'],['NZ','New Zealand'],['JP','Japan'],['KR','South Korea'],['SG','Singapore'],['AE','United Arab Emirates'],['ZA','South Africa'],['BR','Brazil']];
 function shopNoOrderText(){return SH.me&&SH.me.role==='viewer'?'You have <b>view-only</b> access: you can see prices and orders. Ask an admin on your team to give you ordering access.':'Ordering is not set up for your account yet. Please contact support@tgkmotorsport.com.';}
@@ -2658,14 +2710,14 @@ function shopReviewPage(p){
    +'<div><div class="co-bar"><span>Checkout</span></div><div class="co-card rv-form">'+shopCodeHtml()+shopStockingHtml()+shopAddrHtml()
    +'<label class="chk"><input type="checkbox" '+(F.drop?'checked ':'')+'onchange="shopF(\'drop\',this.checked);document.getElementById(\'rv-nm\').textContent=this.checked?\'Customer name\':\'Name / company\'">Ship to my customer instead (drop-ship)</label>'
    +'<label id="rv-nm">'+(F.drop?'Customer name':'Name / company')+'</label><input type="text" value="'+shEsc(F.name)+'" oninput="shopF(\'name\',this.value)">'
-   +inp('Street address','address1')+inp('Apartment, suite (optional)','address2')+'<div class="row2"><div>'+inp('City','city')+'</div><div>'+inp('State / province','province')+'</div></div><div class="row2"><div>'+inp('ZIP / postal code','zip')+'</div><div><label>Country</label><select onchange="shopF(\'country\',this.value)">'+SH_COUNTRIES.map(c=>'<option value="'+c[0]+'"'+(F.country===c[0]?' selected':'')+'>'+c[1]+'</option>').join('')+'</select></div></div>'+inp('Phone (optional)','phone')
+   +inp('Street address','address1')+inp('Apartment, suite (optional)','address2')+'<div class="row2"><div>'+inp('City','city')+'</div><div>'+inp('State / province','province')+'</div></div><div class="row2"><div>'+inp('ZIP / postal code','zip')+'</div><div><label>Country</label><select onchange="shopF(\'country\',this.value)">'+SH_COUNTRIES.map(c=>'<option value="'+c[0]+'"'+(F.country===c[0]?' selected':'')+'>'+c[1]+'</option>').join('')+'</select></div></div>'+inp('Phone (optional)','phone')+'<div id="rv-ship">'+shopExpHtml()+'</div>'
    +'<label>Notes for TGK (optional)</label><textarea rows="2" maxlength="400" oninput="shopF(\'notes\',this.value)">'+esc(F.notes)+'</textarea>'
    +'<div class="rv-pay"><b>Payment</b><br>'+esc(shopPayText())+'</div><div class="rv-tot" id="rv-tot"></div>'
    +'<div class="po-err" id="rv-err">'+esc(SH.formErr)+'</div>'
    +'<button class="rv-submit" id="rv-go" onclick="shopSubmit()"'+(SH.busy||!SH.canOrder?' disabled':'')+'>'+(SH.busy?'SUBMITTING&hellip;':SH.staff?(SH.canOrder?'PLACE ORDER FOR '+esc(String(PO.dealerName||'DEALER').toUpperCase()):'STAFF PREVIEW: CANNOT SUBMIT'):'SUBMIT ORDER')+'</button>'
    +(!SH.canOrder?'<div class="po-sub" style="margin-top:8px">'+(SH.staff?shopStaffNoOrderText():shopNoOrderText())+'</div>':'')
    +'<button type="button" class="co-back" onclick="shopBack()">&larr; Continue shopping</button></div></div></div></div>';
-  shopReviewTotals();
+  shopReviewTotals();shopExpLoad();
 }
 async function shopSubmit(){
   if(SH.busy||(SH.staff&&!SH.canOrder))return;const F=SH.form,L=shopLines();
@@ -2674,18 +2726,20 @@ async function shopSubmit(){
   if(shopNeedsPo()){if(!F.po.trim())return fail('Please enter your PO number. Orders billed to your account need one.');if(!/^[A-Za-z0-9][A-Za-z0-9 ._\-\/]{0,38}$/.test(F.po.trim()))return fail('That PO number has an unusual character. Use letters, numbers, spaces, dashes or dots.');}
   if(F.stocking&&SH.offers&&SH.offers.stocking){const need=shR2((SH.offers.stocking.min_order||0)-shopNormalSub(L));if(need>0)return fail('A stocking order needs at least '+shMoney(SH.offers.stocking.min_order)+' at your usual prices: add '+shMoney(need)+' more, or uncheck "This is a stocking order".');}
   if(!F.name.trim()||!F.address1.trim()||!F.city.trim()||!F.province.trim()||!F.zip.trim())return fail('Please complete the ship-to address.');
+  if(F.ship&&F.ship!=='standard'&&!shopExpSel())return fail('The express shipping price is not loaded or is no longer available. Choose Standard, or wait for the price to load.');
   let pop=null;if(SH.payMode==='prepay'&&!SH.staff)pop=payOpenBlank();   // staff do not get a payment window opened for them   // opened right now, inside the click, so the browser allows it
   SH.busy=true;SH.formErr='';renderShop();
   try{
-    const j=await poCall({action:'submit_order',...(PO.staff?{staff_token:await poStaffToken()}:{session:PO.session}),po:shopNeedsPo()?F.po.trim():'',stocking:!!(F.stocking&&SH.offers&&SH.offers.stocking),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
+    const j=await poCall({action:'submit_order',...(PO.staff?{staff_token:await poStaffToken()}:{session:PO.session}),po:shopNeedsPo()?F.po.trim():'',stocking:!!(F.stocking&&SH.offers&&SH.offers.stocking),lines:L.map(l=>({sku:pnOf(l.a),qty:l.qty})),drop_ship:!!F.drop,ship_service:(F.ship&&F.ship!=='standard')?F.ship:'standard',notes:F.notes,ship_to:{name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}});
     if(!PO.staff)try{localStorage.setItem(shShipKey(),JSON.stringify({name:F.name,address1:F.address1,address2:F.address2,city:F.city,province:F.province,zip:F.zip,country:F.country,phone:F.phone}));}catch(e){}
-    SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.done=j;SH.view='done';SH.busy=false;
+    SH.cart={};SH.pend={};shopSave();SH.form.po='';SH.form.notes='';SH.form.ship='standard';SH.exq=null;SH.done=j;SH.view='done';SH.busy=false;
     if(j.status==='awaiting_payment'&&payOk(j.invoice_url)&&!PO.staff)payGo(pop,j.id,j.invoice_url);else if(pop){try{pop.close();}catch(e2){}}
     await shopRefreshReqs();renderShop();window.scrollTo(0,0);renderOrders();
     portalLoad(false,true);
   }catch(e){
     SH.busy=false;if(pop){try{pop.close();}catch(e2){}}
     if(e.status===401){if(PO.staff)poStaffClear();else poForget();PO.state='locked';SH.formErr='';renderStrip();renderShop();return;}
+    if(e.status===409&&SH.form.ship&&SH.form.ship!=='standard'){SH.form.ship='standard';SH.exq=null;}   // the express option changed or the cutoff passed: back to Standard, and the prices are asked for again
     SH.formErr=e.message||'We could not submit your order. Please try again.';renderShop();
   }
 }
@@ -2704,7 +2758,7 @@ function shopDone(p){
   else if(d.status==='sent'){head='Your order is in';msg='Order '+esc(d.order_name||'')+' was created'+ref+'. It will show in My Orders in a moment.';}
   else{head='We received your order';msg='Your order'+ref+' is saved and our team will confirm it shortly. You will get an email.';}
   p.innerHTML='<div class="shop-wrap"><div class="shop-done"><div class="ok">'+(ps==='waiting'||ps==='closed'||(waiting&&!ps)?'&#9679;':'&#10003;')+'</div><h2>'+head+'</h2><div style="color:var(--text2);line-height:1.55" role="status">'+msg+'</div>'
-   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' unit'+(d.totals.units!==1?'s':'')+'<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span><br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
+   +'<div style="margin:16px 0;font-size:15px"><b>'+shMoney(d.totals.total)+'</b> total &middot; '+d.totals.units+' unit'+(d.totals.units!==1?'s':'')+'<br><span class="po-sub">Merchandise '+shMoney(d.totals.merchandise)+(d.totals.shipping!==null&&d.totals.shipping!==undefined?' &middot; shipping '+(d.shipping&&d.shipping.service?'('+esc(d.shipping.service.name)+') ':'')+(d.shipping&&d.shipping.free?'free':shMoney(d.totals.shipping)):'')+'</span>'+(d.shipping&&d.shipping.service?'<br><span class="po-sub"><b>'+esc(d.shipping.service.name)+'</b>: ships '+esc(shopExpDay(d.shipping.service.ships))+', estimated arrival '+esc(shopExpDay(d.shipping.service.arrives))+'</span>':'')+'<br><span class="po-sub">Discount code <b>'+esc((SH.prefix||'')+(d.po?' '+d.po:''))+'</b></span></div>'
    +(btn?'<div style="margin-bottom:6px">'+btn+'</div>':'')
    +'<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="shopBack()">Back to the shop</button><button class="btn" onclick="showTab(\'orders\')">'+(PO.staff?'View their orders':'View my orders')+'</button></div></div></div>';
 }
@@ -2760,7 +2814,7 @@ function shopMayCancel(r){return !!(SH.canOrder&&r.can_cancel&&SH.me&&(SH.me.rol
 function shopReqCard(){
   const all=(SH.reqs||[]).filter(r=>r.status!=='sent');if(!all.length)return '';
   const pay=all.filter(r=>r.status==='awaiting_payment'),wait=all.filter(r=>r.status!=='awaiting_payment'&&r.status!=='rejected'),bad=all.filter(r=>r.status==='rejected');
-  const head=r=>'<b class="rq-po">'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span class="rq-amt">'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; <b>'+shMoney(r.total)+'</b></span>';
+  const head=r=>'<b class="rq-po">'+(r.po?'PO '+esc(r.po):'No PO')+'</b><span class="po-sub">'+poDate(String(r.created_at).slice(0,10))+'</span><span class="rq-amt">'+r.units+' unit'+(r.units!==1?'s':'')+' &middot; <b>'+shMoney(r.total)+'</b>'+(r.ship_service?' <span class="po-sub">'+esc(r.ship_service)+'</span>':'')+'</span>';
   const cancel=r=>{
     if(!shopMayCancel(r))return '';
     if(String(SH.cancelAsk)===String(r.id))return '<span class="rq-ask" role="alertdialog" aria-label="Confirm cancel">Cancel this order?'+(r.status==='awaiting_payment'?' The payment link stops working.':'')+' <button type="button" class="po-btn rq-yes" data-i="'+shEsc(r.id)+'" onclick="shopCancelDo(this.dataset.i)"'+(SH.reqBusy?' disabled':'')+'>Yes, cancel it</button><button type="button" class="btn rq-keep" onclick="SH.cancelAsk=null;renderOrders()">Keep it</button></span>';
