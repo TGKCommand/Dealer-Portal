@@ -2359,7 +2359,7 @@ async function shopLoad(){
     const auth=PO.staff?{staff_token:await poStaffToken()}:{session:PO.session};
     const [p,r,ad]=await Promise.all([poCall(Object.assign({action:'prices'},auth)),poCall(Object.assign({action:'requests'},auth)),poCall(Object.assign({action:'addresses'},auth)).catch(()=>({addresses:[]}))]);
     SH.addrs=(ad&&ad.addresses)||[];
-    SH.prices=p.prices||{};SH.restock=p.restock||{};SH.offers=p.offers||{promos:[],stocking:null};SH.images=p.images||{};SH.ship=p.shipping||null;SH.express=p.express||null;SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
+    SH.prices=p.prices||{};SH.restock=p.restock||{};SH.offers=p.offers||{promos:[],stocking:null};SH.images=p.images||{};SH.ship=p.shipping||null;SH.express=p.express||null;SH.expState=(p.express===undefined)?'old':(p.express&&p.express.enabled?'on':'off');SH.payMode=p.pay_mode||'prepay';SH.canOrder=!!p.can_order;SH.me=p.me||null;SH.prefix=p.prefix||'';SH.staff=!!p.staff;SH.reqs=r.requests||[];SH.lastShip=r.last_ship_to||null;SH.loaded=true;
     if(SH.lastShip&&!SH.form.address1){const s=SH.lastShip;Object.assign(SH.form,{name:s.name||'',address1:s.address1||'',address2:s.address2||'',city:s.city||'',province:s.province||'',zip:s.zip||'',country:s.country||'US',phone:s.phone||''});}
   }catch(e){SH.err=e.message||'The shop could not be loaded.';}
   SH.loading=false;shopAfterLoad();shopOfferBar();renderPrice();shopHdr();
@@ -2651,7 +2651,11 @@ async function shopExpLoad(){
 }
 function shopShipSel(code){SH.form.ship=code;shopExpDraw();shopReviewTotals();}
 function shopExpHtml(){
-  const ex=SH.express;if(!ex||!ex.enabled)return '';
+  const ex=SH.express;
+  if(!ex||!ex.enabled){   // STAFF ONLY: say why dealers do not see a shipping choice yet (dealers see nothing)
+    if(!PO.staff||!SH.expState||SH.expState==='on')return '';
+    return '<div class="so-note" style="margin:14px 0 4px;padding:9px 11px;border-left:3px solid var(--amber);background:#fbf6ec"><b>Staff only: dealers do not see express shipping yet.</b> '+(SH.expState==='old'?'The dealer-portal function on the server is older than v1.30: replace it in Supabase (Edge Functions, dealer-portal).':'It is switched off or not complete: in the ERP open Dealers, Express shipping, tick <b>Offer express shipping</b>, enter the ZIP your orders ship from, Save, then press <b>Check it works</b>.')+'</div>';
+  }
   const F=SH.form,q=SH.exq,L=shopLines(),T=shopTotals(L),sq=shopShipQuote(F.country,T.merch);
   const std='<label class="so'+(F.ship==='standard'?' sel':'')+'"><input type="radio" name="rv-ship" value="standard"'+(F.ship==='standard'?' checked':'')+' onchange="shopShipSel(\'standard\')"><span><b>Standard</b><small>'+(sq.free?'Free on this order':'Your dealer rate')+'</small></span><span class="amt">'+(sq.amount===null?'quoted by TGK':(sq.free?'FREE':shMoney(sq.amount)))+'</span></label>';
   let rows='';
